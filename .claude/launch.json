@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hireme",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "hireme-test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:test"
+      ],
+      "port": 3001
+    }
+  ]
+}
