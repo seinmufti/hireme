@@ -7,7 +7,7 @@ import { UserAvatar } from "@/components/user-avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
-import { matchJob, type MatchableTalent } from "@/lib/matching"
+import { matchCount, matchJob, type MatchableTalent } from "@/lib/matching"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -112,7 +112,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                   )}
                 >
                   <p className="mb-1 flex items-center gap-1.5 font-medium">
-                    <SparklesIcon className="size-4" /> {match ? t("jobs.isMatch") : t("jobs.notMatch")}
+                    <SparklesIcon className="size-4" /> {match ? <>{t("jobs.isMatch")} ({matchCount(match) === 1 ? t("jobs.matchOne") : t("jobs.matchCount", { count: matchCount(match) })})</> : t("jobs.notMatch")}
                   </p>
                   {match ? (
                     <ul className="list-disc space-y-0.5 ps-5 text-xs">

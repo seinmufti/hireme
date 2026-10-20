@@ -8,7 +8,7 @@ import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { SkillChips, useJobFacts } from "./job-meta"
 
-/** One job in a list. `match` marks jobs that suit the signed-in job seeker. */
+/** One job in a list. `match` is how many things match the signed-in job seeker (none: no tag). */
 /** `applied` is the signed-in job seeker's application status, if they applied. */
 export function JobCard({
   job,
@@ -18,7 +18,7 @@ export function JobCard({
   className,
 }: {
   job: Job
-  match?: boolean
+  match?: number
   have?: string[]
   applied?: string
   className?: string
@@ -49,9 +49,9 @@ export function JobCard({
           <span className="flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
             <CheckIcon className="size-3" /> {t("jobs.applied")}
           </span>
-        ) : match && (
+        ) : !!match && (
           <span className="flex shrink-0 items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900">
-            <SparklesIcon className="size-3" /> {t("jobs.matchesYou")}
+            <SparklesIcon className="size-3" /> {match === 1 ? t("jobs.matchOne") : t("jobs.matchCount", { count: match })}
           </span>
         )}
         {!takesApplications(job) && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}

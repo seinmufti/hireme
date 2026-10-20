@@ -7,7 +7,7 @@ import { JobCard } from "@/components/jobs/job-card"
 import { CompanyCard } from "@/components/jobs/job-detail"
 import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
-import { matchingJobs } from "@/lib/matching"
+import { matchCount, matchingJobs } from "@/lib/matching"
 import { useStore } from "@/lib/store"
 import { useMyTalent } from "@/lib/use-my-talent"
 import { useRoleGuard } from "@/lib/use-role-guard"
@@ -23,7 +23,7 @@ export function CompanyView({ id }: { id: string }) {
     () => allJobs.filter((j) => j.employerId === id && takesApplications(j)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     [allJobs, id]
   )
-  const matched = useMemo(() => new Set(talent ? matchingJobs(talent, jobs).map((m) => m.job.id) : []), [talent, jobs])
+  const matched = useMemo(() => new Map(talent ? matchingJobs(talent, jobs).map((m) => [m.job.id, matchCount(m)]) : []), [talent, jobs])
   const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   if (!viewer) return null
@@ -54,7 +54,7 @@ export function CompanyView({ id }: { id: string }) {
           {jobs.length > 0 && (
             <div className="grid grid-cols-2 gap-4">
               {jobs.map((j) => (
-                <JobCard key={j.id} job={j} match={matched.has(j.id)} have={have} />
+                <JobCard key={j.id} job={j} match={matched.get(j.id)} have={have} />
               ))}
             </div>
           )}

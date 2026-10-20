@@ -62,6 +62,9 @@ export function matchJob(talent: MatchableTalent, job: Job): JobMatch | null {
   return { job, skills, category, title, score: (category ? 3 : 0) + skills.length * 2 + (title ? 2 : 0) }
 }
 
+/** How many things match: each of the job's skills they have, the job's field, a similar job title. */
+export const matchCount = (m: JobMatch) => m.skills.length + (m.category ? 1 : 0) + (m.title ? 1 : 0)
+
 /** The open jobs that suit the job seeker, best match first, newest first among equals. */
 export function matchingJobs(talent: MatchableTalent, jobs: Job[]): JobMatch[] {
   return jobs
