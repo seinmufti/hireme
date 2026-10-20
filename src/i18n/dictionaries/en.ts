@@ -92,7 +92,7 @@ const en = {
   },
   mobile: {
     title: "Not available on mobile yet",
-    body: "HireMe is built for desktop. Please open it on a computer with a screen at least 1024px wide.",
+    body: "HireMe is built for desktop. Please open it on a computer with a screen at least 640px wide.",
   },
   inbox: {
     title: "Inbox",
