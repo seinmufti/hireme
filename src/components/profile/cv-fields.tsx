@@ -8,6 +8,8 @@ import {
   ChevronDownIcon,
   FileTextIcon,
   LoaderCircleIcon,
+  LockIcon,
+  MapPinIcon,
   PaperclipIcon,
   PencilLineIcon,
   PlusIcon,
@@ -251,8 +253,11 @@ export function LocationFields({
 }) {
   const inIraq = value.country === "IQ"
   return (
-    <div className="grid grid-cols-12 gap-4">
-      <h3 className="col-span-12 text-sm font-medium">Location</h3>
+    <div className="grid grid-cols-12 gap-4 rounded-xl border bg-muted/30 p-4">
+      <div className="col-span-12 flex items-center gap-2">
+        <MapPinIcon className="size-4 text-primary" />
+        <h3 className="text-sm font-medium">Location</h3>
+      </div>
       <Field label="Country" className="col-span-4">
         <Select
           items={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
@@ -288,7 +293,9 @@ export function LocationFields({
       <Field label="Address (optional, private)" className="col-span-4">
         <Input className="h-9" value={value.address} onChange={(e) => onChange({ address: e.target.value })} placeholder="Street, area" />
       </Field>
-      <p className="col-span-12 -mt-2 text-xs text-muted-foreground">Your address is only on your own CV. Employers see your city.</p>
+      <p className="col-span-12 flex items-center gap-1.5 border-t pt-3 text-xs text-muted-foreground">
+        <LockIcon className="size-3 shrink-0" /> Your address is only on your own CV. Employers see your city.
+      </p>
     </div>
   )
 }
