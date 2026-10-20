@@ -23,7 +23,7 @@ export function HomeView() {
 
       {/* The panels keep their physical sides in every language (stats left, actions right); text inside follows the language */}
       <div dir="ltr" className="grid grid-cols-[13rem_minmax(0,1fr)_16rem] items-start gap-6 xl:grid-cols-[15rem_minmax(0,1fr)_18rem]">
-        <div dir={dir} className="sticky top-32">
+        <div dir={dir} className="sticky top-20">
           <OverallPanel user={user} talent={talent ?? null} />
         </div>
         <div dir={dir} className="min-w-0 space-y-6">
@@ -33,7 +33,7 @@ export function HomeView() {
             <NotificationList section className="max-h-[32rem]" />
           </section>
         </div>
-        <div dir={dir} className="sticky top-32">
+        <div dir={dir} className="sticky top-20">
           <ActionsPanel user={user} talent={talent ?? null} />
         </div>
       </div>

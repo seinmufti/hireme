@@ -155,7 +155,7 @@ export function JobBrowser({
         )}
       </div>
 
-      <div className="sticky top-16 z-30 -mx-8 space-y-3 border-b bg-background/95 px-8 py-3 backdrop-blur">
+      <div className="sticky top-14 z-30 -mx-8 space-y-3 border-b bg-background/95 px-8 py-3 backdrop-blur">
         <div className="flex items-center gap-3">
           <div className="relative w-96">
             <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 size-4 -translate-y-1/2 text-muted-foreground" />

@@ -2,12 +2,11 @@
 
 import Link from "next/link"
 import { GlobalSearch } from "@/components/global-search"
-import { HeaderAccounts } from "@/components/header-accounts"
+import { DevTools } from "@/components/dev-tools"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Logo } from "@/components/logo"
 import { NavLinks } from "@/components/nav-links"
 import { NotificationBell } from "@/components/notifications/notification-bell"
-import { PremiumToggle } from "@/components/premium-toggle"
 import { StoreGate } from "@/components/store-gate"
 import { useI18n } from "@/i18n/provider"
 import { unreadCountFor, useCurrentUser, useStore } from "@/lib/store"
@@ -45,18 +44,6 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header className="sticky top-0 z-40 border-b bg-card/90 backdrop-blur">
-        {/* Demo bar: switch between the demo accounts, and pick the language */}
-        <div className="border-b bg-muted/40">
-          {/* Accounts in the middle; the Premium demo crown (job seekers) and the language on the right */}
-          <div className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-8">
-            <span aria-hidden />
-            <HeaderAccounts />
-            <div className="flex items-center gap-2 justify-self-end">
-              {role === "SEEKER" && user && <PremiumToggle user={user} />}
-              <LanguageSwitcher />
-            </div>
-          </div>
-        </div>
         {/* Follows the language: logo on the left in English, on the right in Arabic and Kurdish */}
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-6 px-8">
           <Link href="/login" title={t("nav.goLogin")} className="flex shrink-0 items-center gap-2.5">
@@ -71,11 +58,15 @@ function Shell({ children }: { children: React.ReactNode }) {
               <GlobalSearch user={user} />
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
               {role === "SEEKER" && <NotificationBell />}
+              <LanguageSwitcher />
             </div>
           )}
         </div>
       </header>
-      <main className="mx-auto w-full max-w-7xl flex-1 px-8 py-8">{children}</main>
+      {/* Room at the bottom for the Dev tools button */}
+      <main className="mx-auto w-full max-w-7xl flex-1 px-8 pt-8 pb-24">{children}</main>
+      {/* Demo accounts and the Premium crown */}
+      <DevTools user={user} />
     </>
   )
 }
