@@ -52,11 +52,14 @@ export async function POST(request: Request) {
   // Demo without an API key: CV_IMPORT_MOCK=1 returns a sample CV
   if (process.env.CV_IMPORT_MOCK === "1") return Response.json({ cv: normalizeCv(SAMPLE_CV_READ) })
 
+  // Without a key the SDK only fails once the request is sent, with an error that isn't easy to tell apart
+  const notSetUp = () => fail(503, "CV import isn't set up yet. Add ANTHROPIC_API_KEY to .env.local (see README).")
+  if (!process.env.ANTHROPIC_API_KEY?.trim()) return notSetUp()
   let client: Anthropic
   try {
     client = new Anthropic()
   } catch {
-    return fail(503, "CV import isn't set up yet. Add ANTHROPIC_API_KEY to .env.local (see README).")
+    return notSetUp()
   }
 
   try {
@@ -95,9 +98,7 @@ export async function POST(request: Request) {
     }
     console.error("[cv-import]", error)
     // E.g. no credentials found when the request is sent
-    if (error instanceof Anthropic.AnthropicError) {
-      return fail(503, "CV import isn't set up yet. Add ANTHROPIC_API_KEY to .env.local (see README).")
-    }
+    if (error instanceof Anthropic.AnthropicError) return notSetUp()
     return fail(500, "Something went wrong reading your CV.")
   }
 }

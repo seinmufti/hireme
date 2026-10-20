@@ -78,8 +78,8 @@ export const AGE_BUCKETS = [
   { value: "45+", label: "45+", min: 45, max: Infinity },
 ]
 
-/** Where each role lands after signing in: job seekers on their profile, everyone else in The Pool. */
-export const homeFor = (role: Role) => (role === "SEEKER" ? "/profile" : "/pool")
+/** Where each role lands after signing in: job seekers on Home (their dashboard), everyone else in The Pool. */
+export const homeFor = (role: Role) => (role === "SEEKER" ? "/home" : "/pool")
 
 // New accounts get the next color from this list automatically
 export const AVATAR_COLORS = ["#1D4ED8", "#047857", "#8A1538", "#B45309", "#7C3AED", "#0E7490", "#BE185D", "#4D7C0F", "#334155"]

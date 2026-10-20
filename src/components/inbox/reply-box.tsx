@@ -6,8 +6,10 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useStore } from "@/lib/store"
+import { useT } from "@/i18n/provider"
 
 export function ReplyBox({ conversationId, placeholder }: { conversationId: string; placeholder: string }) {
+  const t = useT()
   const [body, setBody] = useState("")
   const replyMessage = useStore((s) => s.replyMessage)
 
@@ -34,7 +36,7 @@ export function ReplyBox({ conversationId, placeholder }: { conversationId: stri
         className="max-h-40 min-h-11 resize-none"
       />
       <Button onClick={send} disabled={!body.trim()} className="h-11 px-4">
-        <SendIcon /> Send
+        <SendIcon /> {t("common.send")}
       </Button>
     </div>
   )

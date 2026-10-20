@@ -14,7 +14,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GENDERS, homeFor, ROLE_LABEL, type Role } from "@/lib/options"
+import { GENDERS, homeFor, type Role } from "@/lib/options"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { useT } from "@/i18n/provider"
 import { downloadBackup, restoreFromFile } from "@/lib/backup"
 import { restoreBackup } from "@/lib/safe-storage"
 import { useStore } from "@/lib/store"
@@ -33,6 +35,7 @@ export function LoginView() {
 }
 
 function Accounts() {
+  const t = useT()
   const router = useRouter()
   const users = useStore((s) => s.users)
   const talents = useStore((s) => s.talents)
@@ -49,15 +52,15 @@ function Accounts() {
   const subtitleFor = (u: User) =>
     u.company
       ? [u.title, u.company].filter(Boolean).join(" · ")
-      : (talents.find((t) => t.userId === u.id)?.experiences[0]?.title ?? ROLE_LABEL[u.role])
+      : (talents.find((x) => x.userId === u.id)?.experiences[0]?.title ?? t(`roles.${u.role}`))
 
   return (
     // Exactly one screen tall: if accounts don't fit, only the account lists scroll, never the page
     <main className="relative flex h-dvh flex-col items-center justify-center overflow-hidden px-8 py-5">
       <BackupButtons />
       <Logo size={48} className="shrink-0" />
-      <h1 className="mt-2 shrink-0 text-2xl font-semibold tracking-tight">Welcome to HireMe</h1>
-      <p className="mt-1 shrink-0 text-sm text-muted-foreground">Choose an account to continue, or create a new one</p>
+      <h1 className="mt-2 shrink-0 text-2xl font-semibold tracking-tight">{t("login.welcome")}</h1>
+      <p className="mt-1 shrink-0 text-sm text-muted-foreground">{t("login.subtitle")}</p>
 
       <div className="mt-5 flex min-h-0 items-stretch rounded-2xl border bg-card p-5 shadow-sm">
         {ORDER.map((role, i) => {
@@ -75,23 +78,23 @@ function Accounts() {
             <Fragment key={role}>
               {i > 0 && <span className="mx-8 w-px bg-border" aria-hidden />}
               <section className="flex min-h-0 w-56 flex-col items-center">
-                <h2 className="mb-3 shrink-0 text-sm font-semibold tracking-wide text-muted-foreground uppercase">{ROLE_LABEL[role]}</h2>
+                <h2 className="mb-3 shrink-0 text-sm font-semibold tracking-wide text-muted-foreground uppercase">{t(`roles.${role}`)}</h2>
                 {/* Tall enough for 4 accounts; more than that scrolls (and it shrinks on short screens) */}
                 {searchable && (
                   <div className="relative mb-2 w-full shrink-0">
-                    <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       value={search[role] ?? ""}
                       onChange={(e) => setSearch((s) => ({ ...s, [role]: e.target.value }))}
-                      placeholder="Search accounts…"
-                      aria-label={`Search ${ROLE_LABEL[role].toLowerCase()} accounts`}
-                      className="h-9 pl-8"
+                      placeholder={t("accounts.searchPlaceholder")}
+                      aria-label={t("login.searchLabel", { role: t(`roles.${role}`) })}
+                      className="h-9 ps-8"
                     />
                   </div>
                 )}
                 <div className={cn("flex min-h-0 w-full flex-col gap-2 overflow-y-auto", searchable ? "h-[218px]" : "h-[270px]")}>
                   {searchable && group.length === 0 && (
-                    <p className="py-6 text-center text-sm text-muted-foreground">No accounts found.</p>
+                    <p className="py-6 text-center text-sm text-muted-foreground">{t("accounts.noneFound")}</p>
                   )}
                   {group.map((u) => {
                     const active = u.id === currentId
@@ -101,7 +104,7 @@ function Accounts() {
                         type="button"
                         onClick={() => signIn(u.id, u.role)}
                         className={cn(
-                          "flex items-center gap-3 rounded-xl border p-2.5 text-left transition hover:border-primary/50 hover:bg-brand-soft focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none",
+                          "flex items-center gap-3 rounded-xl border p-2.5 text-start transition hover:border-primary/50 hover:bg-brand-soft focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none",
                           active && "border-primary/60 bg-brand-soft"
                         )}
                       >
@@ -119,7 +122,7 @@ function Accounts() {
                   onClick={() => setCreating(role)}
                   className="mt-2 flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl border border-dashed py-2.5 text-sm text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
                 >
-                  <PlusIcon className="size-4" /> New {ROLE_LABEL[role].toLowerCase()}
+                  <PlusIcon className="size-4" /> {t("login.newAccount", { role: t(`roles.${role}`) })}
                 </button>
               </section>
             </Fragment>
@@ -141,6 +144,7 @@ function Accounts() {
 }
 
 function BackupButtons() {
+  const t = useT()
   const fileInput = useRef<HTMLInputElement>(null)
 
   // Asked in the page itself: the browser's own confirm() box can be blocked, which would make the buttons do nothing
@@ -154,51 +158,52 @@ function BackupButtons() {
 
   const loadBackup = async (file: File) => {
     const res = await restoreFromFile(file)
-    if (res.ok) toast.success("Backup loaded")
+    if (res.ok) toast.success(t("login.backupLoaded"))
     else toast.error(res.error)
   }
 
   const resetDemo = useStore((s) => s.resetDemo)
   const reset = () => {
     resetDemo()
-    toast.success("Demo data reset", {
+    toast.success(t("login.demoReset"), {
       // The previous data is kept as a backup, so a reset can be undone
       action: {
-        label: "Undo",
+        label: t("login.undo"),
         onClick: () => {
           if (restoreBackup("hireme-demo")) useStore.persist.rehydrate()
-          else toast.error("Nothing to restore")
+          else toast.error(t("login.nothingToRestore"))
         },
       },
     })
   }
 
   return (
-    <div className="absolute top-5 right-8 flex gap-2">
+    <div dir="ltr" className="absolute top-5 right-8 flex gap-2">
+      <LanguageSwitcher />
       <Button variant="outline" size="sm" onClick={() => setAsking({ kind: "reset" })}>
-        <RotateCcwIcon /> Reset demo
+        <RotateCcwIcon /> {t("login.resetDemo")}
       </Button>
       <input ref={fileInput} type="file" accept="application/json,.json" className="hidden" onChange={upload} />
       <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
-        <UploadIcon /> Upload backup
+        <UploadIcon /> {t("login.uploadBackup")}
       </Button>
       <Button variant="outline" size="sm" onClick={downloadBackup}>
-        <DownloadIcon /> Demo Download
+        <DownloadIcon /> {t("login.demoDownload")}
       </Button>
 
       <Dialog open={asking !== null} onOpenChange={(open) => !open && setAsking(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>{asking?.kind === "upload" ? "Load this backup?" : "Reset the demo?"}</DialogTitle>
+            <DialogTitle>{asking?.kind === "upload" ? t("login.loadBackupTitle") : t("login.resetTitle")}</DialogTitle>
             <DialogDescription>
               {asking?.kind === "upload"
-                ? "This replaces everything in the app with the contents of the backup file. You can undo a reset, but not a backup, so download one first if you need it."
-                : "This clears every change you've made in this browser and starts over with one demo account per role (one job seeker, one recruiter, one employer). You can undo it right after."}
+                ? t("login.loadBackupBody")
+                : t("login.resetBody")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAsking(null)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={() => {
@@ -208,7 +213,7 @@ function BackupButtons() {
                 else if (action?.kind === "upload") void loadBackup(action.file)
               }}
             >
-              {asking?.kind === "upload" ? "Load backup" : "Reset demo"}
+              {asking?.kind === "upload" ? t("login.loadBackup") : t("login.resetDemo")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -229,6 +234,7 @@ function NewAccountDialog({
   onClose: () => void
   onCreated: (role: Role) => void
 }) {
+  const t = useT()
   const createAccount = useStore((s) => s.createAccount)
   // Dummy accounts made so far (they all use a dummyN@example.com email), so the button counts them
   const dummiesCreated = useStore((s) => s.users.filter((u) => DUMMY_EMAIL.test(u.email)).length)
@@ -263,7 +269,7 @@ function NewAccountDialog({
     e.preventDefault()
     const res = createAccount({ role, ...form })
     if (!res.ok) return toast.error(res.error)
-    toast.success(isSeeker ? "Account created. Finish your portfolio to join The Pool." : "Account created")
+    toast.success(isSeeker ? t("login.seekerCreated") : t("login.created"))
     onCreated(role)
   }
 
@@ -272,28 +278,28 @@ function NewAccountDialog({
       <DialogContent className={cn(isSeeker && "sm:max-w-md")}>
         <form onSubmit={submit} className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>New {ROLE_LABEL[role].toLowerCase()}</DialogTitle>
-            {!isSeeker && <DialogDescription>You can add contact details later on your profile.</DialogDescription>}
+            <DialogTitle>{t("login.newAccount", { role: t(`roles.${role}`) })}</DialogTitle>
+            {!isSeeker && <DialogDescription>{t("login.staffIntro")}</DialogDescription>}
           </DialogHeader>
           <div className="space-y-1.5">
-            <Label htmlFor="new-name">Full name</Label>
+            <Label htmlFor="new-name">{t("login.fullName")}</Label>
             <Input id="new-name" className="h-9" value={form.name} onChange={setText("name")} autoFocus />
           </div>
           {isSeeker ? (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Phone number</Label>
+                <Label>{t("login.phone")}</Label>
                 <PhoneInput value={form.phone} onChange={set("phone")} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="new-email">Email</Label>
+                <Label htmlFor="new-email">{t("login.email")}</Label>
                 <Input id="new-email" className="h-9" type="email" value={form.email} onChange={setText("email")} placeholder="name@example.com" />
               </div>
               <div className="space-y-1.5">
-                <Label>Gender</Label>
+                <Label>{t("login.gender")}</Label>
                 <Select value={form.gender || null} onValueChange={(v) => set("gender")((v as string) ?? "")}>
                   <SelectTrigger className="h-9 w-full">
-                    <SelectValue placeholder="Choose" />
+                    <SelectValue placeholder={t("common.choose")} />
                   </SelectTrigger>
                   <SelectContent>
                     {GENDERS.map((g) => (
@@ -303,18 +309,18 @@ function NewAccountDialog({
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Date of birth</Label>
+                <Label>{t("login.dateOfBirth")}</Label>
                 <DateOfBirthPicker value={form.dateOfBirth} onChange={set("dateOfBirth")} />
               </div>
             </div>
           ) : (
             <>
               <div className="space-y-1.5">
-                <Label htmlFor="new-title">Job title</Label>
-                <Input id="new-title" className="h-9" value={form.title} onChange={setText("title")} placeholder="e.g. HR Manager" />
+                <Label htmlFor="new-title">{t("login.jobTitle")}</Label>
+                <Input id="new-title" className="h-9" value={form.title} onChange={setText("title")} placeholder={t("login.jobTitlePlaceholder")} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="new-company">Company</Label>
+                <Label htmlFor="new-company">{t("login.company")}</Label>
                 <Input id="new-company" className="h-9" value={form.company} onChange={setText("company")} />
               </div>
             </>
@@ -326,9 +332,9 @@ function NewAccountDialog({
               </Button>
             )}
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {t("common.cancel")}
             </Button>
-            <Button type="submit">Create account</Button>
+            <Button type="submit">{t("login.createAccount")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

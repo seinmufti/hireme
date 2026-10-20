@@ -1,5 +1,6 @@
 "use client"
 
+import { useT } from "@/i18n/provider"
 import { useState } from "react"
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -35,7 +36,7 @@ function OptionRow({
       onMouseEnter={onHover}
       onFocus={onHover}
       className={cn(
-        "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
+        "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-start text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
         OPTION_ACTIVE,
         highlighted && "bg-muted",
         count === 0 && !isOn && "text-muted-foreground/60"
@@ -78,15 +79,18 @@ export function FilterDropdown({
   selected,
   counts,
   onChange,
-  countLabel = "Candidates",
+  countLabel,
 }: {
   // Only what the dropdown shows, so other lists (e.g. job search) can use it too
-  def: Pick<FilterDef, "label" | "mode" | "options" | "children" | "pinned">
+  def: Pick<FilterDef, "label" | "mode" | "options" | "children" | "pinned"> & { key?: string }
   selected: string[]
   counts: Map<string, number>
   onChange: (values: string[]) => void
   countLabel?: string
 }) {
+  const t = useT()
+  // Filters added later without a translation keep their English label
+  const label = t.dynamic(`pool.filters.${def.key}`, def.label)
   const [query, setQuery] = useState("")
   // The option whose sub-choices (e.g. fields of study) are showing beside the list
   const [hovered, setHovered] = useState<string | null>(null)
@@ -98,7 +102,7 @@ export function FilterDropdown({
   const sections: [string, typeof visible][] = def.pinned
     ? [
         [def.pinned.title, pinned],
-        [`All ${def.label.toLowerCase()}`, rest],
+        [t("pool.allOf", { label }), rest],
       ]
     : [["", visible]]
   const children = hovered ? (def.children?.[hovered] ?? []) : []
@@ -124,7 +128,7 @@ export function FilterDropdown({
           />
         }
       >
-        {def.label}
+        {label}
         {selected.length > 0 && (
           <span className="rounded-full bg-primary px-1.5 text-[10px] leading-4 font-semibold text-primary-foreground">
             {selected.length}
@@ -137,9 +141,9 @@ export function FilterDropdown({
           <div className="w-72 shrink-0">
             <div className="flex items-center justify-between border-b px-3 py-2">
               <span className="text-xs font-medium text-muted-foreground">
-                {def.mode === "all" ? "Must have all selected" : "Match any selected"}
+                {def.mode === "all" ? t("pool.filterAll") : t("pool.filterAny")}
               </span>
-              <span className="text-xs text-muted-foreground">{countLabel}</span>
+              <span className="text-xs text-muted-foreground">{countLabel ?? t("pool.candidates")}</span>
             </div>
             {searchable && (
               <div className="flex items-center gap-2 border-b px-3">
@@ -151,13 +155,13 @@ export function FilterDropdown({
                     resetActiveOption(e.currentTarget)
                   }}
                   onKeyDown={handleListKeys}
-                  placeholder={`Search ${def.label.toLowerCase()}…`}
+                  placeholder={t("pool.searchIn", { label })}
                   className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 />
               </div>
             )}
             <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1" role="listbox" aria-multiselectable onKeyDown={focusRowWithArrows}>
-              {visible.length === 0 && <p className="px-2 py-4 text-center text-sm text-muted-foreground">No options</p>}
+              {visible.length === 0 && <p className="px-2 py-4 text-center text-sm text-muted-foreground">{t("pool.noOptions")}</p>}
               {sections.filter(([, list]) => list.length > 0).map(([title, list]) => (
                 <div key={title}>
                   {title && <p className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground">{title}</p>}
@@ -201,7 +205,7 @@ export function FilterDropdown({
         {selected.length > 0 && (
           <div className="border-t p-1">
             <Button variant="ghost" size="sm" className="w-full" onClick={() => onChange([])}>
-              Clear {def.label.toLowerCase()}
+              {t("pool.clearFilter", { label })}
             </Button>
           </div>
         )}

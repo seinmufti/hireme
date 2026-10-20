@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea"
 import type { PoolTalent } from "@/lib/filters"
 import { latestJob } from "./talent-meta"
+import { useT } from "@/i18n/provider"
 
 export type Sender = { name: string; title: string; company: string }
 
@@ -38,6 +39,7 @@ export function MessageDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useT()
   const router = useRouter()
   const [body, setBody] = useState("")
   const sendMessage = useStore((s) => s.sendMessage)
@@ -59,8 +61,8 @@ export function MessageDialog({
       return
     }
     onOpenChange(false)
-    toast.success(`Message sent to ${talent.firstName}`, {
-      action: { label: "Open thread", onClick: () => router.push(`/inbox/${res.conversationId}`) },
+    toast.success(t("pool.messageSent", { name: talent.firstName }), {
+      action: { label: t("pool.openThread"), onClick: () => router.push(`/inbox/${res.conversationId}`) },
     })
   }
 
@@ -68,8 +70,8 @@ export function MessageDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Message {talent.firstName}</DialogTitle>
-          <DialogDescription>A template is filled in for you. Edit it as much as you like before sending.</DialogDescription>
+          <DialogTitle>{t("pool.messageTitle", { name: talent.firstName })}</DialogTitle>
+          <DialogDescription>{t("pool.messageIntro")}</DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-3">
           <UserAvatar name={talent.firstName} color={talent.avatarColor} size={36} />
@@ -87,14 +89,14 @@ export function MessageDialog({
         />
         <DialogFooter className="sm:justify-between">
           <Button variant="ghost" onClick={() => setBody(messageTemplate(talent, sender))}>
-            <RotateCcwIcon /> Reset to template
+            <RotateCcwIcon /> {t("pool.resetTemplate")}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button onClick={submit} disabled={!body.trim()}>
-              <SendIcon /> Send message
+              <SendIcon /> {t("pool.sendMessage")}
             </Button>
           </div>
         </DialogFooter>

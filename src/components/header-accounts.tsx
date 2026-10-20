@@ -7,9 +7,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { UserAvatar } from "@/components/user-avatar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { firstName } from "@/lib/format"
-import { homeFor, ROLE_LABEL, type Role } from "@/lib/options"
+import { homeFor, type Role } from "@/lib/options"
 import { recentLogins } from "@/lib/recent-accounts"
 import { useStore } from "@/lib/store"
+import { useT } from "@/i18n/provider"
 import type { User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -32,6 +33,7 @@ function MoreAccounts({
   subtitle: (id: string) => string
   onPick: (a: User) => void
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const q = query.trim().toLowerCase()
@@ -53,7 +55,7 @@ function MoreAccounts({
           />
         }
       >
-        +{hidden} more
+        {t("accounts.more", { count: hidden })}
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72 gap-0 p-0">
         <div className="flex items-center gap-2 border-b px-3">
@@ -67,13 +69,13 @@ function MoreAccounts({
                 setOpen(false)
               }
             }}
-            placeholder="Search accounts…"
+            placeholder={t("accounts.searchPlaceholder")}
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />
         </div>
         <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1">
-          {matches.length === 0 && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No accounts found.</p>}
+          {matches.length === 0 && <p className="px-3 py-4 text-center text-sm text-muted-foreground">{t("accounts.noneFound")}</p>}
           {matches.map((a) => (
             <button
               key={a.id}
@@ -83,7 +85,7 @@ function MoreAccounts({
                 setOpen(false)
               }}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
+                "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-start text-sm hover:bg-muted",
                 a.id === currentId && "bg-brand-soft"
               )}
             >
@@ -102,6 +104,7 @@ function MoreAccounts({
 
 // Demo login: every account, grouped by role, one click to sign in as them.
 export function HeaderAccounts() {
+  const t = useT()
   const router = useRouter()
   const users = useStore((s) => s.users)
   const talents = useStore((s) => s.talents)
@@ -123,7 +126,7 @@ export function HeaderAccounts() {
   const subtitle = (id: string) => {
     const u = users.find((x) => x.id === id)!
     if (u.company) return [u.title, u.company].filter(Boolean).join(" · ")
-    return talents.find((t) => t.userId === id)?.experiences[0]?.title ?? ROLE_LABEL[u.role]
+    return talents.find((x) => x.userId === id)?.experiences[0]?.title ?? t(`roles.${u.role}`)
   }
 
   return (
@@ -145,7 +148,7 @@ export function HeaderAccounts() {
             {i > 0 && <span className="mx-3 h-10 w-px bg-border" aria-hidden />}
             <div className="flex flex-col items-center gap-1">
               <span className="text-[10px] leading-none font-medium tracking-wide text-muted-foreground uppercase">
-                {ROLE_LABEL[role]}
+                {t(`roles.${role}`)}
               </span>
               <div className="flex items-center gap-1">
                 {group.length === 0 && <span className="text-xs text-muted-foreground">—</span>}
@@ -157,7 +160,7 @@ export function HeaderAccounts() {
                         render={
                           <button
                             type="button"
-                            aria-label={`Sign in as ${a.name}`}
+                            aria-label={t("accounts.signInAs", { name: a.name })}
                             aria-pressed={active}
                             onClick={() => {
                               if (active) return
@@ -178,7 +181,7 @@ export function HeaderAccounts() {
                       </TooltipTrigger>
                       <TooltipContent side="bottom">
                         <div>
-                          <div className="font-medium">{a.name}{active && " (signed in)"}</div>
+                          <div className="font-medium">{a.name}{active && ` ${t("accounts.signedIn")}`}</div>
                           <div className="opacity-70">{subtitle(a.id)}</div>
                         </div>
                       </TooltipContent>
