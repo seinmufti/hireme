@@ -7,7 +7,8 @@ import { UserAvatar } from "@/components/user-avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
-import { matchCount, matchJob, type MatchableTalent } from "@/lib/matching"
+import { matchJob, matchPoints, type MatchableTalent } from "@/lib/matching"
+import { useMatchLabel } from "./job-card"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -26,6 +27,9 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
   const isSeeker = viewer.role === "SEEKER"
   // Matching ignores closed jobs, so check the job as if it were open
   const match = isSeeker && talent ? matchJob(talent, { ...job, open: true }) : null
+  // How many things match, also when the job isn't a match
+  const points = talent ? matchPoints(talent, job) : 0
+  const matchLabel = useMatchLabel()
   const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   return (
@@ -112,7 +116,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                   )}
                 >
                   <p className="mb-1 flex items-center gap-1.5 font-medium">
-                    <SparklesIcon className="size-4" /> {match ? <>{t("jobs.isMatch")} ({matchCount(match) === 1 ? t("jobs.matchOne") : t("jobs.matchCount", { count: matchCount(match) })})</> : t("jobs.notMatch")}
+                    <SparklesIcon className="size-4" /> {match ? t("jobs.isMatch") : t("jobs.notMatch")} {talent && `(${matchLabel(points)})`}
                   </p>
                   {match ? (
                     <ul className="list-disc space-y-0.5 ps-5 text-xs">

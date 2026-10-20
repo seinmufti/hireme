@@ -6,24 +6,39 @@ import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { QuickApply } from "./applications"
 import { SkillChips, useJobFacts } from "./job-meta"
 
-/** One job in a list. `match` is how many things match the signed-in job seeker (none: no tag). */
-/** `applied` is the signed-in job seeker's application status, if they applied. */
+/** "3 matches" / "1 match" */
+export function useMatchLabel() {
+  const t = useT()
+  return (count: number) => (count === 1 ? t("jobs.matchOne") : t("jobs.matchCount", { count }))
+}
+
+/**
+ * One job in a list. For job seekers, `matches` is how many things match their CV (no tag when left out);
+ * `isMatch` colours the tag green when the job is a match for them.
+ */
+/** `applied` is the signed-in job seeker's application status, if they applied; `canApply` shows an Apply button. */
 export function JobCard({
   job,
-  match,
+  matches,
+  isMatch,
   have,
   applied,
+  canApply,
   className,
 }: {
   job: Job
-  match?: number
+  matches?: number
+  isMatch?: boolean
   have?: string[]
   applied?: string
+  canApply?: boolean
   className?: string
 }) {
   const t = useT()
+  const matchLabel = useMatchLabel()
   const facts = useJobFacts()(job).filter((f) => f.key !== "company" && f.key !== "category")
   return (
     <article
@@ -49,9 +64,14 @@ export function JobCard({
           <span className="flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
             <CheckIcon className="size-3" /> {t("jobs.applied")}
           </span>
-        ) : !!match && (
-          <span className="flex shrink-0 items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900">
-            <SparklesIcon className="size-3" /> {match === 1 ? t("jobs.matchOne") : t("jobs.matchCount", { count: match })}
+        ) : matches !== undefined && (
+          <span
+            className={cn(
+              "flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium",
+              isMatch ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "bg-muted text-muted-foreground"
+            )}
+          >
+            <SparklesIcon className="size-3" /> {matchLabel(matches)}
           </span>
         )}
         {!takesApplications(job) && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}
@@ -68,6 +88,8 @@ export function JobCard({
       </dl>
 
       <SkillChips skills={job.skills} have={have} limit={5} className="mt-4" />
+      {/* Above the card's link, so it can be pressed */}
+      {canApply && !applied && <QuickApply job={job} className="relative z-10 mt-4 self-start" />}
     </article>
   )
 }

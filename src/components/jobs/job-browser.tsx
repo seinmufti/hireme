@@ -10,7 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { JOB_CITIES, jobMatchesQuery, locationValue, takesApplications } from "@/lib/jobs"
-import { matchCount, matchingJobs, type MatchableTalent } from "@/lib/matching"
+import { matchingJobs, matchPoints, type MatchableTalent } from "@/lib/matching"
 import { CONTRACT_TYPES, JOB_CATEGORIES, type Role } from "@/lib/options"
 import { useStore } from "@/lib/store"
 import type { Job } from "@/lib/types"
@@ -94,7 +94,6 @@ export function JobBrowser({
 
   const matches = useMemo(() => (talent ? matchingJobs(talent, open) : []), [talent, open])
   const score = useMemo(() => new Map(matches.map((m) => [m.job.id, m.score])), [matches])
-  const counts = useMemo(() => new Map(matches.map((m) => [m.job.id, matchCount(m)])), [matches])
   const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
   // The signed-in job seeker's applications, by job
   const userId = useStore((s) => s.currentUserId)
@@ -256,7 +255,8 @@ export function JobBrowser({
           ) : (
             <div className={cn("grid grid-cols-2 gap-4", !aside && "xl:grid-cols-3")}>
               {results.map((j) => (
-                <JobCard key={j.id} job={j} match={isSeeker ? counts.get(j.id) : undefined} have={have} applied={applied.get(j.id)} />
+                <JobCard key={j.id} job={j} matches={isSeeker && talent ? matchPoints(talent, j) : undefined}
+                  isMatch={score.has(j.id)} have={have} applied={applied.get(j.id)} canApply={isSeeker} />
               ))}
             </div>
           )}

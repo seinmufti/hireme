@@ -108,6 +108,29 @@ export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
   )
 }
 
+/** For job seekers on a job card: an Apply button that opens the same dialog as the job's page. */
+export function QuickApply({ job, className }: { job: Job; className?: string }) {
+  const t = useT()
+  const viewer = useStore((s) => s.users.find((u) => u.id === s.currentUserId))
+  const talent = useStore((s) => s.talents.find((x) => x.userId === s.currentUserId)) ?? null
+  const [open, setOpen] = useState(false)
+  if (!viewer || !takesApplications(job)) return null
+  const cvReady = listingMissing(viewer, talent).length === 0
+
+  return (
+    <>
+      <Button
+        size="sm"
+        className={className}
+        onClick={() => (cvReady ? setOpen(true) : toast.error(t("applications.finishCvFirst")))}
+      >
+        <SendIcon /> {t("applications.apply")}
+      </Button>
+      <ApplyDialog job={job} open={open} onOpenChange={setOpen} />
+    </>
+  )
+}
+
 function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useT()
   const applyToJob = useStore((s) => s.applyToJob)

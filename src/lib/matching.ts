@@ -42,6 +42,23 @@ export function locationFits(talent: MatchableTalent, job: Job) {
   return cities.some((c) => norm(c) === norm(job.location.iraqCity))
 }
 
+/** What the job seeker's CV has in common with the job, wherever the job is. */
+function overlap(talent: MatchableTalent, job: Job) {
+  const have = new Set([...(talent.hardSkills ?? []), ...(talent.softSkills ?? [])].map(norm))
+  const skills = job.skills.filter((s) => have.has(norm(s)))
+  const experiences = talent.experiences ?? []
+  const category = experiences.some((e) => e.category && norm(e.category) === norm(job.category))
+  const words = new Set(experiences.flatMap((e) => titleWords(e.title)))
+  const title = titleWords(job.title).some((w) => words.has(w))
+  return { skills, category, title }
+}
+
+/** How many things match, also for jobs that aren't a match (e.g. somewhere they don't want to work). */
+export function matchPoints(talent: MatchableTalent, job: Job) {
+  const { skills, category, title } = overlap(talent, job)
+  return skills.length + (category ? 1 : 0) + (title ? 1 : 0)
+}
+
 /** How well one job suits the job seeker, or null when it doesn't match. */
 export function matchJob(talent: MatchableTalent, job: Job): JobMatch | null {
   if (!takesApplications(job) || !locationFits(talent, job)) return null
@@ -49,13 +66,7 @@ export function matchJob(talent: MatchableTalent, job: Job): JobMatch | null {
   const contracts = talent.workPreference?.contractTypes ?? []
   if (contracts.length && !contracts.includes(job.contractType)) return null
 
-  const have = new Set([...(talent.hardSkills ?? []), ...(talent.softSkills ?? [])].map(norm))
-  const skills = job.skills.filter((s) => have.has(norm(s)))
-  const experiences = talent.experiences ?? []
-  const category = experiences.some((e) => e.category && norm(e.category) === norm(job.category))
-  const words = new Set(experiences.flatMap((e) => titleWords(e.title)))
-  const title = titleWords(job.title).some((w) => words.has(w))
-
+  const { skills, category, title } = overlap(talent, job)
   // Worked in the field, or has a real share of the skills asked for
   const matches = category || skills.length >= 2 || (skills.length >= 1 && title)
   if (!matches) return null
