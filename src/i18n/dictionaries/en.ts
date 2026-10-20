@@ -37,8 +37,8 @@ const en = {
   premium: {
     label: "Premium",
     hint: "Demo: switch Premium on or off to see both modes",
-    on: "Premium on: CV downloads without a watermark",
-    off: "Premium off: CV downloads have a watermark",
+    on: "Premium on",
+    off: "Premium off",
   },
   search: {
     placeholder: "Search jobs, companies…",
