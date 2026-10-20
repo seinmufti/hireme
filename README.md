@@ -29,6 +29,18 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
+## Import from your CV (AI)
+
+On their profile form, job seekers can upload an existing CV (PDF, Word .docx, plain text or a photo, up to 10 MB) and Claude fills in the form. Fields already filled in are only replaced when the job seeker ticks them; anything the AI wasn't sure about or couldn't find turns its section yellow.
+
+It runs on the server (`src/app/api/cv-import/route.ts`), so it needs a Claude API key:
+
+```bash
+cp .env.example .env.local   # then set ANTHROPIC_API_KEY
+```
+
+Without a key, set `CV_IMPORT_MOCK=1` in `.env.local` to try it with a built-in sample CV.
+
 ## Saved data and testing
 
 Everything a visitor saves lives in the browser's localStorage and goes through `src/lib/safe-storage.ts`: a save can never delete an account, portfolio, conversation or message that is already stored (anything a tab is missing is put back and a warning is logged), the previous data is kept as a backup, and only the ↺ reset button can replace everything, with an Undo.
