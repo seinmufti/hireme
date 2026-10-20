@@ -4,6 +4,7 @@ import Link from "next/link"
 import { CircleAlertIcon, CircleCheckIcon, EyeIcon } from "lucide-react"
 import { UserAvatar } from "@/components/user-avatar"
 import { useT } from "@/i18n/provider"
+import { cvStrength } from "@/lib/cv-strength"
 import { formatJobPeriod } from "@/lib/format"
 import { listingSectionsMissing } from "@/lib/store"
 import { cn } from "@/lib/utils"
@@ -18,6 +19,7 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
     ? { icon: CircleAlertIcon, text: t("home.cvIncomplete"), className: "border-amber-300 bg-amber-50 text-amber-900" }
     : { icon: CircleCheckIcon, text: t("home.cvComplete"), className: "border-emerald-300 bg-emerald-50 text-emerald-900" }
   const latest = talent?.experiences[0]
+  const strength = cvStrength(user, talent)
   const skills = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   return (
@@ -53,6 +55,32 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
           <EyeIcon className="ms-auto size-4 shrink-0 opacity-60" />
         </div>
       )}
+
+      {/* CV strength: how complete the CV is, and the next thing to add */}
+      <div className="mx-5 mt-3 space-y-1.5">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium">{t("home.cvStrength")}</span>
+          <span className="tabular-nums text-muted-foreground">{strength.percent}%</span>
+        </div>
+        <div
+          className="h-2 overflow-hidden rounded-full bg-muted"
+          role="progressbar"
+          aria-valuenow={strength.percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t("home.cvStrength")}
+        >
+          <div
+            className={cn("h-full rounded-full transition-all", strength.percent >= 80 ? "bg-emerald-500" : strength.percent >= 50 ? "bg-amber-400" : "bg-primary")}
+            style={{ width: `${strength.percent}%` }}
+          />
+        </div>
+        {strength.next && (
+          <Link href={editCvAt(strength.next.target)} className="block text-sm text-primary hover:underline">
+            {t(`home.strength.${strength.next.key}`)}
+          </Link>
+        )}
+      </div>
 
       {talent?.summary ? (
         <p className="px-5 pt-4 text-sm leading-relaxed whitespace-pre-line">{talent.summary}</p>
