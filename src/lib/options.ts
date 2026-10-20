@@ -198,11 +198,11 @@ const ISO_COUNTRY_CODES = [
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" })
 
 // Every country (names from the browser), with Iraq and its neighbours first, then A to Z
-const FIRST_COUNTRIES = ["IQ", "TR", "IR", "SY", "JO", "SA", "KW"]
+export const MAIN_COUNTRIES = ["IQ", "TR", "IR", "SY", "JO", "SA", "KW"]
 export const COUNTRIES = ISO_COUNTRY_CODES.map((code) => ({ code, name: regionNames.of(code) ?? code, flag: flagOf(code) })).sort(
   (a, b) => {
-    const ia = FIRST_COUNTRIES.indexOf(a.code)
-    const ib = FIRST_COUNTRIES.indexOf(b.code)
+    const ia = MAIN_COUNTRIES.indexOf(a.code)
+    const ib = MAIN_COUNTRIES.indexOf(b.code)
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.name.localeCompare(b.name)
   }
 )

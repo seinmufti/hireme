@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
 import { CheckIcon, ChevronDownIcon, ListIcon, LoaderCircleIcon, PencilLineIcon, SearchIcon } from "lucide-react"
 import { Flag } from "@/components/cv/photo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { COUNTRIES, IRAQ_CITIES } from "@/lib/options"
+import { COUNTRIES, IRAQ_CITIES, MAIN_COUNTRIES } from "@/lib/options"
 import { cn } from "@/lib/utils"
 
 // Pickers for a country's cities and institutions: choose from a searchable list, or (only when nothing
@@ -263,19 +263,32 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
         </div>
         <div className="max-h-64 overflow-y-auto p-1">
           {matches.length === 0 && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No country found.</p>}
-          {matches.map((c) => (
-            <button
-              key={c.code}
-              type="button"
-              onClick={() => pick(c.code)}
-              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
-            >
-              <span className="flex items-center gap-2">
-                <Flag code={c.code} className="h-3" /> {c.name}
-              </span>
-              {c.code === (value || "IQ") && <CheckIcon className="size-4 shrink-0 text-primary" />}
-            </button>
-          ))}
+          {matches.map((c, i) => {
+            // Without a search, the main countries come first, set apart from the rest
+            const main = MAIN_COUNTRIES.includes(c.code)
+            const firstOfRest = !q && !main && (i === 0 || MAIN_COUNTRIES.includes(matches[i - 1].code))
+            return (
+              <Fragment key={c.code}>
+                {!q && i === 0 && <p className="px-2 pt-1 pb-1 text-xs font-medium text-muted-foreground">Main countries</p>}
+                {firstOfRest && (
+                  <>
+                    <div className="my-1 border-t" />
+                    <p className="px-2 pt-1 pb-1 text-xs font-medium text-muted-foreground">All countries</p>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => pick(c.code)}
+                  className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                >
+                  <span className="flex items-center gap-2">
+                    <Flag code={c.code} className="h-3" /> {c.name}
+                  </span>
+                  {c.code === (value || "IQ") && <CheckIcon className="size-4 shrink-0 text-primary" />}
+                </button>
+              </Fragment>
+            )
+          })}
         </div>
       </PopoverContent>
     </Popover>
