@@ -252,6 +252,7 @@ export function LocationFields({
   const inIraq = value.country === "IQ"
   return (
     <div className="grid grid-cols-12 gap-4">
+      <h3 className="col-span-12 text-sm font-medium">Location</h3>
       <Field label="Country" className="col-span-4">
         <Select
           items={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
