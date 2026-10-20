@@ -1,0 +1,7 @@
+import { MyJobsView } from "./view"
+
+export const metadata = { title: "My job posts · HireMe" }
+
+export default function MyJobsPage() {
+  return <MyJobsView />
+}

@@ -3,12 +3,14 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { DEMO_CONVERSATIONS, DEMO_MESSAGES, DEMO_TALENTS, DEMO_USERS } from "@/data/demo"
+import { DEMO_EMPLOYER_USERS, DEMO_JOBS, DEMO_NOTIFICATIONS } from "@/data/demo-jobs"
 import { findContactDetail } from "@/lib/contact-guard"
+import { matchJob } from "@/lib/matching"
 import { rememberLogin } from "@/lib/recent-accounts"
 import { replaceAllOnce, safeStorage, setOnRestored } from "@/lib/safe-storage"
 import { ageFrom, PHONE_PATTERN } from "@/lib/format"
 import { AVATAR_COLORS, type Role } from "@/lib/options"
-import type { Conversation, Degree, Message, ProfileInput, Result, Talent, TalentInput, User } from "@/lib/types"
+import type { Conversation, Degree, Job, JobInput, Message, Notification, ProfileInput, Result, Talent, TalentInput, User } from "@/lib/types"
 
 // All app data lives here. It starts as the built-in demo data and every change
 // is saved to this browser's localStorage, so it only affects the current visitor.
@@ -30,6 +32,8 @@ type Data = {
   talents: Talent[]
   conversations: Conversation[]
   messages: Message[]
+  jobs: Job[]
+  notifications: Notification[]
   currentUserId: string | null
 }
 
@@ -42,6 +46,11 @@ type Actions = {
   sendMessage: (seekerId: string, body: string) => Result<{ conversationId: string }>
   replyMessage: (conversationId: string, body: string) => Result
   markRead: (conversationId: string) => void
+  postJob: (input: JobInput) => Result<{ jobId: string; notified: number }>
+  updateJob: (jobId: string, input: JobInput) => Result
+  setJobOpen: (jobId: string, open: boolean) => void
+  markNotificationRead: (notificationId: string) => void
+  markAllNotificationsRead: () => void
   resetDemo: () => void
 }
 
@@ -50,6 +59,8 @@ const initialData = (): Data => ({
   talents: DEMO_TALENTS,
   conversations: DEMO_CONVERSATIONS,
   messages: DEMO_MESSAGES,
+  jobs: DEMO_JOBS,
+  notifications: DEMO_NOTIFICATIONS,
   currentUserId: null,
 })
 
@@ -269,6 +280,65 @@ export const useStore = create<Data & Actions>()(
           }))
         },
 
+        // Posting a job notifies every job seeker it matches (see lib/matching.ts)
+        postJob: (input) => {
+          const employer = me()
+          if (employer?.role !== "EMPLOYER") return fail("Only employers can post jobs.")
+          const problem = jobInputProblem(input)
+          if (problem) return fail(problem)
+          const at = now()
+          const job: Job = {
+            ...cleanJob(input),
+            id: newId("j"),
+            employerId: employer.id,
+            company: employer.company,
+            createdAt: at,
+            updatedAt: at,
+            open: true,
+          }
+          // Job seekers listed in The Pool (visible and complete) whom the job suits
+          const { users, talents } = get()
+          const recipients = talents.flatMap((t) => {
+            const u = users.find((x) => x.id === t.userId)
+            return u?.role === "SEEKER" && t.published && !listingMissing(u, t).length && matchJob(t, job) ? [u.id] : []
+          })
+          const notifications = recipients.map((userId) => ({ id: newId("n"), userId, jobId: job.id, createdAt: at, readAt: null }))
+          set((s) => ({ jobs: [...s.jobs, job], notifications: [...s.notifications, ...notifications] }))
+          return { ok: true, jobId: job.id, notified: notifications.length }
+        },
+
+        updateJob: (jobId, input) => {
+          const employer = me()
+          if (!get().jobs.some((j) => j.id === jobId && j.employerId === employer?.id)) return fail("Job not found.")
+          const problem = jobInputProblem(input)
+          if (problem) return fail(problem)
+          const patch = { ...cleanJob(input), updatedAt: now() }
+          set((s) => ({ jobs: s.jobs.map((j) => (j.id === jobId ? { ...j, ...patch } : j)) }))
+          return { ok: true }
+        },
+
+        // Closed jobs drop out of search and matching; they can be reopened
+        setJobOpen: (jobId, open) => {
+          const employerId = get().currentUserId
+          set((s) => ({
+            jobs: s.jobs.map((j) => (j.id === jobId && j.employerId === employerId ? { ...j, open, updatedAt: now() } : j)),
+          }))
+        },
+
+        markNotificationRead: (notificationId) => {
+          const userId = get().currentUserId
+          if (!get().notifications.some((n) => n.id === notificationId && n.userId === userId && !n.readAt)) return
+          const at = now()
+          set((s) => ({ notifications: s.notifications.map((n) => (n.id === notificationId ? { ...n, readAt: at } : n)) }))
+        },
+
+        markAllNotificationsRead: () => {
+          const userId = get().currentUserId
+          if (!get().notifications.some((n) => n.userId === userId && !n.readAt)) return
+          const at = now()
+          set((s) => ({ notifications: s.notifications.map((n) => (n.userId === userId && !n.readAt ? { ...n, readAt: at } : n)) }))
+        },
+
         // The only way to replace everything on purpose; the previous data is kept as a backup (see safe-storage)
         resetDemo: () => replaceAllOnce(() => set(initialData())),
       }
@@ -276,19 +346,24 @@ export const useStore = create<Data & Actions>()(
     {
       name: "hireme-demo",
       // Bump when the demo data or its shape changes so visitors start fresh
-      version: 11,
+      version: 13,
       // v9 -> v10: jobs record start and end dates instead of years and months (see withJobDates)
       // v10 -> v11: the generated demo job seekers are added (see withDemoSeekers)
+      // v12 -> v13: job postings and notifications, with the demo companies and their jobs (see withJobPostings)
       migrate: (persisted, version) => {
-        const data = withJobDates(migrateOlder(persisted, version))
-        return version < 11 ? withDemoSeekers(data) : data
+        let data = withJobDates(migrateOlder(persisted, version))
+        if (version < 11) data = withDemoSeekers(data)
+        if (version < 13) data = withJobPostings(data)
+        return data
       },
       storage: createJSONStorage(() => safeStorage),
-      partialize: ({ users, talents, conversations, messages, currentUserId }) => ({
+      partialize: ({ users, talents, conversations, messages, jobs, notifications, currentUserId }) => ({
         users,
         talents,
         conversations,
         messages,
+        jobs,
+        notifications,
         currentUserId,
       }),
       // Rehydrated from the client shell, so server and first client render match
@@ -326,6 +401,25 @@ function withDemoSeekers(data: Data): Data {
     ...data,
     users: [...data.users, ...DEMO_USERS.filter((u) => u.id.startsWith("u-seeker-") && !haveUsers.has(u.id))],
     talents: [...data.talents, ...DEMO_TALENTS.filter((t) => t.id.startsWith("t-seeker-") && !haveTalents.has(t.id))],
+  }
+}
+
+/**
+ * v12 -> v13: adds job postings and notifications (empty lists if the saved data has none), plus the
+ * demo companies, their jobs and the demo notifications that aren't there yet. Everything saved stays.
+ * Works whether or not the v12 step ran.
+ */
+function withJobPostings(data: Data): Data {
+  const jobs = data.jobs ?? []
+  const notifications = data.notifications ?? []
+  const haveUsers = new Set(data.users.map((u) => u.id))
+  const haveJobs = new Set(jobs.map((j) => j.id))
+  const haveNotifications = new Set(notifications.map((n) => n.id))
+  return {
+    ...data,
+    users: [...data.users, ...DEMO_EMPLOYER_USERS.filter((u) => !haveUsers.has(u.id))],
+    jobs: [...jobs, ...DEMO_JOBS.filter((j) => !haveJobs.has(j.id))],
+    notifications: [...notifications, ...DEMO_NOTIFICATIONS.filter((n) => !haveNotifications.has(n.id))],
   }
 }
 
@@ -384,6 +478,34 @@ export const unreadCountFor = (s: Data, userId: string) => {
     s.conversations.filter((c) => c.employerId === userId || c.seekerId === userId).map((c) => c.id)
   )
   return s.messages.filter((m) => mine.has(m.conversationId) && m.senderId !== userId && !m.readAt).length
+}
+
+export const unreadNotificationsFor = (s: Data, userId: string) => s.notifications.filter((n) => n.userId === userId && !n.readAt).length
+
+/** What's wrong with a job posting, or null when it can be posted. */
+export function jobInputProblem(input: JobInput) {
+  if (!input.title.trim()) return "Please enter a job title."
+  if (!input.category.trim()) return "Please choose a category."
+  if (!input.contractType) return "Please choose a contract type."
+  const l = input.location
+  if (!l.remote && !l.international && !l.iraqCity) return "Please choose the city the job is in."
+  if (!input.description.trim()) return "Please describe the job."
+  return null
+}
+
+function cleanJob(input: JobInput): JobInput {
+  const skills = input.skills.map((s) => s.trim().replace(/\s+/g, " ")).filter(Boolean)
+  const l = input.location
+  return {
+    title: input.title.trim(),
+    category: input.category.trim(),
+    contractType: input.contractType,
+    description: input.description.trim(),
+    // Each skill once, ignoring case
+    skills: skills.filter((s, i) => skills.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i),
+    // A job is in exactly one kind of place
+    location: { remote: l.remote, international: !l.remote && l.international, iraqCity: l.remote || l.international ? "" : l.iraqCity },
+  }
 }
 
 /** Mistakes in what was entered, which block saving even a draft. Null when it can be saved. */

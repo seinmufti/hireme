@@ -1,4 +1,5 @@
 import type { Conversation, Message, Talent, User } from "@/lib/types"
+import { DEMO_EMPLOYER_USERS } from "./demo-jobs"
 import { DEMO_SEEKER_TALENTS, DEMO_SEEKER_USERS } from "./demo-seekers"
 
 // Built-in demo data: one account per role. Every visitor starts from this;
@@ -51,8 +52,8 @@ const CORE_USERS: User[] = [
   },
 ]
 
-// The three main demo accounts, then the generated job seekers (see demo-seekers.ts)
-export const DEMO_USERS: User[] = [...CORE_USERS, ...DEMO_SEEKER_USERS]
+// The three main demo accounts, the other demo companies (see demo-jobs.ts), then the generated job seekers (see demo-seekers.ts)
+export const DEMO_USERS: User[] = [...CORE_USERS, ...DEMO_EMPLOYER_USERS, ...DEMO_SEEKER_USERS]
 
 const CORE_TALENTS: Talent[] = [
   {

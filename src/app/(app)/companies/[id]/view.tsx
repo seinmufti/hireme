@@ -1,0 +1,65 @@
+"use client"
+
+import { useMemo } from "react"
+import Link from "next/link"
+import { ArrowLeftIcon } from "lucide-react"
+import { JobCard } from "@/components/jobs/job-card"
+import { CompanyCard } from "@/components/jobs/job-detail"
+import { matchingJobs } from "@/lib/matching"
+import { useStore } from "@/lib/store"
+import { useMyTalent } from "@/lib/use-my-talent"
+import { useRoleGuard } from "@/lib/use-role-guard"
+
+// One company: its contact details and the jobs it has open.
+export function CompanyView({ id }: { id: string }) {
+  const viewer = useRoleGuard()
+  const company = useStore((s) => s.users.find((u) => u.id === id && u.role === "EMPLOYER")) ?? null
+  const allJobs = useStore((s) => s.jobs)
+  const talent = useMyTalent()
+  const jobs = useMemo(
+    () => allJobs.filter((j) => j.employerId === id && j.open).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [allJobs, id]
+  )
+  const matched = useMemo(() => new Set(talent ? matchingJobs(talent, jobs).map((m) => m.job.id) : []), [talent, jobs])
+  const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
+
+  if (!viewer) return null
+  if (!company) {
+    return (
+      <div className="mx-auto max-w-md rounded-xl border border-dashed bg-card py-16 text-center">
+        <p className="font-medium">This company isn&apos;t on HireMe</p>
+        <Link href="/companies" className="mt-2 inline-block text-sm text-primary hover:underline">
+          Browse all companies
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-6">
+      <Link href="/companies" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeftIcon className="size-4" /> All companies
+      </Link>
+      <div className="grid grid-cols-[1fr_20rem] items-start gap-6">
+        <section className="space-y-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">{company.company || company.name}</h1>
+            <p className="text-sm text-muted-foreground">
+              {jobs.length ? `${jobs.length} open job${jobs.length === 1 ? "" : "s"}` : "No open jobs right now"}
+            </p>
+          </div>
+          {jobs.length > 0 && (
+            <div className="grid grid-cols-2 gap-4">
+              {jobs.map((j) => (
+                <JobCard key={j.id} job={j} match={matched.has(j.id)} have={have} />
+              ))}
+            </div>
+          )}
+        </section>
+        <aside>
+          <CompanyCard employer={company} />
+        </aside>
+      </div>
+    </div>
+  )
+}

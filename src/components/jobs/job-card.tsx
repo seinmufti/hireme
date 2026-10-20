@@ -1,0 +1,51 @@
+import Link from "next/link"
+import { SparklesIcon } from "lucide-react"
+import type { Job } from "@/lib/types"
+import { cn } from "@/lib/utils"
+import { jobFacts, SkillChips } from "./job-meta"
+
+/** One job in a list. `match` marks jobs that suit the signed-in job seeker. */
+export function JobCard({ job, match, have, className }: { job: Job; match?: boolean; have?: string[]; className?: string }) {
+  const facts = jobFacts(job).filter((f) => f.label !== "Company" && f.label !== "Category")
+  return (
+    <article
+      className={cn(
+        "relative flex flex-col rounded-xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-sm",
+        !job.open && "opacity-70",
+        className
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate font-semibold">
+            {/* The whole card opens the job */}
+            <Link href={`/jobs/${job.id}`} className="after:absolute after:inset-0 hover:underline">
+              {job.title}
+            </Link>
+          </h3>
+          <p className="truncate text-sm text-muted-foreground">
+            {job.company} · {job.category}
+          </p>
+        </div>
+        {match && (
+          <span className="flex shrink-0 items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900">
+            <SparklesIcon className="size-3" /> Matches you
+          </span>
+        )}
+        {!job.open && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Closed</span>}
+      </div>
+
+      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+        {facts.map((f) => (
+          <div key={f.label} className="flex items-center gap-1.5">
+            <f.icon className="size-3.5 shrink-0" />
+            <dt className="sr-only">{f.label}</dt>
+            <dd>{f.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <SkillChips skills={job.skills} have={have} limit={5} className="mt-4" />
+    </article>
+  )
+}
