@@ -1,9 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { CircleAlertIcon, CircleCheckIcon, EyeIcon, EyeOffIcon, FileTextIcon } from "lucide-react"
+import { CircleAlertIcon, CircleCheckIcon, EyeIcon, EyeOffIcon } from "lucide-react"
 import { UserAvatar } from "@/components/user-avatar"
-import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/i18n/provider"
 import { formatJobPeriod } from "@/lib/format"
 import { listingSectionsMissing } from "@/lib/store"
@@ -37,11 +36,6 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
               {t("home.noTitle")}
             </Link>
           )}
-        </div>
-        <div className="flex shrink-0 gap-2">
-          <Link href="/profile/cv" className={buttonVariants({ size: "sm" })}>
-            <FileTextIcon /> {t("home.previewCv")}
-          </Link>
         </div>
       </div>
 
