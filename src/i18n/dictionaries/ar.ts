@@ -587,7 +587,7 @@ const ar: DeepPartial<Messages> = {
     now: "الحالي: {value}",
     fromCv: "من سيرتك الذاتية: {value}",
     keepMine: "الإبقاء على بياناتي",
-    import: "استيراد",
+    import: "استيراد من المسح",
     replaceAndImport: "استبدال {count} واستيراد",
     doneAll: "تم الاستيراد. راجع كل شيء ثم اضغط “جاهز”.",
     tooBig: "حجم الملف أكبر من 10 ميغابايت. يرجى رفع ملف أصغر.",

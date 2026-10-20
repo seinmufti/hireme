@@ -588,7 +588,7 @@ const en = {
     now: "Now: {value}",
     fromCv: "From your CV: {value}",
     keepMine: "Keep mine",
-    import: "Import",
+    import: "Import from scan",
     replaceAndImport: "Replace {count} and import",
     doneAll: "CV imported. Check everything, then press Ready.",
     tooBig: "That file is over 10 MB. Please upload a smaller one.",

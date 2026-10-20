@@ -587,7 +587,7 @@ const ckb: DeepPartial<Messages> = {
     now: "ئێستا: {value}",
     fromCv: "لە CV ـەکەتەوە: {value}",
     keepMine: "هی خۆم بمێنێتەوە",
-    import: "هێنان",
+    import: "هێنان لە سکانەوە",
     replaceAndImport: "گۆڕینی {count} و هێنان",
     doneAll: "CV هێنرا. هەموو شتێک بپشکنە، پاشان “ئامادەیە” دابگرە.",
     tooBig: "ئەو فایلە لە ١٠ مێگابایت گەورەترە. تکایە فایلێکی بچووکتر باربکە.",
