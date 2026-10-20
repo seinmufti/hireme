@@ -207,7 +207,7 @@ const en = {
     workType: "Type of work you want",
     workTypeHint: "Employers and job alerts use this to match you.",
     workRemote: "Remote",
-    workIraq: "A city in Iraq",
+    workIraq: "Local",
     workInternational: "International",
     pickCities: "Pick cities",
     citiesChosen: "{count} cities",

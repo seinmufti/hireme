@@ -206,7 +206,7 @@ const ar: DeepPartial<Messages> = {
     workType: "نوع العمل الذي تريده",
     workTypeHint: "يستخدم أصحاب العمل وتنبيهات الوظائف هذا لمطابقتك.",
     workRemote: "عن بُعد",
-    workIraq: "مدينة في العراق",
+    workIraq: "محلي",
     workInternational: "دولي",
     pickCities: "اختر المدن",
     citiesChosen: "{count} مدن",

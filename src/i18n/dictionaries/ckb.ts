@@ -206,7 +206,7 @@ const ckb: DeepPartial<Messages> = {
     workType: "جۆری ئەو کارەی دەتەوێت",
     workTypeHint: "خاوەنکاران و ئاگادارکردنەوەکانی کار ئەمە بۆ گونجاندنت بەکاردەهێنن.",
     workRemote: "لە دوورەوە",
-    workIraq: "شارێک لە عێراق",
+    workIraq: "ناوخۆیی",
     workInternational: "نێودەوڵەتی",
     pickCities: "شارەکان هەڵبژێرە",
     citiesChosen: "{count} شار",

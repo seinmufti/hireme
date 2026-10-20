@@ -15,7 +15,7 @@ import { EMPTY_PREFERENCE, IRAQI_CITIES, saveWorkPreference, type HomeTalent, ty
 export function WorkPreferenceCard({ user, talent }: { user: HomeUser; talent: HomeTalent | null }) {
   const t = useT()
   const pref = { ...EMPTY_PREFERENCE, ...talent?.workPreference }
-  // "A city in Iraq" is on while cities are picked, or while picking the first one
+  // "Local" (a city in Iraq) is on while cities are picked, or while picking the first one
   const [iraqOpen, setIraqOpen] = useState(false)
   const iraqOn = pref.iraqCities.length > 0 || iraqOpen
 
