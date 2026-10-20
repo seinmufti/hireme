@@ -30,16 +30,17 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           <button
             type="button"
             aria-label={t("common.language")}
+            title={LOCALE_NAMES[locale]}
             className={cn(
-              "flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
+              // Just the icon, like the bell next to it; the language names are in the dropdown
+              "flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground data-popup-open:bg-muted data-popup-open:text-foreground",
               pending && "opacity-60",
               className
             )}
           />
         }
       >
-        <LanguagesIcon className="size-3.5" />
-        {LOCALE_NAMES[locale]}
+        <LanguagesIcon className="size-5" />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-40 gap-0 p-1">
         {LOCALES.map((l) => (
