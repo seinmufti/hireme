@@ -95,7 +95,7 @@ function SearchablePicker({
             autoFocus
           />
         </div>
-        <div className="max-h-64 overflow-y-auto p-1">
+        <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1">
           {loading && (
             <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
               <LoaderCircleIcon className="size-4 animate-spin" /> {labels.loading}
@@ -260,7 +260,7 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
             autoFocus
           />
         </div>
-        <div className="max-h-64 overflow-y-auto p-1">
+        <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1">
           {matches.length === 0 && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No country found.</p>}
           {matches.map((c, i) => {
             // Without a search, the main countries come first, set apart from the rest

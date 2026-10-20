@@ -153,7 +153,7 @@ export function FilterDropdown({
                 />
               </div>
             )}
-            <div className="max-h-72 overflow-y-auto p-1" role="listbox" aria-multiselectable onKeyDown={focusRowWithArrows}>
+            <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1" role="listbox" aria-multiselectable onKeyDown={focusRowWithArrows}>
               {visible.length === 0 && <p className="px-2 py-4 text-center text-sm text-muted-foreground">No options</p>}
               {sections.filter(([, list]) => list.length > 0).map(([title, list]) => (
                 <div key={title}>
@@ -181,7 +181,7 @@ export function FilterDropdown({
           {children.length > 0 && (
             <div className="w-64 shrink-0 border-l">
               <div className="border-b px-3 py-2 text-xs font-medium text-muted-foreground">{hovered}: choose a field</div>
-              <div className="max-h-72 overflow-y-auto p-1" role="listbox" aria-multiselectable onKeyDown={focusRowWithArrows}>
+              <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1" role="listbox" aria-multiselectable onKeyDown={focusRowWithArrows}>
                 {children.map((child) => (
                   <OptionRow
                     key={child.value}

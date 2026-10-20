@@ -83,7 +83,7 @@ export function FieldOfStudyPicker({ value, onChange }: { value: string; onChang
             autoFocus
           />
         </div>
-        <div className="max-h-72 overflow-y-auto p-1">
+        <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1">
           {groups.length === 0 && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No match. Use &quot;Other&quot; to write it.</p>}
           {groups.map(([group, fields]) => (
             <div key={group} className="mb-1">

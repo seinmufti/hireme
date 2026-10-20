@@ -23,7 +23,7 @@ function PopoverContent({
 }: PopoverPrimitive.Popup.Props &
   Pick<
     PopoverPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset" | "collisionAvoidance"
+    "align" | "alignOffset" | "side" | "sideOffset" | "collisionAvoidance" | "collisionPadding"
   >) {
   return (
     <PopoverPrimitive.Portal>

@@ -74,7 +74,7 @@ export function LanguagePicker({
             autoFocus
           />
         </div>
-        <div className="max-h-72 overflow-y-auto p-1">
+        <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1">
           {matches.length === 0 && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No language found.</p>}
           {groups.map(
             ([title, list]) =>
