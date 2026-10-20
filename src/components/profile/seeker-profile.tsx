@@ -25,6 +25,8 @@ import { toast } from "sonner"
 import { Flag, ProfilePhoto } from "@/components/cv/photo"
 import { CertificationList, DegreeList, ExperienceList, LanguageList } from "@/components/pool/talent-meta"
 import { PhoneInput } from "@/components/phone-input"
+import { CvImportButton } from "@/components/profile/cv-import-dialog"
+import { CvImportReview, sectionsToCheck } from "@/components/profile/cv-import-review"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -465,7 +467,11 @@ function PortfolioForm({
   const savedFiles = useRef(new Set(fileIds(talent ?? EMPTY_PORTFOLIO, user.photoId).filter(Boolean)))
   // Follows what's typed: a section turns normal as soon as its required details are in
   const needs = new Set(listingSectionsMissing(contact, portfolio))
-  const sectionClass = (id: SectionId) => cn("scroll-mt-20 space-y-4 rounded-xl border p-6", needs.has(id as ListingSection) ? NEEDS_DETAILS : "bg-card")
+  // After a CV import: fields the AI wasn't sure about or couldn't find also turn their section yellow
+  const [toCheck, setToCheck] = useState<string[]>([])
+  const importFlags: Set<string> = sectionsToCheck(toCheck)
+  const sectionClass = (id: SectionId) =>
+    cn("scroll-mt-20 space-y-4 rounded-xl border p-6", needs.has(id as ListingSection) || importFlags.has(id) ? NEEDS_DETAILS : "bg-card")
   const setField = (key: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setContact((c) => ({ ...c, [key]: e.target.value }))
   const list = <K extends "experiences" | "degrees" | "certifications" | "languages" | "projects">(key: K) =>
@@ -509,6 +515,19 @@ function PortfolioForm({
 
   return (
     <form onSubmit={save} className="space-y-4">
+      <div className="flex items-center justify-between gap-3 rounded-xl border bg-card p-6">
+        <p className="text-sm text-muted-foreground">Have a CV already? Import it to fill in your profile.</p>
+        <CvImportButton
+          profile={contact}
+          portfolio={portfolio}
+          onApply={(next, paths) => {
+            setContact(next.profile)
+            setPortfolio(next.portfolio)
+            setToCheck(paths)
+          }}
+        />
+      </div>
+      <CvImportReview paths={toCheck} onDismiss={() => setToCheck([])} />
       <section id="edit-personal" className={sectionClass("personal")}>
         {heading("personal")}
         <PhotoField
