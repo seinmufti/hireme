@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
-import { BanknoteIcon, BriefcaseIcon, PlusIcon, SearchIcon, SendIcon, TargetIcon, XIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, HeartIcon, PlusIcon, SearchIcon, SendIcon, TargetIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
@@ -92,6 +92,9 @@ export function JobBrowser({
   const [onlyMatches, setOnlyMatches] = useState(false)
   // Only jobs that show a salary
   const [withSalary, setWithSalary] = useState(false)
+  // Job seekers: only the jobs they saved
+  const [onlySaved, setOnlySaved] = useState(false)
+  const savedIds = useStore((s) => s.savedJobs.filter((x) => x.userId === s.currentUserId).map((x) => x.id).join(" "))
   const [sort, setSort] = useState(isSeeker ? "match" : "recent")
 
   const matches = useMemo(() => (talent ? matchingJobs(talent, open) : []), [talent, open])
@@ -113,8 +116,8 @@ export function JobBrowser({
   }
 
   const base = useMemo(
-    () => open.filter((j) => jobMatchesQuery(j, query) && (!onlyMatches || score.has(j.id)) && (!withSalary || !!j.salary)),
-    [open, query, onlyMatches, withSalary, score]
+    () => open.filter((j) => jobMatchesQuery(j, query) && (!onlyMatches || score.has(j.id)) && (!withSalary || !!j.salary) && (!onlySaved || savedIds.split(" ").includes(j.id))),
+    [open, query, onlyMatches, withSalary, onlySaved, savedIds, score]
   )
   const results = useMemo(() => {
     const list = base.filter((j) => passes(j, defs, state))
@@ -131,7 +134,7 @@ export function JobBrowser({
   }
 
   const active = defs.flatMap((d) => (state[d.key] ?? []).map((v) => ({ def: d, value: v })))
-  const hasFilters = active.length > 0 || query.trim() !== "" || onlyMatches || withSalary
+  const hasFilters = active.length > 0 || query.trim() !== "" || onlyMatches || withSalary || onlySaved
 
   return (
     <div className="space-y-6">
@@ -214,6 +217,19 @@ export function JobBrowser({
           >
             <BanknoteIcon className="size-3.5" /> {t("jobs.salaryShown")}
           </button>
+          {isSeeker && (
+            <button
+              type="button"
+              aria-pressed={onlySaved}
+              onClick={() => setOnlySaved((v) => !v)}
+              className={cn(
+                "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
+                onlySaved ? "border-primary/40 bg-brand-soft text-foreground" : "hover:bg-muted"
+              )}
+            >
+              <HeartIcon className={cn("size-3.5", onlySaved && "fill-current text-primary")} /> {t("common.savedForLater")}
+            </button>
+          )}
           {defs.map((def) => (
             <FilterDropdown
               key={def.key}
@@ -247,6 +263,7 @@ export function JobBrowser({
                 setSearch("")
                 setOnlyMatches(false)
                 setWithSalary(false)
+                setOnlySaved(false)
               }}
             >
               {t("common.clearAll")}
@@ -270,7 +287,7 @@ export function JobBrowser({
             <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", !aside && "xl:grid-cols-3")}>
               {results.map((j) => (
                 <JobCard key={j.id} job={j} matches={isSeeker && talent ? matchPoints(talent, j) : undefined}
-                  isMatch={score.has(j.id)} have={have} applied={applied.get(j.id)} canApply={isSeeker || role === "GUEST"} />
+                  isMatch={score.has(j.id)} have={have} applied={applied.get(j.id)} canApply={isSeeker || role === "GUEST"} canSave={isSeeker} />
               ))}
             </div>
           )}

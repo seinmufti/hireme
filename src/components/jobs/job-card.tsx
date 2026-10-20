@@ -7,6 +7,7 @@ import { takesApplications } from "@/lib/jobs"
 import { matchTotal } from "@/lib/matching"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { SaveJobButton } from "@/components/save-button"
 import { QuickApply } from "./applications"
 import { SkillChips, useJobFacts } from "./job-meta"
 
@@ -28,6 +29,7 @@ export function JobCard({
   have,
   applied,
   canApply,
+  canSave,
   className,
 }: {
   job: Job
@@ -36,6 +38,7 @@ export function JobCard({
   have?: string[]
   applied?: string
   canApply?: boolean
+  canSave?: boolean
   className?: string
 }) {
   const t = useT()
@@ -90,7 +93,12 @@ export function JobCard({
 
       <SkillChips skills={job.skills} have={have} limit={5} className="mt-4" />
       {/* Above the card's link, so it can be pressed */}
-      {canApply && !applied && <QuickApply job={job} className="relative z-10 mt-4 self-start" />}
+      {(canApply || canSave) && (
+        <div className="relative z-10 mt-4 flex items-center gap-2">
+          {canApply && !applied && <QuickApply job={job} />}
+          {canSave && <SaveJobButton jobId={job.id} className="ms-auto" />}
+        </div>
+      )}
     </article>
   )
 }

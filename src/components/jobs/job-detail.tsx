@@ -10,6 +10,7 @@ import { takesApplications } from "@/lib/jobs"
 import { matchJob, matchPoints, type MatchableTalent } from "@/lib/matching"
 import { useMatchLabel } from "./job-card"
 import { JobPostingData } from "./job-posting-data"
+import { SaveJobButton } from "@/components/save-button"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -135,6 +136,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                 </div>
               )}
               {isSeeker && <ApplyPanel job={job} viewer={viewer} />}
+              {isSeeker && <SaveJobButton jobId={job.id} withLabel className="w-full" />}
               {viewer.role === "GUEST" && takesApplications(job) && (
                 <Link href="/login" className={buttonVariants({ className: "w-full" })}>
                   <LogInIcon /> {t("applications.signInToApply")}

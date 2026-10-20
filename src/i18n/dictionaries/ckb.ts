@@ -4,6 +4,8 @@ import type { Messages } from "./en"
 // Kurdish (Sorani, Arabic script). Missing keys fall back to English.
 const ckb: DeepPartial<Messages> = {
   common: {
+    saveForLater: "پاشەکەوت",
+    savedForLater: "پاشەکەوتکراوەکان",
     cancel: "پاشگەزبوونەوە",
     close: "داخستن",
     save: "پاشەکەوتکردن",

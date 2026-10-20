@@ -1,7 +1,9 @@
 "use client"
 
+import { useStore } from "@/lib/store"
+import { cn } from "@/lib/utils"
 import { useMemo, useState } from "react"
-import { EyeIcon, SearchIcon, UsersIcon, XIcon } from "lucide-react"
+import { BookmarkIcon, EyeIcon, SearchIcon, UsersIcon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { type Role } from "@/lib/options"
 import { useT } from "@/i18n/provider"
@@ -35,21 +37,24 @@ export function PoolBrowser({
   const [sort, setSort] = useState("recent")
   const [profileId, setProfileId] = useState<string | null>(null)
   const [messageId, setMessageId] = useState<string | null>(null)
+  // Only the job seekers this employer or recruiter saved
+  const [onlySaved, setOnlySaved] = useState(false)
+  const savedIds = useStore((s) => s.savedTalents.filter((x) => x.userId === s.currentUserId).map((x) => x.id).join(" "))
 
   const results = useMemo(() => {
-    const list = applyFilters(talents, defs, state, query)
+    const list = applyFilters(talents, defs, state, query).filter((x) => !onlySaved || savedIds.split(" ").includes(x.id))
     const by: Record<string, (a: PoolTalent, b: PoolTalent) => number> = {
       recent: (a, b) => b.updatedAt.localeCompare(a.updatedAt),
       "exp-desc": (a, b) => b.totalMonths - a.totalMonths,
       "exp-asc": (a, b) => a.totalMonths - b.totalMonths,
     }
     return [...list].sort(by[sort])
-  }, [talents, defs, state, query, sort])
+  }, [talents, defs, state, query, sort, onlySaved, savedIds])
 
   const active = defs.flatMap((d) =>
     (state[d.key] ?? []).map((v) => ({ def: d, value: v, label: labelFor(d, v) }))
   )
-  const hasFilters = active.length > 0 || query.trim() !== ""
+  const hasFilters = active.length > 0 || query.trim() !== "" || onlySaved
   const byId = (id: string | null) => talents.find((t) => t.id === id) ?? null
 
   return (
@@ -95,6 +100,17 @@ export function PoolBrowser({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            aria-pressed={onlySaved}
+            onClick={() => setOnlySaved((v) => !v)}
+            className={cn(
+              "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
+              onlySaved ? "border-primary/40 bg-brand-soft text-foreground" : "hover:bg-muted"
+            )}
+          >
+            <BookmarkIcon className={cn("size-3.5", onlySaved && "fill-current text-primary")} /> {t("common.savedForLater")}
+          </button>
           {defs.map((def) => (
             <FilterDropdown
               key={def.key}

@@ -4,6 +4,8 @@
 
 const en = {
   common: {
+    saveForLater: "Save",
+    savedForLater: "Saved",
     cancel: "Cancel",
     close: "Close",
     save: "Save",

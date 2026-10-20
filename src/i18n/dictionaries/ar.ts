@@ -4,6 +4,8 @@ import type { Messages } from "./en"
 // Arabic. Missing keys fall back to English.
 const ar: DeepPartial<Messages> = {
   common: {
+    saveForLater: "حفظ",
+    savedForLater: "المحفوظة",
     cancel: "إلغاء",
     close: "إغلاق",
     save: "حفظ",
