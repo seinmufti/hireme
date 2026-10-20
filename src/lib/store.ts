@@ -2,7 +2,7 @@
 
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
-import { DEMO_CONVERSATIONS, DEMO_MESSAGES, DEMO_TALENTS, DEMO_USERS } from "@/data/demo"
+import { CORE_TALENTS, CORE_USERS, DEMO_CONVERSATIONS, DEMO_MESSAGES, DEMO_TALENTS, DEMO_USERS } from "@/data/demo"
 import { findContactDetail } from "@/lib/contact-guard"
 import { rememberLogin } from "@/lib/recent-accounts"
 import { replaceAllOnce, safeStorage, setOnRestored } from "@/lib/safe-storage"
@@ -298,8 +298,9 @@ export const useStore = create<Data & Actions>()(
           }))
         },
 
-        // The only way to replace everything on purpose; the previous data is kept as a backup (see safe-storage)
-        resetDemo: () => replaceAllOnce(() => set(initialData())),
+        // The only way to replace everything on purpose; the previous data is kept as a backup (see safe-storage).
+        // Starts over with one account per role: a single job seeker, not the generated ones.
+        resetDemo: () => replaceAllOnce(() => set({ ...initialData(), users: CORE_USERS, talents: CORE_TALENTS })),
       }
     },
     {

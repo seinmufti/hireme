@@ -7,7 +7,8 @@ import { DEMO_SEEKER_TALENTS, DEMO_SEEKER_USERS } from "./demo-seekers"
 
 const CREATED = "2026-10-01T09:00:00.000Z"
 
-const CORE_USERS: User[] = [
+// One account per role. Reset demo brings back only these (see resetDemo in lib/store.ts).
+export const CORE_USERS: User[] = [
   {
     id: "u-seeker",
     name: "Aram Mustafa",
@@ -61,7 +62,7 @@ const CORE_USERS: User[] = [
   },
 ]
 
-const CORE_TALENTS: Talent[] = [
+export const CORE_TALENTS: Talent[] = [
   {
     id: "t-aram",
     userId: "u-seeker",

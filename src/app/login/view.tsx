@@ -188,7 +188,7 @@ function BackupButtons() {
             <DialogDescription>
               {asking?.kind === "upload"
                 ? "This replaces everything in the app with the contents of the backup file. You can undo a reset, but not a backup, so download one first if you need it."
-                : "This clears every change you've made in this browser and brings back the built-in demo accounts. You can undo it right after."}
+                : "This clears every change you've made in this browser and starts over with one demo account per role (one job seeker, one recruiter, one employer). You can undo it right after."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
