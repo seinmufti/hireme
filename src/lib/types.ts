@@ -49,6 +49,7 @@ export type Degree = {
   name: string // e.g. "BSc in Computer Science"
   field: string // field of study; from FIELDS_OF_STUDY or written by the job seeker
   institution: string // university, college or school
+  country?: string // ISO code of the institution's country; "IQ" when missing
   status: string // a DEGREE_STATUSES value: "Graduated" or "Studying"
   startYear: string // "YYYY"
   endYear: string // "YYYY": graduation year, or the expected graduation year while studying

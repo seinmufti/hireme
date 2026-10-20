@@ -14,6 +14,7 @@ import type { Certification, Degree, Experience, LanguageSkill, Talent, TalentIn
 import { cn } from "@/lib/utils"
 import { AttachmentField } from "./cv-fields"
 import { DateOfBirthPicker } from "./date-of-birth-picker"
+import { CountrySelect, InstitutionPicker } from "./pickers"
 import { LanguagePicker } from "./language-picker"
 import { FieldOfStudyPicker } from "./field-of-study-picker"
 
@@ -518,15 +519,27 @@ export function DegreeFields({
         startYear: "",
         endYear: "",
         attachmentIds: [],
+        country: "IQ",
       })}
     >
       {(d, update) => {
         const studying = d.status === "Studying"
         return (
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Institution" className="col-span-2">
-              <Input className="h-9" value={d.institution} onChange={(e) => update({ institution: e.target.value })} placeholder="University, college or school" />
-            </Field>
+            <div className="col-span-2 grid grid-cols-12 gap-3">
+              <Field label="Country" className="col-span-4">
+                {/* An institution of the old country does not fit the new one */}
+                <CountrySelect value={d.country ?? "IQ"} onChange={(country) => update({ country, institution: "" })} />
+              </Field>
+              <Field label="Institution" className="col-span-8">
+                <InstitutionPicker
+                  key={d.country ?? "IQ"}
+                  country={d.country ?? "IQ"}
+                  value={d.institution}
+                  onChange={(institution) => update({ institution })}
+                />
+              </Field>
+            </div>
             <Field label="Degree level">
               <Choice value={d.level} options={EDUCATION} onChange={(level) => update({ level })} />
             </Field>

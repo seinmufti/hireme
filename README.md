@@ -40,3 +40,5 @@ Browser storage is per address, so run any testing on the separate copy of the a
 ```bash
 npm run dev:test   # http://localhost:3001
 ```
+
+The list of universities per country (`src/data/universities.json`) is built by `scripts/build-universities.mjs` from the open [university-domains-list](https://github.com/Hipo/university-domains-list) (MIT licence) plus a few Iraqi universities it lacks. Cities come from the `country-state-city` package, loaded only when a country other than Iraq is picked.

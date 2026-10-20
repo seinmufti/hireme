@@ -1,34 +1,29 @@
 "use client"
 
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import {
   CameraIcon,
-  CheckIcon,
-  ChevronDownIcon,
   FileTextIcon,
   LoaderCircleIcon,
-  ListIcon,
   LockIcon,
   MapPinIcon,
   PaperclipIcon,
-  PencilLineIcon,
   PlusIcon,
   SearchIcon,
   Trash2Icon,
   XIcon,
 } from "lucide-react"
 import { toast } from "sonner"
-import { Flag, ProfilePhoto } from "@/components/cv/photo"
+import { ProfilePhoto } from "@/components/cv/photo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { saveUpload, UPLOAD_ACCEPT, useStoredFile } from "@/lib/files"
-import { COUNTRIES, IRAQ_CITIES } from "@/lib/options"
+import { IRAQ_CITIES } from "@/lib/options"
 import type { Project, WorkPreference } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { CityPicker, CountrySelect } from "./pickers"
 import { Field, MonthYearPicker } from "./portfolio-fields"
 
 // Fields added for the CV builder: photo, location, skills, projects, work preference and uploads.
@@ -169,145 +164,6 @@ export function PhotoField({
   )
 }
 
-/** Cities of a country, loaded when first needed (the full list is large). Iraq uses the curated list. */
-const cityCache = new Map<string, string[]>()
-function useCities(country: string) {
-  const [loaded, setLoaded] = useState<{ country: string; cities: string[] } | null>(null)
-  useEffect(() => {
-    if (country === "IQ" || cityCache.has(country)) return
-    let cancelled = false
-    import("country-state-city/lib/city")
-      .then(({ default: City }) => {
-        const names = [...new Set((City.getCitiesOfCountry(country) ?? []).map((c) => c.name))].sort((x, y) => x.localeCompare(y))
-        cityCache.set(country, names)
-        if (!cancelled) setLoaded({ country, cities: names })
-      })
-      .catch(() => !cancelled && setLoaded({ country, cities: [] }))
-    return () => {
-      cancelled = true
-    }
-  }, [country])
-  if (country === "IQ") return { cities: IRAQ_CITIES, loading: false }
-  const cached = cityCache.get(country)
-  if (cached) return { cities: cached, loading: false }
-  return loaded?.country === country ? { cities: loaded.cities, loading: false } : { cities: [] as string[], loading: true }
-}
-
-/** Searchable list of the country's cities, or "Other" to write your own. */
-function CityPicker({ country, value, onChange }: { country: string; value: string; onChange: (v: string) => void }) {
-  const { cities, loading } = useCities(country)
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState("")
-  // Chosen "Other", or a saved city that isn't in the list (only known once the list has loaded)
-  const [custom, setCustom] = useState(false)
-  const writing = custom || (!loading && !!value && !cities.includes(value))
-  const q = query.trim().toLowerCase()
-  const matches = cities.filter((c) => !q || c.toLowerCase().includes(q)).slice(0, 200)
-  const pick = (city: string) => {
-    onChange(city)
-    setOpen(false)
-  }
-
-  if (writing) {
-    return (
-      <div className="flex gap-1.5">
-        <Input className="h-9" value={value} onChange={(e) => onChange(e.target.value)} placeholder="Write your city" autoFocus={custom} />
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-lg"
-          title="Choose from the list"
-          aria-label="Choose from the list"
-          onClick={() => {
-            setCustom(false)
-            onChange("")
-          }}
-        >
-          <ListIcon />
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next)
-        if (next) setQuery("")
-      }}
-    >
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            className="flex h-9 w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent pr-2 pl-2.5 text-left text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-          />
-        }
-      >
-        <span className={cn("truncate", !value && "text-muted-foreground")}>{value || "Choose a city"}</span>
-        <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
-      </PopoverTrigger>
-      <PopoverContent align="start" collisionAvoidance={{ fallbackAxisSide: "none" }} className="w-72 gap-0 p-0">
-        <div className="flex items-center gap-2 border-b px-3">
-          <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                if (matches[0]) pick(matches[0])
-              }
-            }}
-            placeholder="Search cities"
-            className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-            autoFocus
-          />
-        </div>
-        <div className="max-h-64 overflow-y-auto p-1">
-          {loading && (
-            <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-              <LoaderCircleIcon className="size-4 animate-spin" /> Loading cities…
-            </p>
-          )}
-          {!loading && matches.length === 0 && (
-            <p className="px-3 py-4 text-center text-sm text-muted-foreground">No city found.</p>
-          )}
-          {matches.map((city) => (
-            <button
-              key={city}
-              type="button"
-              onClick={() => pick(city)}
-              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
-            >
-              {city}
-              {city === value && <CheckIcon className="size-4 text-primary" />}
-            </button>
-          ))}
-        </div>
-        {/* Only offered when the list has no match at all */}
-        {!loading && matches.length === 0 && (
-          <div className="border-t p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false)
-                setCustom(true)
-                onChange(query.trim())
-              }}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
-            >
-              <PencilLineIcon className="size-4 text-muted-foreground" />
-              {q ? <>Other: write &ldquo;{query.trim()}&rdquo;</> : "Other (write your own)"}
-            </button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
-  )
-}
-
 /** Country (with flag), city and street address. */
 export function LocationFields({
   value,
@@ -323,29 +179,8 @@ export function LocationFields({
         <h3 className="text-sm font-medium">Location</h3>
       </div>
       <Field label="Country" className="col-span-4">
-        <Select
-          items={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
-          value={value.country || "IQ"}
-          // A city in the old country doesn't fit the new one
-          onValueChange={(v) => v && v !== value.country && onChange({ country: v as string, city: "" })}
-        >
-          <SelectTrigger className="h-9 w-full">
-            <SelectValue>
-              {(code: string) => (
-                <span className="flex items-center gap-2">
-                  <Flag code={code} className="h-3" /> {COUNTRIES.find((c) => c.code === code)?.name}
-                </span>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {COUNTRIES.map((c) => (
-              <SelectItem key={c.code} value={c.code}>
-                <Flag code={c.code} className="h-3" /> {c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* A city in the old country does not fit the new one */}
+        <CountrySelect value={value.country} onChange={(country) => onChange({ country, city: "" })} />
       </Field>
       <Field label="City" className="col-span-4">
         {/* Keyed so each country starts with its own list */}
