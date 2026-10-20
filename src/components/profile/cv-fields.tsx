@@ -1,13 +1,14 @@
 "use client"
 
 /* eslint-disable @next/next/no-img-element */
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   CameraIcon,
   CheckIcon,
   ChevronDownIcon,
   FileTextIcon,
   LoaderCircleIcon,
+  ListIcon,
   LockIcon,
   MapPinIcon,
   PaperclipIcon,
@@ -168,16 +169,66 @@ export function PhotoField({
   )
 }
 
-/** Searchable list of Iraqi cities; any other city can be written in. */
-function CityPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+/** Cities of a country, loaded when first needed (the full list is large). Iraq uses the curated list. */
+const cityCache = new Map<string, string[]>()
+function useCities(country: string) {
+  const [loaded, setLoaded] = useState<{ country: string; cities: string[] } | null>(null)
+  useEffect(() => {
+    if (country === "IQ" || cityCache.has(country)) return
+    let cancelled = false
+    import("country-state-city/lib/city")
+      .then(({ default: City }) => {
+        const names = [...new Set((City.getCitiesOfCountry(country) ?? []).map((c) => c.name))].sort((x, y) => x.localeCompare(y))
+        cityCache.set(country, names)
+        if (!cancelled) setLoaded({ country, cities: names })
+      })
+      .catch(() => !cancelled && setLoaded({ country, cities: [] }))
+    return () => {
+      cancelled = true
+    }
+  }, [country])
+  if (country === "IQ") return { cities: IRAQ_CITIES, loading: false }
+  const cached = cityCache.get(country)
+  if (cached) return { cities: cached, loading: false }
+  return loaded?.country === country ? { cities: loaded.cities, loading: false } : { cities: [] as string[], loading: true }
+}
+
+/** Searchable list of the country's cities, or "Other" to write your own. */
+function CityPicker({ country, value, onChange }: { country: string; value: string; onChange: (v: string) => void }) {
+  const { cities, loading } = useCities(country)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
+  // Chosen "Other", or a saved city that isn't in the list (only known once the list has loaded)
+  const [custom, setCustom] = useState(false)
+  const writing = custom || (!loading && !!value && !cities.includes(value))
   const q = query.trim().toLowerCase()
-  const matches = IRAQ_CITIES.filter((c) => !q || c.toLowerCase().includes(q))
+  const matches = cities.filter((c) => !q || c.toLowerCase().includes(q)).slice(0, 200)
   const pick = (city: string) => {
     onChange(city)
     setOpen(false)
   }
+
+  if (writing) {
+    return (
+      <div className="flex gap-1.5">
+        <Input className="h-9" value={value} onChange={(e) => onChange(e.target.value)} placeholder="Write your city" autoFocus={custom} />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-lg"
+          title="Choose from the list"
+          aria-label="Choose from the list"
+          onClick={() => {
+            setCustom(false)
+            onChange("")
+          }}
+        >
+          <ListIcon />
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <Popover
       open={open}
@@ -207,15 +258,22 @@ function CityPicker({ value, onChange }: { value: string; onChange: (v: string) 
               if (e.key === "Enter") {
                 e.preventDefault()
                 if (matches[0]) pick(matches[0])
-                else if (query.trim()) pick(query.trim())
               }
             }}
-            placeholder="Search cities, e.g. Erbil"
+            placeholder="Search cities"
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />
         </div>
         <div className="max-h-64 overflow-y-auto p-1">
+          {loading && (
+            <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
+              <LoaderCircleIcon className="size-4 animate-spin" /> Loading cities…
+            </p>
+          )}
+          {!loading && matches.length === 0 && (
+            <p className="px-3 py-4 text-center text-sm text-muted-foreground">No city found.</p>
+          )}
           {matches.map((city) => (
             <button
               key={city}
@@ -227,17 +285,24 @@ function CityPicker({ value, onChange }: { value: string; onChange: (v: string) 
               {city === value && <CheckIcon className="size-4 text-primary" />}
             </button>
           ))}
-          {q && !IRAQ_CITIES.some((c) => c.toLowerCase() === q) && (
+        </div>
+        {/* Only offered when the list has no match at all */}
+        {!loading && matches.length === 0 && (
+          <div className="border-t p-1">
             <button
               type="button"
-              onClick={() => pick(query.trim())}
+              onClick={() => {
+                setOpen(false)
+                setCustom(true)
+                onChange(query.trim())
+              }}
               className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
             >
               <PencilLineIcon className="size-4 text-muted-foreground" />
-              Use &ldquo;{query.trim()}&rdquo;
+              {q ? <>Other: write &ldquo;{query.trim()}&rdquo;</> : "Other (write your own)"}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )
@@ -251,7 +316,6 @@ export function LocationFields({
   value: { country: string; city: string; address: string }
   onChange: (patch: Partial<{ country: string; city: string; address: string }>) => void
 }) {
-  const inIraq = value.country === "IQ"
   return (
     <div className="grid grid-cols-12 gap-4 rounded-xl border bg-muted/30 p-4">
       <div className="col-span-12 flex items-center gap-2">
@@ -284,11 +348,8 @@ export function LocationFields({
         </Select>
       </Field>
       <Field label="City" className="col-span-4">
-        {inIraq ? (
-          <CityPicker value={value.city} onChange={(city) => onChange({ city })} />
-        ) : (
-          <Input className="h-9" value={value.city} onChange={(e) => onChange({ city: e.target.value })} placeholder="City" />
-        )}
+        {/* Keyed so each country starts with its own list */}
+        <CityPicker key={value.country} country={value.country || "IQ"} value={value.city} onChange={(city) => onChange({ city })} />
       </Field>
       <Field label="Address (optional, private)" className="col-span-4">
         <Input className="h-9" value={value.address} onChange={(e) => onChange({ address: e.target.value })} placeholder="Street, area" />

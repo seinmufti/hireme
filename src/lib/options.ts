@@ -179,15 +179,33 @@ export const IRAQ_CITIES = [
 
 const flagOf = (code: string) => String.fromCodePoint(...[...code].map((c) => 0x1f1a5 + c.charCodeAt(0)))
 
-// Iraq and its neighbours first, then other common countries
-export const COUNTRIES = [
-  ["IQ", "Iraq"], ["TR", "Turkey"], ["IR", "Iran"], ["SY", "Syria"], ["JO", "Jordan"], ["SA", "Saudi Arabia"], ["KW", "Kuwait"],
-  ["AE", "United Arab Emirates"], ["QA", "Qatar"], ["BH", "Bahrain"], ["OM", "Oman"], ["LB", "Lebanon"], ["EG", "Egypt"],
-  ["GB", "United Kingdom"], ["DE", "Germany"], ["NL", "Netherlands"], ["SE", "Sweden"], ["NO", "Norway"], ["FR", "France"],
-  ["IT", "Italy"], ["ES", "Spain"], ["AT", "Austria"], ["CH", "Switzerland"], ["BE", "Belgium"], ["DK", "Denmark"],
-  ["FI", "Finland"], ["GR", "Greece"], ["CY", "Cyprus"], ["US", "United States"], ["CA", "Canada"], ["AU", "Australia"],
-  ["IN", "India"], ["PK", "Pakistan"], ["MY", "Malaysia"], ["GE", "Georgia"], ["AZ", "Azerbaijan"], ["AM", "Armenia"],
-].map(([code, name]) => ({ code, name, flag: flagOf(code) }))
+const ISO_COUNTRY_CODES = [
+  "AF", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR", "AM", "AW", "AU", "AT", "AZ", "BS", "BH", "BD", "BB",
+  "BY", "BE", "BZ", "BJ", "BM", "BT", "BO", "BA", "BW", "BV", "BR", "IO", "BN", "BG", "BF", "BI", "KH", "CM", "CA", "CV",
+  "KY", "CF", "TD", "CL", "CN", "CX", "CC", "CO", "KM", "CG", "CD", "CK", "CR", "CI", "HR", "CU", "CY", "CZ", "DK", "DJ",
+  "DM", "DO", "TL", "EC", "EG", "SV", "GQ", "ER", "EE", "ET", "FK", "FO", "FJ", "FI", "FR", "GF", "PF", "TF", "GA", "GM",
+  "GE", "DE", "GH", "GI", "GR", "GL", "GD", "GP", "GU", "GT", "GG", "GN", "GW", "GY", "HT", "HM", "HN", "HK", "HU", "IS",
+  "IN", "ID", "IR", "IQ", "IE", "IL", "IT", "JM", "JP", "JE", "JO", "KZ", "KE", "KI", "KP", "KR", "KW", "KG", "LA", "LV",
+  "LB", "LS", "LR", "LY", "LI", "LT", "LU", "MO", "MK", "MG", "MW", "MY", "MV", "ML", "MT", "IM", "MH", "MQ", "MR", "MU",
+  "YT", "MX", "FM", "MD", "MC", "MN", "ME", "MS", "MA", "MZ", "MM", "NA", "NR", "NP", "BQ", "NL", "NC", "NZ", "NI", "NE",
+  "NG", "NU", "NF", "MP", "NO", "OM", "PK", "PW", "PS", "PA", "PG", "PY", "PE", "PH", "PN", "PL", "PT", "PR", "QA", "RE",
+  "RO", "RU", "RW", "SH", "KN", "LC", "PM", "VC", "BL", "MF", "WS", "SM", "ST", "SA", "SN", "RS", "SC", "SL", "SG", "SK",
+  "SI", "SB", "SO", "ZA", "GS", "SS", "ES", "LK", "SD", "SR", "SJ", "SZ", "SE", "CH", "SY", "TW", "TJ", "TZ", "TH", "TG",
+  "TK", "TO", "TT", "TN", "TR", "TM", "TC", "TV", "UG", "UA", "AE", "GB", "US", "UM", "UY", "UZ", "VU", "VA", "VE", "VN",
+  "VG", "VI", "WF", "EH", "YE", "ZM", "ZW", "XK", "CW", "SX",
+]
+
+const regionNames = new Intl.DisplayNames(["en"], { type: "region" })
+
+// Every country (names from the browser), with Iraq and its neighbours first, then A to Z
+const FIRST_COUNTRIES = ["IQ", "TR", "IR", "SY", "JO", "SA", "KW"]
+export const COUNTRIES = ISO_COUNTRY_CODES.map((code) => ({ code, name: regionNames.of(code) ?? code, flag: flagOf(code) })).sort(
+  (a, b) => {
+    const ia = FIRST_COUNTRIES.indexOf(a.code)
+    const ib = FIRST_COUNTRIES.indexOf(b.code)
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.name.localeCompare(b.name)
+  }
+)
 
 export const countryName = (code: string) => COUNTRIES.find((c) => c.code === code)?.name ?? code
 
