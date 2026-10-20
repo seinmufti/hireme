@@ -55,7 +55,7 @@ function MoreAccounts({
         render={
           <button
             type="button"
-            className="rounded-full px-2 py-1 text-xs whitespace-nowrap text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="rounded-full px-2 py-1 text-xs whitespace-nowrap text-white/60 hover:bg-white/10 hover:text-white"
           />
         }
       >
@@ -106,7 +106,7 @@ function MoreAccounts({
   )
 }
 
-// Demo login: every account, grouped by role, one click to sign in as them.
+// Demo login: every account, grouped by role, one click to sign in as them. Shown on the black Dev tools bar.
 export function HeaderAccounts() {
   const t = useT()
   const router = useRouter()
@@ -149,13 +149,13 @@ export function HeaderAccounts() {
         const hidden = all.length - group.length
         return (
           <Fragment key={role}>
-            {i > 0 && <span className="mx-3 h-10 w-px bg-border" aria-hidden />}
+            {i > 0 && <span className="mx-3 h-10 w-px bg-white/15" aria-hidden />}
             <div className="flex flex-col items-center gap-1">
-              <span className="text-[10px] leading-none font-medium tracking-wide text-muted-foreground uppercase">
+              <span className="text-[10px] leading-none font-medium tracking-wide text-white/50 uppercase">
                 {t(`roles.${role}`)}
               </span>
               <div className="flex items-center gap-1">
-                {group.length === 0 && <span className="text-xs text-muted-foreground">—</span>}
+                {group.length === 0 && <span className="text-xs text-white/50">—</span>}
                 {group.map((a) => {
                   const active = a.id === currentId
                   return (
@@ -174,8 +174,8 @@ export function HeaderAccounts() {
                             className={cn(
                               "flex items-center gap-1.5 rounded-full border py-0.5 pr-3 pl-0.5 text-sm whitespace-nowrap transition",
                               active
-                                ? "border-primary bg-brand-soft font-medium text-primary"
-                                : "border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"
+                                ? "border-white/30 bg-white/15 font-medium text-white"
+                                : "border-transparent text-white/70 hover:bg-white/10 hover:text-white"
                             )}
                           />
                         }

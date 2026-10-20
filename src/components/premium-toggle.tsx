@@ -27,10 +27,11 @@ export function PremiumToggle({ user }: { user: User }) {
       }}
       className={cn(
         "flex size-9 items-center justify-center rounded-full transition",
-        premium ? "bg-amber-100 text-amber-600 hover:bg-amber-200" : "text-muted-foreground/60 hover:bg-muted hover:text-muted-foreground"
+        // On the black Dev tools bar: a glowing gold crown when on, a dim one when off
+        premium ? "bg-amber-400/20 text-amber-300 hover:bg-amber-400/30" : "text-white/40 hover:bg-white/10 hover:text-white/70"
       )}
     >
-      <CrownIcon className={cn("size-5", premium && "fill-amber-400")} />
+      <CrownIcon className={cn("size-5", premium && "fill-amber-300")} />
     </button>
   )
 }
