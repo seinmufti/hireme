@@ -101,7 +101,7 @@ export type TalentInput = {
   softSkills: string[]
   projects: Project[]
   workPreference: WorkPreference
-  published: boolean
+  published: boolean // no longer used: a complete portfolio is always listed (kept so saved data stays valid)
 }
 
 export type Talent = TalentInput & {

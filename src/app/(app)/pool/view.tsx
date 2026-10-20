@@ -17,7 +17,6 @@ export function PoolView() {
   const pool = useMemo<PoolTalent[]>(
     () =>
       talents
-        .filter((t) => t.published)
         .flatMap((t) => {
           const u = users.find((x) => x.id === t.userId)
           // Only complete portfolios are listed; drafts stay private

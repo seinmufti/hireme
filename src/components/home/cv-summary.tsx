@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleAlertIcon, CircleCheckIcon, EyeIcon, EyeOffIcon } from "lucide-react"
+import { CircleAlertIcon, CircleCheckIcon, EyeIcon } from "lucide-react"
 import { UserAvatar } from "@/components/user-avatar"
 import { useT } from "@/i18n/provider"
 import { formatJobPeriod } from "@/lib/format"
@@ -13,12 +13,10 @@ import { editCvAt, type HomeTalent, type HomeUser } from "./home-data"
 export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent | null }) {
   const t = useT()
   const missing = listingSectionsMissing(user, talent)
-  const visible = talent?.published ?? true
-  const status = !visible
-    ? { icon: EyeOffIcon, text: t("home.cvHidden"), className: "border-border bg-muted text-muted-foreground" }
-    : missing.length
-      ? { icon: CircleAlertIcon, text: t("home.cvIncomplete"), className: "border-amber-300 bg-amber-50 text-amber-900" }
-      : { icon: CircleCheckIcon, text: t("home.cvComplete"), className: "border-emerald-300 bg-emerald-50 text-emerald-900" }
+  // Visible to employers once every required detail is in (there's no on/off switch)
+  const status = missing.length
+    ? { icon: CircleAlertIcon, text: t("home.cvIncomplete"), className: "border-amber-300 bg-amber-50 text-amber-900" }
+    : { icon: CircleCheckIcon, text: t("home.cvComplete"), className: "border-emerald-300 bg-emerald-50 text-emerald-900" }
   const latest = talent?.experiences[0]
   const skills = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
@@ -40,7 +38,7 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
       </div>
 
       {/* Missing details: opens the form at the first section that needs them */}
-      {visible && missing.length ? (
+      {missing.length ? (
         <Link
           href={editCvAt(missing[0])}
           className={cn("mx-5 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:underline", status.className)}
@@ -52,7 +50,7 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
         <div className={cn("mx-5 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm", status.className)}>
           <status.icon className="size-4 shrink-0" />
           {status.text}
-          {visible && <EyeIcon className="ms-auto size-4 shrink-0 opacity-60" />}
+          <EyeIcon className="ms-auto size-4 shrink-0 opacity-60" />
         </div>
       )}
 

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
 import {
   BriefcaseIcon,
   CakeIcon,
@@ -117,13 +116,11 @@ export function SeekerProfile({ user }: { user: User }) {
   )
 }
 
-/** The only place the Pool status and the visibility switch appear. */
+/** Whether employers can see the profile. There's no switch: it's visible once every required detail is in. */
 function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   const t = useT()
-  const setPortfolioVisible = useStore((s) => s.setPortfolioVisible)
   const sections = listingSectionsMissing(user, talent)
-  // Visible only when switched on and complete: the switch can't be turned on while required details are missing
-  const inPool = (talent?.published ?? false) && sections.length === 0
+  const inPool = sections.length === 0
   // Required details missing, one bullet per section
   const missing = (
     <>
@@ -155,31 +152,6 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
         {/* What's still needed, under the status */}
         {sections.length > 0 && <div className="mt-1.5 ps-5.5 text-sm text-amber-900">{missing}</div>}
       </div>
-      {/* On = visible to employers, off = hidden */}
-      <SwitchPrimitive.Root
-        checked={inPool}
-        onCheckedChange={(v) => {
-          if (v && sections.length) {
-            // Not allowed until every required detail is in
-            toast.warning(t("seeker.cantShow"), {
-              description: missing,
-            })
-            return
-          }
-          setPortfolioVisible(v)
-          toast.success(v ? t("seeker.visible") : t("seeker.hidden"))
-        }}
-        aria-label={t("seeker.visible")}
-        className="group relative inline-flex h-7 w-16 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-input transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:bg-primary"
-      >
-        <span className="absolute left-2 text-[10px] font-semibold text-primary-foreground opacity-0 transition-opacity group-data-checked:opacity-100">
-          {t("seeker.on")}
-        </span>
-        <span className="absolute right-1.5 text-[10px] font-semibold text-muted-foreground transition-opacity group-data-checked:opacity-0">
-          {t("seeker.off")}
-        </span>
-        <SwitchPrimitive.Thumb className="block size-5 translate-x-1 rounded-full bg-background shadow-sm transition-transform data-checked:translate-x-[2.4rem]" />
-      </SwitchPrimitive.Root>
     </div>
   )
 }

@@ -44,7 +44,6 @@ type Actions = {
   switchAccount: (userId: string) => void
   createAccount: (input: NewAccountInput) => Result<{ userId: string }>
   saveTalent: (input: TalentInput) => Result
-  setPortfolioVisible: (visible: boolean) => void
   updateProfile: (input: ProfileInput) => Result
   sendMessage: (seekerId: string, body: string) => Result<{ conversationId: string }>
   replyMessage: (conversationId: string, body: string) => Result
@@ -137,7 +136,7 @@ export const useStore = create<Data & Actions>()(
         const fresh = talents.flatMap((t) => {
           if (userIds && !userIds.includes(t.userId)) return []
           const u = users.find((x) => x.id === t.userId)
-          if (u?.role !== "SEEKER" || !t.published || listingMissing(u, t).length) return []
+          if (u?.role !== "SEEKER" || listingMissing(u, t).length) return []
           return jobs
             .filter((j) => takesApplications(j) && !heard.has(`${u.id} ${j.id}`) && !applied.has(`${u.id} ${j.id}`) && matchJob(t, j))
             .map((j) => ({ id: newId("n"), userId: u.id, jobId: j.id, createdAt: at, readAt: null }))
@@ -200,20 +199,6 @@ export const useStore = create<Data & Actions>()(
           return { ok: true, userId: user.id }
         },
 
-        // The on/off switch on the profile: show or hide the portfolio from employers right away
-        setPortfolioVisible: (visible) => {
-          const user = me()
-          if (user?.role !== "SEEKER") return
-          const at = now()
-          set((s) => {
-            const existing = s.talents.find((t) => t.userId === user.id)
-            if (existing) {
-              return { talents: s.talents.map((t) => (t.id === existing.id ? { ...t, published: visible, updatedAt: at } : t)) }
-            }
-            return { talents: [...s.talents, { ...emptyTalent(user.id, at), published: visible }] }
-          })
-          if (visible) notifyNewMatches([user.id])
-        },
 
         saveTalent: (input) => {
           const user = me()
