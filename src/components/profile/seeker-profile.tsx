@@ -124,7 +124,17 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   const sections = listingSectionsMissing(user, talent)
   // Visible only when switched on and complete: the switch can't be turned on while required details are missing
   const inPool = (talent?.published ?? false) && sections.length === 0
-  const missing = sections.map((s) => SECTION_TITLES[s]).join(", ")
+  // Required details missing, one bullet per section
+  const missing = (
+    <>
+      Required details missing in:
+      <ul className="mt-1 list-disc space-y-0.5 pl-4">
+        {sections.map((s) => (
+          <li key={s}>{SECTION_TITLES[s]}</li>
+        ))}
+      </ul>
+    </>
+  )
 
   const status = (
     <span className={cn("flex items-center gap-1.5 text-sm font-medium", inPool ? "text-emerald-900" : "text-amber-900")}>
@@ -144,7 +154,7 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
         <Tooltip>
           <TooltipTrigger render={<span tabIndex={0} className="cursor-help rounded outline-none" />}>{status}</TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-64">
-            Required details missing in: {missing}.
+            {missing}
           </TooltipContent>
         </Tooltip>
       ) : (
@@ -157,7 +167,7 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
           if (v && sections.length) {
             // Not allowed until every required detail is in
             toast.warning("Your profile can't be visible to employers yet", {
-              description: `Required details missing in: ${missing}.`,
+              description: missing,
             })
             return
           }
