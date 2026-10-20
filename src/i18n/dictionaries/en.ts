@@ -27,7 +27,7 @@ const en = {
   nav: {
     home: "Home",
     jobs: "Jobs",
-    cvPreview: "CV preview",
+    cvPreview: "CV",
     companies: "Companies",
     inbox: "Inbox",
     pool: "The Pool",

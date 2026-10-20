@@ -27,7 +27,7 @@ const ar: DeepPartial<Messages> = {
   nav: {
     home: "الرئيسية",
     jobs: "الوظائف",
-    cvPreview: "معاينة السيرة الذاتية",
+    cvPreview: "السيرة الذاتية",
     companies: "الشركات",
     inbox: "الرسائل",
     pool: "مجمّع المواهب",

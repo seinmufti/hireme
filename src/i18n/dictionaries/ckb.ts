@@ -27,7 +27,7 @@ const ckb: DeepPartial<Messages> = {
   nav: {
     home: "سەرەکی",
     jobs: "کارەکان",
-    cvPreview: "پێشبینینی CV",
+    cvPreview: "CV",
     companies: "کۆمپانیاکان",
     inbox: "نامەکان",
     pool: "حەوزی بەهرەکان",

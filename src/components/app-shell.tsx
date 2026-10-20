@@ -27,7 +27,8 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   const home = { href: "/home", label: t("nav.home") }
   const jobs = { href: "/jobs", label: t("nav.jobs") }
-  const cv = { href: "/profile/cv", label: t("nav.cvPreview") }
+  // The CV page: your details, with Edit and the Preview CV button
+  const cv = { href: "/profile", label: t("nav.cvPreview") }
   const companies = { href: "/companies", label: t("nav.companies") }
   const pool = { href: "/pool", label: t("nav.pool") }
   const inbox = { href: "/inbox", label: t("nav.inbox"), badge: unread }

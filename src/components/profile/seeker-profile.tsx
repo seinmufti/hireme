@@ -26,7 +26,7 @@ import { CertificationList, DegreeList, ExperienceList, LanguageList } from "@/c
 import { PhoneInput } from "@/components/phone-input"
 import { CvImportButton } from "@/components/profile/cv-import-dialog"
 import { sectionsToCheck } from "@/components/profile/cv-import-review"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { deleteFile } from "@/lib/files"
@@ -98,12 +98,19 @@ export function SeekerProfile({ user }: { user: User }) {
             </p>
           )}
         </div>
-        {!editing && (
-          <Link href="/profile/cv" className={buttonVariants({ variant: "default" })}>
-            <EyeIcon /> {t("seeker.previewCv")}
-          </Link>
-        )}
       </div>
+
+      {/* Preview CV: a round floating button with an eye, bottom corner (Dev tools sits in the middle) */}
+      {!editing && (
+        <Link
+          href="/profile/cv"
+          aria-label={t("seeker.previewCv")}
+          title={t("seeker.previewCv")}
+          className="fixed end-6 bottom-6 z-40 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
+        >
+          <EyeIcon className="size-6" />
+        </Link>
+      )}
 
       <PoolStatus user={user} talent={talent} />
 
