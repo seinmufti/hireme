@@ -1,7 +1,7 @@
 "use client"
 
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
-import { CakeIcon, GlobeIcon, HomeIcon, LinkIcon, MailIcon, PaperclipIcon, PhoneIcon } from "lucide-react"
+import { CakeIcon, LinkIcon, MailIcon, MapPinIcon, PaperclipIcon, PhoneIcon } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { useStoredFile } from "@/lib/files"
 import { countryName } from "@/lib/options"
@@ -19,25 +19,27 @@ export type CvPerson = Pick<User, "name" | "title" | "photoId" | "avatarColor" |
 /** What the CV shows of the portfolio. Employers get the age, never the exact date of birth. */
 export type CvTalent = Omit<TalentInput, "dateOfBirth" | "published" | "workPreference"> & { dateOfBirth?: string }
 
-// The look of a classic ATS CV: sky-blue accents, dark text, mostly italic
-const ACCENT = "#36B1DA"
-const INK = "#272529"
+// A calm, classic CV: near-black text, one muted navy accent, plenty of white space
+const ACCENT = "#2F5D8A"
+const INK = "#1F2328"
+const MUTED = "#5B6470"
 
 // A4 in millimetres; the page's content box is what's left inside the margins
 const PAGE_W = 210
 const PAGE_H = 297
-const MARGIN_X = 14
-const MARGIN_TOP = 14
-const MARGIN_BOTTOM = 20 // room for the HireMe logo
+const MARGIN_X = 18
+const MARGIN_TOP = 18
+const MARGIN_BOTTOM = 22 // room for the HireMe logo
 const CONTENT_H_MM = PAGE_H - MARGIN_TOP - MARGIN_BOTTOM
 const MM = 96 / 25.4 // CSS pixels per millimetre
 
-/** "2022-03" -> "03.2022" */
-const monthDot = (value: string) => {
-  const [y, m] = (value ?? "").split("-")
-  return y && m ? `${m}.${y}` : y || ""
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+/** "2022-03" -> "Mar 2022" */
+const monthYear = (value: string) => {
+  const [y, m] = (value ?? "").split("-").map(Number)
+  return y && m >= 1 && m <= 12 ? `${MONTHS[m - 1]} ${y}` : y ? String(y) : ""
 }
-const range = (from: string, to: string) => [from, to].filter(Boolean).join(" - ")
+const range = (from: string, to: string) => [from, to].filter(Boolean).join(" – ")
 
 const LEVEL_WORDS: Record<string, string> = {
   Native: "Native",
@@ -63,8 +65,9 @@ function Rich({ text }: { text: string }) {
 }
 
 /**
- * The CV as A4 pages, laid out like a classic ATS CV. The content is cut into blocks (the header, each job,
- * each degree, ...), measured, and placed page by page, so a job or degree never splits across pages.
+ * The CV as A4 pages, in a classic one-column layout: dates and labels in a narrow column on the left,
+ * the details on the right. The content is cut into blocks (the header, each job, each degree, ...),
+ * measured, and placed page by page, so a job or degree never splits across pages.
  * `ref` gets the element holding the pages (what Download PDF prints).
  */
 export function CvDocument({
@@ -146,10 +149,9 @@ export function CvDocument({
   )
 }
 
-const CV_TEXT = "font-[family-name:var(--font-cv)] text-[9.5pt] leading-[1.45] italic"
-const HEADING = "font-[family-name:var(--font-cv-heading)] not-italic font-bold uppercase tracking-tight"
+const CV_TEXT = "font-[family-name:var(--font-cv)] text-[9.5pt] leading-[1.5]"
 
-/** One A4 page: corner triangles, the HireMe logo at the bottom and, on free CVs, the watermark. */
+/** One A4 page: the HireMe logo centred at the bottom and, on free CVs, the watermark. */
 function Page({ premium, children }: { premium: boolean; children: React.ReactNode }) {
   return (
     <div
@@ -161,16 +163,11 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
         color: INK,
       }}
     >
-      {/* Sky-blue corners, top right and bottom left */}
-      <div aria-hidden className="absolute top-0 right-0 h-[16mm] w-[62mm]" style={{ background: ACCENT, clipPath: "polygon(0 0, 100% 0, 100% 100%)" }} />
-      <div aria-hidden className="absolute bottom-0 left-0 h-[13mm] w-[48mm]" style={{ background: ACCENT, clipPath: "polygon(0 0, 100% 100%, 0 100%)" }} />
-
       {children}
 
       {/* Always at the bottom of every page, also on premium CVs */}
-      {/* Centred at the bottom of the page */}
-      <div className="absolute bottom-[5mm] left-1/2 flex -translate-x-1/2 items-center gap-2 text-[12pt] font-semibold not-italic text-neutral-700">
-        <Logo size={34} className="rounded-[6px]" />
+      <div className="absolute bottom-[6mm] left-1/2 flex -translate-x-1/2 items-center gap-2 text-[11pt] font-semibold" style={{ color: MUTED }}>
+        <Logo size={30} className="rounded-[6px]" />
         HireMe
       </div>
 
@@ -181,7 +178,7 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
             {Array.from({ length: 22 }, (_, row) => (
               <div key={row} className={cn("flex gap-[16mm] whitespace-nowrap", row % 2 && "translate-x-[22mm]")}>
                 {Array.from({ length: 12 }, (_, i) => (
-                  <span key={i} className="text-[20pt] font-black tracking-wider not-italic text-primary/[0.13]">
+                  <span key={i} className="text-[20pt] font-black tracking-wider text-primary/[0.13]">
                     HireMe
                   </span>
                 ))}
@@ -194,11 +191,25 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
   )
 }
 
+/** Small spaced capitals in the accent colour, with a hairline running to the right edge. */
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className={cn(HEADING, "mb-[3mm] pt-[4mm] pb-[1mm] text-[13pt]")} style={{ borderBottom: `1.5px solid ${ACCENT}` }}>
+    <h2 className="mb-[3mm] flex items-center gap-[3mm] pt-[6mm] text-[9pt] font-bold tracking-[0.18em] uppercase" style={{ color: ACCENT }}>
       {children}
+      <span className="h-px flex-1" style={{ background: "#D5DAE0" }} />
     </h2>
+  )
+}
+
+/** A row with a narrow left column (dates, labels) and the details on the right. */
+function Row({ aside, children, className }: { aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn("grid grid-cols-[34mm_1fr] gap-x-[5mm]", className)}>
+      <div className="pt-[0.3mm] text-[8.5pt] leading-[1.6]" style={{ color: MUTED }}>
+        {aside}
+      </div>
+      <div className="min-w-0">{children}</div>
+    </div>
   )
 }
 
@@ -224,6 +235,10 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
     )
   }
 
+  if (t.summary) {
+    section("summary", "Summary", [{ key: "text", node: <p className="pb-[1mm] text-justify">{t.summary}</p> }])
+  }
+
   const jobs = t.experiences.filter((e) => e.title || e.employer)
   section(
     "work",
@@ -231,12 +246,13 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
     jobs.map((e) => ({
       key: e.id,
       node: (
-        <article className="pb-[3.5mm]">
-          <p className="font-bold">{range(monthDot(e.start), e.current ? "present" : monthDot(e.end))}</p>
-          <p className="font-bold">{e.employer}</p>
-          <p>{[e.title, e.contractType].filter(Boolean).join(" · ")}</p>
+        <Row aside={range(monthYear(e.start), e.current ? "Present" : monthYear(e.end))} className="pb-[4mm]">
+          <p className="text-[10pt] font-bold">{e.title}</p>
+          <p className="italic" style={{ color: MUTED }}>
+            {[e.employer, e.contractType].filter(Boolean).join(" · ")}
+          </p>
           {e.description && (
-            <ul className="mt-[1mm] list-disc space-y-[0.4mm] ps-[6mm] marker:text-[7pt]">
+            <ul className="mt-[1.5mm] list-disc space-y-[0.6mm] ps-[4.5mm] marker:text-[7pt] marker:text-[#2F5D8A]">
               {lines(e.description).map((b, i) => (
                 <li key={i}>
                   <Rich text={b} />
@@ -244,8 +260,12 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
               ))}
             </ul>
           )}
-          {e.reference && <p className="mt-[1mm] text-[8.5pt] text-neutral-500">Reference available on request</p>}
-        </article>
+          {e.reference && (
+            <p className="mt-[1mm] text-[8.5pt] italic" style={{ color: MUTED }}>
+              Reference available on request
+            </p>
+          )}
+        </Row>
       ),
     }))
   )
@@ -257,22 +277,71 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
     degrees.map((d) => ({
       key: d.id,
       node: (
-        <article className="pb-[3mm]">
-          <p>{range(d.startYear, d.endYear && (d.status === "Studying" ? `expected ${d.endYear}` : d.endYear)) || (d.status === "Studying" ? "present" : "")}</p>
-          <p className="font-bold">{d.institution}</p>
-          <p>{[d.name || d.level, d.field && d.field !== d.name ? d.field : ""].filter(Boolean).join(" / ")}</p>
+        <Row aside={range(d.startYear, d.endYear && (d.status === "Studying" ? `exp. ${d.endYear}` : d.endYear))} className="pb-[3mm]">
+          <p className="text-[10pt] font-bold">{d.name || d.level}</p>
+          <p className="italic" style={{ color: MUTED }}>
+            {[d.institution, d.field && d.field !== d.name ? d.field : ""].filter(Boolean).join(" · ")}
+          </p>
           {showAttachments && <Attachments ids={d.attachmentIds} />}
-        </article>
+        </Row>
       ),
     }))
   )
 
-  const skills = [...t.hardSkills, ...t.softSkills]
-  if (skills.length) {
-    section("skills", "Core competence", [
-      { key: "all", node: <p className="pb-[3mm] text-justify">{skills.map((s) => `* ${s}`).join(" ")}</p> },
+  const skillRows = [
+    { label: "Hard skills", list: t.hardSkills },
+    { label: "Soft skills", list: t.softSkills },
+  ].filter((g) => g.list.length)
+  section(
+    "skills",
+    "Core competencies",
+    skillRows.map((g) => ({
+      key: g.label,
+      node: (
+        <Row aside={g.label} className="pb-[2mm]">
+          <p>{g.list.join("  ·  ")}</p>
+        </Row>
+      ),
+    }))
+  )
+
+  const languages = t.languages.filter((l) => l.language)
+  if (languages.length) {
+    section("languages", "Languages", [
+      {
+        key: "all",
+        node: (
+          <div className="grid grid-cols-3 gap-x-[5mm] gap-y-[1.5mm] pb-[1mm]">
+            {languages.map((l) => (
+              <p key={l.language}>
+                <span className="font-bold">{l.language}</span>
+                <span style={{ color: MUTED }}> — {LEVEL_WORDS[l.speaking] ?? l.speaking}</span>
+                {showAttachments && <Attachments ids={l.attachmentIds} />}
+              </p>
+            ))}
+          </div>
+        ),
+      },
     ])
   }
+
+  const certifications = t.certifications.filter((c) => c.title)
+  section(
+    "certifications",
+    "Licenses & certifications",
+    certifications.map((c) => ({
+      key: c.id,
+      node: (
+        <Row aside={monthYear(c.issued)} className="pb-[2mm]">
+          <p>
+            <span className="font-bold">{c.title}</span>
+            {c.institution && <span className="italic" style={{ color: MUTED }}> · {c.institution}</span>}
+          </p>
+          {showAttachments && <Attachments ids={c.attachmentIds} />}
+        </Row>
+      ),
+    }))
+  )
 
   const projects = t.projects.filter((p) => p.name)
   section(
@@ -281,125 +350,75 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
     projects.map((p) => ({
       key: p.id,
       node: (
-        <article className="pb-[2.5mm]">
-          <p className="font-bold">
-            {p.name}
-            {(p.start || p.end) && <span className="font-normal"> · {range(monthDot(p.start), p.end ? monthDot(p.end) : "present")}</span>}
-          </p>
+        <Row aside={p.start || p.end ? range(monthYear(p.start), p.end ? monthYear(p.end) : "Present") : ""} className="pb-[3mm]">
+          <p className="font-bold">{p.name}</p>
           {p.link && (
-            <p className="flex items-center gap-1 text-[8.5pt] underline" style={{ color: ACCENT }}>
-              <GlobeIcon className="size-[3mm]" />
+            <p className="text-[8.5pt]" style={{ color: ACCENT }}>
               {p.link.replace(/^https?:\/\/(www\.)?/, "")}
             </p>
           )}
           {p.description && <p>{p.description}</p>}
-        </article>
+        </Row>
       ),
     }))
   )
 
-  // Languages and licenses side by side, like the bottom of a classic ATS CV
-  const languages = t.languages.filter((l) => l.language)
-  const certifications = t.certifications.filter((c) => c.title)
-  if (languages.length || certifications.length) {
-    blocks.push({
-      key: "languages-licenses",
-      node: (
-        <div className="grid grid-cols-2 gap-[8mm] pb-[3mm]">
-          <div>
-            {languages.length > 0 && (
-              <>
-                <SectionTitle>Languages</SectionTitle>
-                <ul className="space-y-[1mm]">
-                  {languages.map((l) => (
-                    <li key={l.language}>
-                      {l.language} - {LEVEL_WORDS[l.speaking] ?? l.speaking}
-                      {showAttachments && <Attachments ids={l.attachmentIds} />}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-          <div>
-            {certifications.length > 0 && (
-              <>
-                <SectionTitle>Licenses & certifications</SectionTitle>
-                <ul className="list-disc space-y-[0.6mm] ps-[5mm] marker:text-[7pt]">
-                  {certifications.map((c) => (
-                    <li key={c.id}>
-                      {c.title}
-                      {c.institution && ` by ${c.institution}`}
-                      {showAttachments && <Attachments ids={c.attachmentIds} />}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-        </div>
-      ),
-    })
-  }
-
   return blocks
 }
 
-/** Name, profession, summary and the contact row with round sky-blue icons. */
+/** Name, profession, one line of contact details, the photo on the right, and a hairline under it all. */
 function Header({ person, t, age, forEmployer }: { person: CvPerson; t: CvTalent; age: number | null; forEmployer: boolean }) {
-  const where = [person.city, countryName(person.country)].filter(Boolean).join(" / ")
-  const born = !forEmployer && t.dateOfBirth ? monthDayYear(t.dateOfBirth) : age !== null ? `${age} years old` : ""
-  type Item = { icon: typeof HomeIcon; lines: React.ReactNode[] }
+  const place = [!forEmployer && person.address, person.city, countryName(person.country)].filter(Boolean).join(", ")
+  const born = !forEmployer && t.dateOfBirth ? birthDate(t.dateOfBirth) : age !== null ? `${age} years old` : ""
+  type Item = { icon: typeof MapPinIcon; text: React.ReactNode }
   const candidates: (Item | false | "" | undefined)[] = [
-    where && { icon: HomeIcon, lines: [<span key="w" className="flex items-center gap-1.5"><Flag code={person.country} />{where}</span>, !forEmployer && person.address] },
-    born && { icon: CakeIcon, lines: [born, t.gender] },
-    !forEmployer && person.phone && { icon: PhoneIcon, lines: [person.phone] },
-    !forEmployer && person.email && { icon: MailIcon, lines: [person.email] },
-    !forEmployer && person.linkedin && { icon: LinkIcon, lines: [person.linkedin.replace(/^https?:\/\/(www\.)?/, "")] },
+    place && { icon: MapPinIcon, text: <span className="inline-flex items-center gap-1"><Flag code={person.country} />{place}</span> },
+    !forEmployer && person.phone && { icon: PhoneIcon, text: person.phone },
+    !forEmployer && person.email && { icon: MailIcon, text: person.email },
+    !forEmployer && person.linkedin && { icon: LinkIcon, text: person.linkedin.replace(/^https?:\/\/(www\.)?/, "") },
+    born && { icon: CakeIcon, text: [born, t.gender].filter(Boolean).join(" · ") },
   ]
   const items = candidates.filter((x): x is Item => !!x)
 
   return (
     <header className="pb-[2mm]">
-      <div className="flex items-start gap-[6mm]">
+      <div className="flex items-center gap-[6mm]">
         <div className="min-w-0 flex-1">
-          <h1 className={cn(HEADING, "text-[26pt] leading-[1.1] normal-case")}>{person.name}</h1>
-          {person.title && <p className="mt-[1.5mm] text-[10.5pt] font-bold">{person.title}</p>}
-        </div>
-        {person.photoId && <ProfilePhoto photoId={person.photoId} name={person.name} color={person.avatarColor} size={86} className="mt-[6mm]" />}
-      </div>
-      {t.summary && <p className="mt-[3mm] text-justify">{t.summary}</p>}
-      {items.length > 0 && (
-        <div className="mt-[5mm] flex flex-wrap gap-x-[8mm] gap-y-[3mm]">
-          {items.map((it, i) => (
-            <div key={i} className="flex items-start gap-[2.5mm]">
-              <span className="flex size-[6.5mm] shrink-0 items-center justify-center rounded-full text-white" style={{ background: ACCENT }}>
-                <it.icon className="size-[3.6mm]" />
-              </span>
-              <div className="pt-[0.6mm]">
-                {it.lines.filter(Boolean).map((l, j) => (
-                  <div key={j}>{l}</div>
-                ))}
-              </div>
+          <h1 className="text-[25pt] leading-[1.1] font-bold tracking-[-0.01em]">{person.name}</h1>
+          {person.title && (
+            <p className="mt-[1.5mm] text-[11.5pt] font-normal tracking-[0.02em]" style={{ color: ACCENT }}>
+              {person.title}
+            </p>
+          )}
+          {items.length > 0 && (
+            <div className="mt-[3.5mm] flex flex-wrap gap-x-[5mm] gap-y-[1.2mm] text-[8.5pt]" style={{ color: MUTED }}>
+              {items.map((it, i) => (
+                <span key={i} className="inline-flex items-center gap-[1.5mm]">
+                  <it.icon className="size-[3.2mm] shrink-0" style={{ color: ACCENT }} />
+                  {it.text}
+                </span>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
+        {person.photoId && <ProfilePhoto photoId={person.photoId} name={person.name} color={person.avatarColor} size={84} />}
+      </div>
+      <div className="mt-[5mm] h-[0.6mm]" style={{ background: ACCENT }} />
     </header>
   )
 }
 
-/** "1995-03-22" -> "03/22/1995", as on the reference CV */
-function monthDayYear(value: string) {
-  const [y, m, d] = value.split("-")
-  return y && m && d ? `${m}/${d}/${y}` : ""
+/** "1995-03-22" -> "22 Mar 1995" */
+function birthDate(value: string) {
+  const [y, m, d] = value.split("-").map(Number)
+  return y && m && d ? `${d} ${MONTHS[m - 1]} ${y}` : ""
 }
 
 /** Links to an entry's uploaded certificates (screen only; employers can open them). */
 function Attachments({ ids }: { ids: string[] }) {
   if (!ids.length) return null
   return (
-    <span className="ml-1 inline-flex flex-wrap gap-1.5 align-middle not-italic print:hidden">
+    <span className="ml-1 inline-flex flex-wrap gap-1.5 align-middle print:hidden">
       {ids.map((id, i) => (
         <AttachmentLink key={id} id={id} index={i} />
       ))}
