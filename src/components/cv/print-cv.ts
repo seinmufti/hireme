@@ -1,5 +1,5 @@
 /**
- * Downloads the CV shown on the page as a PDF, looking exactly like the preview: the CV element is copied,
+ * Downloads the CV shown on the page as a PDF, looking exactly like the preview: its A4 pages are copied,
  * with the page's styles, into a hidden frame, and the browser's print dialog saves it ("Save as PDF").
  */
 export async function printCv(element: HTMLElement, title: string) {
@@ -11,11 +11,12 @@ export async function printCv(element: HTMLElement, title: string) {
   doc.open()
   doc.write(`<!doctype html><html class="${document.documentElement.className}"><head><meta charset="utf-8"><title></title>${styles}
 <style>
-  /* Longer CVs continue on more pages, which get a top margin; the first page has the CV's own padding */
-  @page { size: A4; margin: 12mm 0 }
-  @page :first { margin-top: 0 }
+  /* The preview is already cut into A4 pages: print each one as a page, edge to edge */
+  @page { size: A4; margin: 0 }
   html, body { margin: 0; background: #fff }
-  .cv-page { box-shadow: none !important; margin: 0 !important; min-height: 285mm !important; padding-bottom: 0 !important }
+  .cv-pages { gap: 0 !important; display: block !important }
+  .cv-page { box-shadow: none !important; margin: 0 !important; break-after: page; break-inside: avoid }
+  .cv-page:last-child { break-after: auto }
 </style></head><body></body></html>`)
   doc.close()
   // The suggested file name comes from the frame's title

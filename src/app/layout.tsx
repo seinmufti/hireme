@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono, Noto_Sans_Arabic } from "next/font/google"
+import { Geist, Geist_Mono, Lato, Noto_Sans_Arabic, Oswald } from "next/font/google"
 import { headers } from "next/headers"
 import { MobileGate } from "@/components/mobile-gate"
 import { Toaster } from "@/components/ui/sonner"
@@ -13,6 +13,9 @@ const geistSans = Geist({ variable: "--font-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
 // Arabic and Kurdish (Sorani) text; Latin text keeps Geist
 const notoArabic = Noto_Sans_Arabic({ variable: "--font-arabic", subsets: ["arabic"] })
+// The CV: Lato for text (mostly italic) and Oswald for the name and section titles, like a classic ATS CV
+const cvText = Lato({ variable: "--font-cv", subsets: ["latin"], weight: ["400", "700"], style: ["normal", "italic"] })
+const cvHeading = Oswald({ variable: "--font-cv-heading", subsets: ["latin"], weight: ["500", "700"] })
 
 export const metadata: Metadata = {
   title: "HireMe",
@@ -30,7 +33,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang={locale}
       dir={dir}
-      className={`${geistSans.variable} ${geistMono.variable} ${notoArabic.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoArabic.variable} ${cvText.variable} ${cvHeading.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <I18nProvider locale={locale}>
