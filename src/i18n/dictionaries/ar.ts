@@ -354,6 +354,8 @@ const ar: DeepPartial<Messages> = {
     jobClosed: "الوظيفة مغلقة",
   },
   companies: {
+    follow: "تابِع لمعرفة الوظائف الجديدة",
+    following: "تتابعها",
     title: "الشركات",
     count: "{count} شركات توظّف على HireMe",
     searchPlaceholder: "ابحث عن شركة أو مدينة…",
@@ -636,6 +638,7 @@ const ar: DeepPartial<Messages> = {
     seeAll: "عرض كل الإشعارات ({count})",
     empty: "لا توجد إشعارات بعد. سنخبرك عندما تُنشر وظيفة تناسب سيرتك الذاتية.",
     newJob: "وظيفة جديدة تناسب سيرتك الذاتية",
+    newFromFollowed: "وظيفة جديدة من {company}",
     open: "الإشعارات",
     openWithCount: "الإشعارات، {count} جديدة",
     unread: "غير مقروء",

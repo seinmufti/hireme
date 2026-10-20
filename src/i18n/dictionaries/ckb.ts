@@ -354,6 +354,8 @@ const ckb: DeepPartial<Messages> = {
     jobClosed: "کارەکە داخراوە",
   },
   companies: {
+    follow: "شوێنی بکەوە بۆ کاری نوێ",
+    following: "شوێنی دەکەویت",
     title: "کۆمپانیاکان",
     count: "{count} کۆمپانیا لە HireMe کارمەند دادەمەزرێنن",
     searchPlaceholder: "گەڕان بۆ کۆمپانیا یان شار…",
@@ -636,6 +638,7 @@ const ckb: DeepPartial<Messages> = {
     seeAll: "بینینی هەموو ئاگادارکردنەوەکان ({count})",
     empty: "هێشتا هیچ ئاگادارکردنەوەیەک نییە. کاتێک کارێکی نوێ لەگەڵ CV ـەکەت گونجا ئاگادارت دەکەینەوە.",
     newJob: "کارێکی نوێ لەگەڵ CV ـەکەت دەگونجێت",
+    newFromFollowed: "کارێکی نوێ لە {company}",
     open: "ئاگادارکردنەوەکان",
     openWithCount: "ئاگادارکردنەوەکان، {count} نوێ",
     unread: "نەخوێندراوە",

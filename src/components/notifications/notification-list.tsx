@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { BellIcon, TargetIcon } from "lucide-react"
+import { BellIcon, Building2Icon, TargetIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
@@ -96,11 +96,19 @@ export function NotificationList({
                   !n.readAt && "bg-brand-soft/60"
                 )}
               >
-                <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-                  <TargetIcon className="size-3.5" />
+                {/* A job that matches them, or one from a company they follow */}
+                <span
+                  className={cn(
+                    "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full",
+                    n.kind === "follow" ? "bg-muted text-foreground" : "bg-emerald-50 text-emerald-700"
+                  )}
+                >
+                  {n.kind === "follow" ? <Building2Icon className="size-3.5" /> : <TargetIcon className="size-3.5" />}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-xs text-muted-foreground">{t("notifications.newJob")}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {n.kind === "follow" ? t("notifications.newFromFollowed", { company: n.job.company }) : t("notifications.newJob")}
+                  </span>
                   <span className="block truncate text-sm font-medium">{n.job.title}</span>
                   <span className="block truncate text-xs text-muted-foreground">
                     {n.job.company} · {locationLabel(n.job.location)} · {timeAgo(n.createdAt)}

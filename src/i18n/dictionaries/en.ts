@@ -355,6 +355,8 @@ const en = {
     jobClosed: "job closed",
   },
   companies: {
+    follow: "Follow for new jobs",
+    following: "Following",
     title: "Companies",
     count: "{count} companies are hiring on HireMe",
     searchPlaceholder: "Search companies or cities…",
@@ -637,6 +639,7 @@ const en = {
     seeAll: "See all notifications ({count})",
     empty: "No notifications yet. We'll let you know when a new job matches your CV.",
     newJob: "New job matches your CV",
+    newFromFollowed: "New job from {company}",
     open: "Notifications",
     openWithCount: "Notifications, {count} new",
     unread: "Unread",

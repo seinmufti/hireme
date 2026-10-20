@@ -2,9 +2,10 @@
 
 import { useMemo } from "react"
 import Link from "next/link"
-import { ArrowLeftIcon } from "lucide-react"
+import { ArrowLeftIcon, BellPlusIcon, BellRingIcon } from "lucide-react"
 import { JobCard } from "@/components/jobs/job-card"
 import { CompanyCard } from "@/components/jobs/job-detail"
+import { Button } from "@/components/ui/button"
 import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
 import { matchingJobs, matchPoints } from "@/lib/matching"
@@ -26,6 +27,9 @@ export function CompanyView({ id }: { id: string }) {
   )
   const matched = useMemo(() => new Set(talent ? matchingJobs(talent, jobs).map((m) => m.job.id) : []), [talent, jobs])
   const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
+  // Job seekers follow a company to hear about every job it posts
+  const following = useStore((s) => s.follows.some((f) => f.userId === s.currentUserId && f.employerId === id))
+  const toggleFollow = useStore((s) => s.toggleFollow)
 
   if (!viewer) return null
   if (!company) {
@@ -60,7 +64,12 @@ export function CompanyView({ id }: { id: string }) {
             </div>
           )}
         </section>
-        <aside>
+        <aside className="space-y-3">
+          {viewer.role === "SEEKER" && (
+            <Button variant={following ? "outline" : "default"} className="w-full" onClick={() => toggleFollow(company.id)} aria-pressed={following}>
+              {following ? <BellRingIcon /> : <BellPlusIcon />} {following ? t("companies.following") : t("companies.follow")}
+            </Button>
+          )}
           <CompanyCard employer={company} showContact />
         </aside>
       </div>
