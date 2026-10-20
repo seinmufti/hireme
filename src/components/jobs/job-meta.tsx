@@ -1,15 +1,31 @@
 "use client"
 
-import { BriefcaseIcon, Building2Icon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
-import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
+import { BriefcaseIcon, Building2Icon, CalendarClockIcon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
+import { useI18n, useLocationLabel, useTimeAgo } from "@/i18n/provider"
+import { daysLeft } from "@/lib/jobs"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-export type JobFact = "company" | "location" | "contract" | "category" | "posted"
+export type JobFact = "company" | "location" | "contract" | "category" | "posted" | "deadline"
 
 /** Company, location, contract type, category and when it was posted, in the current language. */
+/** "Apply by 20 Nov 2026 · 31 days left", "Last day to apply: today" or "Applications closed". */
+export function useDeadlineLabel() {
+  const { t, locale } = useI18n()
+  return (job: Job) => {
+    const left = daysLeft(job)
+    if (left === null) return ""
+    if (left < 0) return t("jobs.deadlinePassed")
+    if (left === 0) return t("jobs.lastDay")
+    const [y, m, d] = job.deadline.split("-").map(Number)
+    const date = new Date(y, m - 1, d).toLocaleDateString(locale === "en" ? "en-GB" : locale, { day: "numeric", month: "short", year: "numeric" })
+    return `${t("jobs.applyBy", { date })} · ${left === 1 ? t("jobs.dayLeft") : t("jobs.daysLeft", { count: left })}`
+  }
+}
+
 export function useJobFacts() {
-  const t = useT()
+  const { t } = useI18n()
+  const deadline = useDeadlineLabel()
   const timeAgo = useTimeAgo()
   const locationLabel = useLocationLabel()
   return (job: Job) => [
@@ -23,7 +39,8 @@ export function useJobFacts() {
     { key: "contract" as JobFact, icon: BriefcaseIcon, label: t("jobs.factContract"), value: job.contractType },
     { key: "category" as JobFact, icon: TagIcon, label: t("jobs.factCategory"), value: job.category },
     { key: "posted" as JobFact, icon: ClockIcon, label: t("jobs.factPosted"), value: t("jobs.posted", { time: timeAgo(job.createdAt) }) },
-  ]
+    { key: "deadline" as JobFact, icon: CalendarClockIcon, label: t("jobs.factDeadline"), value: deadline(job) },
+  ].filter((f) => f.value)
 }
 
 /** The job's skills as chips; the ones the job seeker has are highlighted. */

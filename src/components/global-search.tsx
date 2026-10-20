@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { BriefcaseIcon, Building2Icon, ClockIcon, CornerDownLeftIcon, FileTextIcon, SearchIcon, TrendingUpIcon } from "lucide-react"
 import { useLocationLabel, useT } from "@/i18n/provider"
 import type { MessageKey } from "@/i18n/types"
-import { companyMatchesQuery, jobMatchesQuery } from "@/lib/jobs"
+import { companyMatchesQuery, jobMatchesQuery, takesApplications } from "@/lib/jobs"
 import { useStore } from "@/lib/store"
 import type { Role } from "@/lib/options"
 import type { User } from "@/lib/types"
@@ -78,7 +78,7 @@ export function GlobalSearch({ user }: { user: User }) {
   // The skills and categories that come up most in open jobs
   const popular = useMemo(() => {
     const counts = new Map<string, number>()
-    for (const j of jobs.filter((x) => x.open)) for (const term of [...j.skills, j.category]) counts.set(term, (counts.get(term) ?? 0) + 1)
+    for (const j of jobs.filter(takesApplications)) for (const term of [...j.skills, j.category]) counts.set(term, (counts.get(term) ?? 0) + 1)
     return [...counts].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([term]) => term)
   }, [jobs])
 
@@ -93,7 +93,7 @@ export function GlobalSearch({ user }: { user: User }) {
       .filter((p) => matchesWords(`${t(p.key)} ${p.words}`, q))
       .slice(0, 4)
       .map((p) => ({ key: p.href, icon: FileTextIcon, label: t(p.key), href: p.href }))
-    const foundJobs = jobs.filter((j) => j.open && jobMatchesQuery(j, q))
+    const foundJobs = jobs.filter((j) => takesApplications(j) && jobMatchesQuery(j, q))
     const jobItems: Item[] = foundJobs.slice(0, 5).map((j) => ({
       key: j.id,
       icon: BriefcaseIcon,

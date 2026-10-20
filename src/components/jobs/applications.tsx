@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useT, useTimeAgo } from "@/i18n/provider"
 import { formatDuration } from "@/lib/format"
+import { takesApplications } from "@/lib/jobs"
 import { APPLICATION_STATUSES } from "@/lib/options"
 import { toPoolTalent } from "@/lib/pool-talent"
 import { listingMissing, useStore } from "@/lib/store"
@@ -81,7 +82,7 @@ export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
     )
   }
 
-  if (!job.open) return null
+  if (!takesApplications(job)) return null
 
   if (!cvReady) {
     return (

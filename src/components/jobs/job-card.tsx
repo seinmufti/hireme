@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { CheckIcon, SparklesIcon } from "lucide-react"
 import { useT } from "@/i18n/provider"
+import { takesApplications } from "@/lib/jobs"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { SkillChips, useJobFacts } from "./job-meta"
@@ -28,7 +29,7 @@ export function JobCard({
     <article
       className={cn(
         "relative flex flex-col rounded-xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-sm",
-        !job.open && "opacity-70",
+        !takesApplications(job) && "opacity-70",
         className
       )}
     >
@@ -53,7 +54,7 @@ export function JobCard({
             <SparklesIcon className="size-3" /> {t("jobs.matchesYou")}
           </span>
         )}
-        {!job.open && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}
+        {!takesApplications(job) && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}
       </div>
 
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">

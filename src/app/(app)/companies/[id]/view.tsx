@@ -6,6 +6,7 @@ import { ArrowLeftIcon } from "lucide-react"
 import { JobCard } from "@/components/jobs/job-card"
 import { CompanyCard } from "@/components/jobs/job-detail"
 import { useT } from "@/i18n/provider"
+import { takesApplications } from "@/lib/jobs"
 import { matchingJobs } from "@/lib/matching"
 import { useStore } from "@/lib/store"
 import { useMyTalent } from "@/lib/use-my-talent"
@@ -19,7 +20,7 @@ export function CompanyView({ id }: { id: string }) {
   const allJobs = useStore((s) => s.jobs)
   const talent = useMyTalent()
   const jobs = useMemo(
-    () => allJobs.filter((j) => j.employerId === id && j.open).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    () => allJobs.filter((j) => j.employerId === id && takesApplications(j)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     [allJobs, id]
   )
   const matched = useMemo(() => new Set(talent ? matchingJobs(talent, jobs).map((m) => m.job.id) : []), [talent, jobs])

@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { useT } from "@/i18n/provider"
+import { takesApplications } from "@/lib/jobs"
 import { matchJob, type MatchableTalent } from "@/lib/matching"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
@@ -33,7 +34,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
         <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {isOwner ? t("jobs.myPosts") : t("jobs.allJobs")}
       </Link>
 
-      {!job.open && (
+      {!takesApplications(job) && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {isOwner ? t("jobs.closedOwner") : t("jobs.closedSeeker")}
         </div>

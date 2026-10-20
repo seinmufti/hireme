@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware"
 import { CORE_TALENTS, CORE_USERS, DEMO_CONVERSATIONS, DEMO_MESSAGES, DEMO_TALENTS, DEMO_USERS, EMPLOYER_USERS } from "@/data/demo"
 import { DEMO_APPLICATIONS, DEMO_JOBS, DEMO_NOTIFICATIONS } from "@/data/demo-jobs"
 import { findContactDetail } from "@/lib/contact-guard"
+import { takesApplications, today } from "@/lib/jobs"
 import { matchJob } from "@/lib/matching"
 import { rememberLogin } from "@/lib/recent-accounts"
 import { replaceAllOnce, safeStorage, setOnRestored } from "@/lib/safe-storage"
@@ -138,7 +139,7 @@ export const useStore = create<Data & Actions>()(
           const u = users.find((x) => x.id === t.userId)
           if (u?.role !== "SEEKER" || !t.published || listingMissing(u, t).length) return []
           return jobs
-            .filter((j) => j.open && !heard.has(`${u.id} ${j.id}`) && !applied.has(`${u.id} ${j.id}`) && matchJob(t, j))
+            .filter((j) => takesApplications(j) && !heard.has(`${u.id} ${j.id}`) && !applied.has(`${u.id} ${j.id}`) && matchJob(t, j))
             .map((j) => ({ id: newId("n"), userId: u.id, jobId: j.id, createdAt: at, readAt: null }))
         })
         if (fresh.length) set((s) => ({ notifications: [...s.notifications, ...fresh] }))
@@ -409,7 +410,7 @@ export const useStore = create<Data & Actions>()(
           const seeker = me()
           if (seeker?.role !== "SEEKER") return fail("Only job seekers can apply to jobs.")
           const job = get().jobs.find((j) => j.id === jobId)
-          if (!job?.open) return fail("This job is no longer taking applications.")
+          if (!job || !takesApplications(job)) return fail("This job is no longer taking applications.")
           if (get().applications.some((a) => a.jobId === jobId && a.seekerId === seeker.id)) return fail("You've already applied to this job.")
           const talent = get().talents.find((t) => t.userId === seeker.id) ?? null
           if (listingMissing(seeker, talent).length) return fail("Please finish your CV before applying.")
@@ -447,19 +448,21 @@ export const useStore = create<Data & Actions>()(
     {
       name: "hireme-demo",
       // Bump when the demo data or its shape changes so visitors start fresh
-      version: 14,
+      version: 15,
       // v9 -> v10: jobs record start and end dates instead of years and months (see withJobDates)
       // v10 -> v11: the generated demo job seekers are added (see withDemoSeekers)
       // v11 -> v12: CV builder fields (photo, location, summary, skills, projects, job descriptions and
       //             references, attachments, work preference) are added empty (see withCvFields)
       // v12 -> v13: job postings and notifications, with the demo companies and their jobs (see withJobPostings)
       // v13 -> v14: job applications, with a few demo ones (see withApplications)
+      // v14 -> v15: jobs have an application deadline; saved ones get 30 days from posting (see withDeadlines)
       migrate: (persisted, version) => {
         let data = withJobDates(migrateOlder(persisted, version))
         if (version < 11) data = withDemoSeekers(data)
         data = withCvFields(data)
         if (version < 13) data = withJobPostings(data)
         if (version < 14) data = withApplications(data)
+        if (version < 15) data = withDeadlines(data)
         return data
       },
       storage: createJSONStorage(() => safeStorage),
@@ -554,6 +557,18 @@ function withJobPostings(data: Data): Data {
   }
 }
 
+/** v14 -> v15: jobs saved before deadlines existed get one 30 days after they were posted (the demo jobs get theirs). */
+function withDeadlines(data: Data): Data {
+  return {
+    ...data,
+    jobs: data.jobs.map((j) => {
+      if (j.deadline) return j
+      const demo = DEMO_JOBS.find((d) => d.id === j.id)
+      return { ...j, deadline: demo?.deadline ?? new Date(new Date(j.createdAt).getTime() + 30 * 86_400_000).toISOString().slice(0, 10) }
+    }),
+  }
+}
+
 /** v13 -> v14: adds job applications (an empty list if the saved data has none) and the demo ones whose job seeker and job exist. */
 function withApplications(data: Data): Data {
   const applications = data.applications ?? []
@@ -631,6 +646,8 @@ export function jobInputProblem(input: JobInput) {
   const l = input.location
   if (!l.remote && !l.international && !l.iraqCity) return "Please choose the city the job is in."
   if (!input.description.trim()) return "Please describe the job."
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.deadline ?? "")) return "Please choose the last day to apply."
+  if (input.deadline < today()) return "The last day to apply can't be in the past."
   return null
 }
 
@@ -642,6 +659,7 @@ function cleanJob(input: JobInput): JobInput {
     category: input.category.trim(),
     contractType: input.contractType,
     description: input.description.trim(),
+    deadline: input.deadline,
     // Each skill once, ignoring case
     skills: skills.filter((s, i) => skills.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i),
     // A job is in exactly one kind of place

@@ -68,6 +68,8 @@ const job = (
   createdAt: at(day),
   updatedAt: at(day),
   open: true,
+  // A month to apply
+  deadline: new Date(Date.parse(at(day)) + 30 * 86_400_000).toISOString().slice(0, 10),
 })
 
 export const DEMO_JOBS: Job[] = [

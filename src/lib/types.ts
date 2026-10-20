@@ -149,9 +149,10 @@ export type Job = {
   createdAt: string
   updatedAt: string
   open: boolean // closed jobs stay listed for their employer only
+  deadline: string // "YYYY-MM-DD": the last day to apply; after it the job no longer takes applications
 }
 
-export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description">
+export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description" | "deadline">
 
 // "A new job matches your profile", sent to job seekers when an employer posts a job
 export type Notification = {

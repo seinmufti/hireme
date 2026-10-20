@@ -6,7 +6,7 @@ import { BriefcaseIcon, MailIcon, MapPinIcon, PhoneIcon, SearchIcon } from "luci
 import { UserAvatar } from "@/components/user-avatar"
 import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/provider"
-import { companyMatchesQuery } from "@/lib/jobs"
+import { companyMatchesQuery, takesApplications } from "@/lib/jobs"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
@@ -22,7 +22,7 @@ export function CompaniesView({ initialQuery }: { initialQuery: string }) {
     [users]
   )
   const results = companies.filter((c) => companyMatchesQuery(c, query))
-  const openJobs = (id: string) => jobs.filter((j) => j.employerId === id && j.open).length
+  const openJobs = (id: string) => jobs.filter((j) => j.employerId === id && takesApplications(j)).length
 
   const setSearch = (q: string) => {
     setQuery(q)

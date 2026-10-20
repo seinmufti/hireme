@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { ApplicationStatus } from "@/components/jobs/applications"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
+import { takesApplications } from "@/lib/jobs"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { cn } from "@/lib/utils"
@@ -62,7 +63,7 @@ export function MyApplicationsView() {
                   {job.title}
                 </Link>
                 <p className="truncate text-sm text-muted-foreground">
-                  {[job.company, locationLabel(job.location), t("applications.appliedAgo", { time: timeAgo(application.createdAt) }), !job.open && t("applications.jobClosed")]
+                  {[job.company, locationLabel(job.location), t("applications.appliedAgo", { time: timeAgo(application.createdAt) }), !takesApplications(job) && t("applications.jobClosed")]
                     .filter(Boolean)
                     .join(" · ")}
                 </p>

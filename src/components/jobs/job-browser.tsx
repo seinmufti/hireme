@@ -9,7 +9,7 @@ import type { Translate } from "@/i18n/translate"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { JOB_CITIES, jobMatchesQuery, locationValue } from "@/lib/jobs"
+import { JOB_CITIES, jobMatchesQuery, locationValue, takesApplications } from "@/lib/jobs"
 import { matchingJobs, type MatchableTalent } from "@/lib/matching"
 import { CONTRACT_TYPES, JOB_CATEGORIES, type Role } from "@/lib/options"
 import { useStore } from "@/lib/store"
@@ -82,7 +82,7 @@ export function JobBrowser({
     { value: "match", label: t("jobs.sortBest") },
     { value: "recent", label: t("jobs.sortNewest") },
   ]
-  const open = useMemo(() => jobs.filter((j) => j.open), [jobs])
+  const open = useMemo(() => jobs.filter(takesApplications), [jobs])
   const defs = useMemo(() => buildDefs(open, t), [open, t])
   const [state, setState] = useState<State>({})
   const [query, setQuery] = useState(initialQuery)

@@ -30,6 +30,26 @@ export const JOB_CITIES = [
   "Tikrit",
 ]
 
+/** Today as "YYYY-MM-DD" in local time, to compare with deadlines. */
+export const today = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
+
+/** The last day to apply has passed. */
+export const deadlinePassed = (job: Pick<Job, "deadline">) => !!job.deadline && job.deadline < today()
+
+/** Days left to apply: 0 on the last day, negative once it has passed, null without a deadline. */
+export function daysLeft(job: Pick<Job, "deadline">) {
+  if (!job.deadline) return null
+  const [y, m, d] = job.deadline.split("-").map(Number)
+  const [ty, tm, td] = today().split("-").map(Number)
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(ty, tm - 1, td)) / 86_400_000)
+}
+
+/** Open and before its deadline: shows in search and matching, and takes applications. */
+export const takesApplications = (job: Pick<Job, "open" | "deadline">) => job.open && !deadlinePassed(job)
+
 export type WorkplaceKind = "city" | "remote" | "international"
 
 export const WORKPLACES: { value: WorkplaceKind; label: string }[] = [

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useT } from "@/i18n/provider"
-import { JOB_CITIES, WORKPLACES, workplaceOf, type WorkplaceKind } from "@/lib/jobs"
+import { JOB_CITIES, today, WORKPLACES, workplaceOf, type WorkplaceKind } from "@/lib/jobs"
 import { CONTRACT_TYPES, JOB_CATEGORIES } from "@/lib/options"
 import { jobInputProblem, useStore } from "@/lib/store"
 import type { Job, JobInput } from "@/lib/types"
@@ -23,6 +23,7 @@ const EMPTY: JobInput = {
   contractType: "",
   location: { remote: false, international: false, iraqCity: "" },
   description: "",
+  deadline: "",
 }
 
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
@@ -106,7 +107,7 @@ export function JobForm({ job }: { job?: Job }) {
   const jobs = useStore((s) => s.jobs)
   const [value, setValue] = useState<JobInput>(() =>
     job
-      ? { title: job.title, category: job.category, skills: job.skills, contractType: job.contractType, location: job.location, description: job.description }
+      ? { title: job.title, category: job.category, skills: job.skills, contractType: job.contractType, location: job.location, description: job.description, deadline: job.deadline }
       : EMPTY
   )
   const [workplace, setWorkplace] = useState<WorkplaceKind | "">(job ? workplaceOf(job.location) : "")
@@ -182,6 +183,19 @@ export function JobForm({ job }: { job?: Job }) {
       <section className="space-y-4 p-6">
         <h2 className="font-medium">{t("jobs.form.skills")}</h2>
         <SkillsInput value={value.skills} onChange={(v) => set("skills", v)} suggestions={suggestions} />
+      </section>
+
+      <section className="space-y-3 p-6">
+        <h2 className="font-medium">{t("jobs.form.deadline")}</h2>
+        <p className="text-xs text-muted-foreground">{t("jobs.form.deadlineHint")}</p>
+        <Input
+          type="date"
+          className="h-9 w-56"
+          value={value.deadline}
+          min={today()}
+          onChange={(e) => set("deadline", e.target.value)}
+          aria-label={t("jobs.form.deadline")}
+        />
       </section>
 
       <section className="space-y-3 p-6">

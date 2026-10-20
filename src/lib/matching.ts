@@ -1,3 +1,4 @@
+import { takesApplications } from "@/lib/jobs"
 import type { Experience, Job } from "@/lib/types"
 
 // Which jobs suit a job seeker, used for "jobs matching your profile" and for notifications.
@@ -43,7 +44,7 @@ export function locationFits(talent: MatchableTalent, job: Job) {
 
 /** How well one job suits the job seeker, or null when it doesn't match. */
 export function matchJob(talent: MatchableTalent, job: Job): JobMatch | null {
-  if (!job.open || !locationFits(talent, job)) return null
+  if (!takesApplications(job) || !locationFits(talent, job)) return null
   // Contract types the job seeker wants (none chosen: any)
   const contracts = talent.workPreference?.contractTypes ?? []
   if (contracts.length && !contracts.includes(job.contractType)) return null

@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import Link from "next/link"
 import { BellIcon, PencilIcon, PlusIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
+import { useDeadlineLabel } from "@/components/jobs/job-meta"
 import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { useStore } from "@/lib/store"
@@ -16,6 +17,7 @@ export function MyJobsView() {
   const t = useT()
   const timeAgo = useTimeAgo()
   const locationLabel = useLocationLabel()
+  const deadline = useDeadlineLabel()
   const allJobs = useStore((s) => s.jobs)
   const notifications = useStore((s) => s.notifications)
   const applications = useStore((s) => s.applications)
@@ -70,7 +72,7 @@ export function MyJobsView() {
                     </span>
                   </div>
                   <p className="truncate text-sm text-muted-foreground">
-                    {[j.category, locationLabel(j.location), j.contractType, t("jobs.postedAgo", { time: timeAgo(j.createdAt) })].join(" · ")}
+                    {[j.category, locationLabel(j.location), j.contractType, t("jobs.postedAgo", { time: timeAgo(j.createdAt) }), deadline(j)].filter(Boolean).join(" · ")}
                   </p>
                 </div>
                 <Link href={`/jobs/${j.id}#applicants`} className="flex shrink-0 items-center gap-1.5 text-sm hover:underline">
