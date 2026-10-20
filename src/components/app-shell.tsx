@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  const { t, dir } = useI18n()
+  const { t } = useI18n()
   const user = useCurrentUser()
   const unread = useStore((s) => (user && user.role !== "RECRUITER" ? unreadCountFor(s, user.id) : 0))
   const role = user?.role
@@ -48,23 +48,23 @@ function Shell({ children }: { children: React.ReactNode }) {
         {/* Demo bar: switch between the demo accounts, and pick the language */}
         <div className="border-b bg-muted/40">
           {/* Accounts in the middle, the language on the right */}
-          <div dir="ltr" className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-8">
+          <div className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-8">
             <span aria-hidden />
             <HeaderAccounts />
             <LanguageSwitcher className="justify-self-end" />
           </div>
         </div>
-        {/* Logo on the far left and the same physical order in every language; the text inside follows the language */}
-        <div dir="ltr" className="mx-auto flex h-14 w-full max-w-7xl items-center gap-6 px-8">
+        {/* Follows the language: logo on the left in English, on the right in Arabic and Kurdish */}
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-6 px-8">
           <Link href="/login" title={t("nav.goLogin")} className="flex shrink-0 items-center gap-2.5">
             <Logo size={32} />
             <span className="text-lg font-semibold tracking-tight">HireMe</span>
           </Link>
-          <div dir={dir} className="flex h-full items-stretch">
+          <div className="flex h-full items-stretch">
             <NavLinks links={links} />
           </div>
           {user && (
-            <div dir={dir} className="ml-auto flex items-center gap-4">
+            <div className="ms-auto flex items-center gap-4">
               <GlobalSearch user={user} />
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
               {role === "SEEKER" && <PremiumToggle user={user} />}
