@@ -61,7 +61,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
               {jobFacts(job)
                 .filter((f) => f.key !== "company")
                 .map((f) => (
-                  <div key={f.key} className="flex items-center gap-1.5">
+                  <div key={f.key} className="flex items-center gap-1.5" title={f.hint}>
                     <f.icon className="size-4 shrink-0" />
                     <dt className="sr-only">{f.label}</dt>
                     <dd>{f.value}</dd>

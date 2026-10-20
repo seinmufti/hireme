@@ -54,6 +54,11 @@ export function PoolBrowser({
   const active = defs.flatMap((d) =>
     (state[d.key] ?? []).map((v) => ({ def: d, value: v, label: labelFor(d, v) }))
   )
+  const clearAll = () => {
+    setState({})
+    setQuery("")
+    setOnlySaved(false)
+  }
   const hasFilters = active.length > 0 || query.trim() !== "" || onlySaved
   const byId = (id: string | null) => talents.find((t) => t.id === id) ?? null
 
@@ -135,7 +140,7 @@ export function PoolBrowser({
                 <XIcon className="size-3 text-muted-foreground" />
               </button>
             ))}
-            <Button variant="link" size="xs" onClick={() => { setState({}); setQuery("") }}>
+            <Button variant="link" size="xs" onClick={clearAll}>
               {t("common.clearAll")}
             </Button>
           </div>
@@ -152,6 +157,11 @@ export function PoolBrowser({
       {results.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
           <p className="font-medium">{t("pool.noMatch")}</p>
+          {hasFilters && (
+            <Button variant="outline" size="sm" className="mt-4" onClick={clearAll}>
+              {t("common.clearFilters")}
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

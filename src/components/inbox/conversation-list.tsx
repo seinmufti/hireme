@@ -4,8 +4,9 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { UserAvatar } from "@/components/user-avatar"
 import { timeAgo } from "@/lib/format"
+import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useT } from "@/i18n/provider"
+import { useT, useExactDate } from "@/i18n/provider"
 
 type Item = {
   id: string
@@ -17,8 +18,19 @@ type Item = {
   unread: number
 }
 
-export function ConversationList({ items, emptyHint, className }: { items: Item[]; emptyHint: string; className?: string }) {
+export function ConversationList({
+  items,
+  emptyHint,
+  emptyAction,
+  className,
+}: {
+  items: Item[]
+  emptyHint: string
+  emptyAction?: { href: string; label: string }
+  className?: string
+}) {
   const t = useT()
+  const exact = useExactDate()
   const { id: activeId } = useParams<{ id?: string }>()
 
   return (
@@ -28,7 +40,16 @@ export function ConversationList({ items, emptyHint, className }: { items: Item[
         <p className="text-xs text-muted-foreground">{items.length === 1 ? t("inbox.conversation") : t("inbox.conversations", { count: items.length })}</p>
       </div>
       <div className="flex-1 overflow-y-auto">
-        {items.length === 0 && <p className="px-5 py-10 text-center text-sm text-muted-foreground">{emptyHint}</p>}
+        {items.length === 0 && (
+          <div className="px-5 py-10 text-center">
+            <p className="text-sm text-muted-foreground">{emptyHint}</p>
+            {emptyAction && (
+              <Link href={emptyAction.href} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4")}>
+                {emptyAction.label}
+              </Link>
+            )}
+          </div>
+        )}
         {items.map((c) => (
           <Link
             key={c.id}
@@ -42,7 +63,7 @@ export function ConversationList({ items, emptyHint, className }: { items: Item[
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
                 <span className={cn("truncate text-sm", c.unread ? "font-semibold" : "font-medium")}>{c.name}</span>
-                <span className="ms-auto shrink-0 text-[11px] text-muted-foreground">{timeAgo(c.at)}</span>
+                <span className="ms-auto shrink-0 text-[11px] text-muted-foreground" title={exact(c.at)}>{timeAgo(c.at)}</span>
               </div>
               <div className="truncate text-xs text-muted-foreground">{c.subtitle}</div>
               <div className="mt-0.5 flex items-center gap-2">

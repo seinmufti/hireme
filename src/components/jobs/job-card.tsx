@@ -43,7 +43,9 @@ export function JobCard({
 }) {
   const t = useT()
   const matchLabel = useMatchLabel()
-  const facts = useJobFacts()(job).filter((f) => f.key !== "company" && f.key !== "category")
+  const all = useJobFacts()(job)
+  const facts = all.filter((f) => f.key === "location" || f.key === "salary" || f.key === "contract")
+  const dates = all.filter((f) => f.key === "posted" || f.key === "deadline")
   return (
     <article
       className={cn(
@@ -92,6 +94,14 @@ export function JobCard({
       </dl>
 
       <SkillChips skills={job.skills} have={have} limit={5} className="mt-4" />
+      <p className="mt-3 text-xs text-muted-foreground">
+        {dates.map((f, i) => (
+          <span key={f.key} title={f.hint}>
+            {i > 0 && " · "}
+            {f.value}
+          </span>
+        ))}
+      </p>
       {/* Above the card's link, so it can be pressed */}
       {(canApply || canSave) && (
         <div className="relative z-10 mt-4 flex items-center gap-2">

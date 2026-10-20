@@ -48,6 +48,9 @@ export function MyJobsView() {
       {jobs.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
           <p className="font-medium">{t("jobs.noPosts")}</p>
+          <Link href="/jobs/new" className={cn(buttonVariants({ size: "sm" }), "mt-4")}>
+            <PlusIcon /> {t("jobs.postJob")}
+          </Link>
         </div>
       ) : (
         <ul className="divide-y rounded-xl border bg-card">

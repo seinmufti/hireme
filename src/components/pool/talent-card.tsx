@@ -7,7 +7,7 @@ import { SaveTalentButton } from "@/components/save-button"
 import { Button, buttonVariants } from "@/components/ui/button"
 import type { PoolTalent } from "@/lib/filters"
 import { timeAgo } from "@/lib/format"
-import { useT } from "@/i18n/provider"
+import { useT, useExactDate } from "@/i18n/provider"
 import { ExperienceList, latestJob, portfolioFacts } from "./talent-meta"
 
 export function TalentCard({
@@ -22,6 +22,7 @@ export function TalentCard({
   onMessage: () => void
 }) {
   const t = useT()
+  const exact = useExactDate()
   return (
     <article className="relative flex flex-col rounded-xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-sm">
       <button type="button" onClick={onOpen} className="flex items-start gap-3 pe-8 text-start">
@@ -48,7 +49,7 @@ export function TalentCard({
       </div>
 
       <div className="mt-auto flex items-center gap-2 pt-4">
-        <span className="text-xs text-muted-foreground">{t("common.updated", { time: timeAgo(talent.updatedAt) })}</span>
+        <span className="text-xs text-muted-foreground" title={exact(talent.updatedAt)}>{t("common.updated", { time: timeAgo(talent.updatedAt) })}</span>
         <Button variant="ghost" size="sm" className="ms-auto" onClick={onOpen}>{t("common.view")}</Button>
         {canMessage &&
           (talent.conversationId ? (

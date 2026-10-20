@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
-import { BanknoteIcon, BriefcaseIcon, HeartIcon, PlusIcon, SearchIcon, SendIcon, TargetIcon, XIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, HeartIcon, PartyPopperIcon, PlusIcon, SearchIcon, SendIcon, TargetIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
@@ -71,6 +71,7 @@ export function JobBrowser({
   talent,
   initialQuery,
   aside,
+  welcome,
 }: {
   jobs: Job[]
   role: Role
@@ -78,6 +79,8 @@ export function JobBrowser({
   initialQuery: string
   /** Shown beside the results (the job seeker's work preference) */
   aside?: ReactNode
+  /** A job seeker who just finished their CV: how many jobs match it, and where to say what work they want */
+  welcome?: boolean
 }) {
   const t = useT()
   const isSeeker = role === "SEEKER"
@@ -94,6 +97,7 @@ export function JobBrowser({
   const [withSalary, setWithSalary] = useState(false)
   // Job seekers: only the jobs they saved
   const [onlySaved, setOnlySaved] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(!!welcome)
   const savedIds = useStore((s) => s.savedJobs.filter((x) => x.userId === s.currentUserId).map((x) => x.id).join(" "))
   const [sort, setSort] = useState(isSeeker ? "match" : "recent")
 
@@ -134,6 +138,13 @@ export function JobBrowser({
   }
 
   const active = defs.flatMap((d) => (state[d.key] ?? []).map((v) => ({ def: d, value: v })))
+  const clearAll = () => {
+    setState({})
+    setSearch("")
+    setOnlyMatches(false)
+    setWithSalary(false)
+    setOnlySaved(false)
+  }
   const hasFilters = active.length > 0 || query.trim() !== "" || onlyMatches || withSalary || onlySaved
 
   return (
@@ -258,19 +269,26 @@ export function JobBrowser({
             <Button
               variant="link"
               size="xs"
-              onClick={() => {
-                setState({})
-                setSearch("")
-                setOnlyMatches(false)
-                setWithSalary(false)
-                setOnlySaved(false)
-              }}
+              onClick={clearAll}
             >
               {t("common.clearAll")}
             </Button>
           </div>
         )}
       </div>
+
+      {showWelcome && (
+        <div className="flex items-start gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-emerald-950">
+          <PartyPopperIcon className="mt-0.5 size-5 shrink-0" />
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="font-medium">{matches.length ? t("jobs.welcome", { count: matches.length }) : t("jobs.welcomeNone")}</p>
+            <a href="#work-type" className="text-sm underline">{t("jobs.welcomeAction")}</a>
+          </div>
+          <button type="button" onClick={() => setShowWelcome(false)} aria-label={t("common.close")} className="rounded-md p-1 hover:bg-emerald-100">
+            <XIcon className="size-4" />
+          </button>
+        </div>
+      )}
 
       <p className="text-sm text-muted-foreground">
         {t("jobs.resultCount", { shown: results.length, total: open.length })}
@@ -282,6 +300,11 @@ export function JobBrowser({
           {results.length === 0 ? (
             <div className="rounded-xl border border-dashed bg-card py-16 text-center">
               <p className="font-medium">{t("jobs.noResults")}</p>
+              {hasFilters && (
+                <Button variant="outline" size="sm" className="mt-4" onClick={clearAll}>
+                  {t("common.clearFilters")}
+                </Button>
+              )}
             </div>
           ) : (
             <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", !aside && "xl:grid-cols-3")}>

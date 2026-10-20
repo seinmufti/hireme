@@ -11,7 +11,7 @@ import { useRoleGuard } from "@/lib/use-role-guard"
 
 // Job seekers and recruiters search jobs; job seekers also see which ones match them, and set the work they want.
 // Employers don't search jobs: they're sent to their own posts.
-export function JobsView({ initialQuery }: { initialQuery: string }) {
+export function JobsView({ initialQuery, welcome }: { initialQuery: string; welcome?: boolean }) {
   const viewer = useRoleGuard(ANYONE)
   const jobs = useStore((s) => s.jobs)
   const talent = useMyTalent()
@@ -28,6 +28,7 @@ export function JobsView({ initialQuery }: { initialQuery: string }) {
       role={viewer.role}
       talent={talent}
       initialQuery={initialQuery}
+      welcome={welcome && viewer.role === "SEEKER"}
       aside={viewer.role === "SEEKER" ? <WorkPreferenceCard user={viewer} talent={talent} /> : undefined}
     />
   )

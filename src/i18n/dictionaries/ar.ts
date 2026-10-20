@@ -4,6 +4,8 @@ import type { Messages } from "./en"
 // Arabic. Missing keys fall back to English.
 const ar: DeepPartial<Messages> = {
   common: {
+    clearFilters: "مسح عوامل التصفية",
+    clearSearch: "مسح البحث",
     saveForLater: "حفظ",
     savedForLater: "المحفوظة",
     cancel: "إلغاء",
@@ -261,6 +263,9 @@ const ar: DeepPartial<Messages> = {
     factCategory: "المجال",
     factPosted: "تاريخ النشر",
     factDeadline: "آخر موعد",
+    welcome: "سيرتك الذاتية جاهزة: {count} وظيفة تناسبها.",
+    welcomeNone: "سيرتك الذاتية جاهزة.",
+    welcomeAction: "اختر نوع العمل الذي تريده لتطابق أفضل",
     duplicate: "نسخ",
     factSalary: "الراتب",
     salaryMonthly: "{amount} شهرياً",

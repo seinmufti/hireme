@@ -18,6 +18,11 @@ export type Translate = {
   dynamic: (key: string, fallback: string, vars?: Vars) => string
 }
 
+const EASTERN = "٠١٢٣٤٥٦٧٨٩"
+/** "5 days" → "٥ days" for Arabic and Kurdish; a digit right after a letter (level "C1", "B2") stays as it is. */
+export const localDigits = (locale: Locale, text: string) =>
+  locale === "en" ? text : text.replace(/(?<![A-Za-z\d])\d+/g, (n) => [...n].map((d) => EASTERN[Number(d)]).join(""))
+
 /** t("nav.home") in the given language, falling back to English for anything not translated yet. */
 export function translator(locale: Locale): Translate {
   const find = (key: string) => {
@@ -26,7 +31,7 @@ export function translator(locale: Locale): Translate {
     const english = lookup(en, key)
     return typeof english === "string" ? english : undefined
   }
-  const t = ((key: MessageKey, vars?: Vars) => fill(find(key) ?? key, vars)) as Translate
-  t.dynamic = (key, fallback, vars) => fill(find(key) ?? fallback, vars)
+  const t = ((key: MessageKey, vars?: Vars) => localDigits(locale, fill(find(key) ?? key, vars))) as Translate
+  t.dynamic = (key, fallback, vars) => localDigits(locale, fill(find(key) ?? fallback, vars))
   return t
 }

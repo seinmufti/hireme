@@ -4,6 +4,8 @@ import type { Messages } from "./en"
 // Kurdish (Sorani, Arabic script). Missing keys fall back to English.
 const ckb: DeepPartial<Messages> = {
   common: {
+    clearFilters: "پاککردنەوەی فلتەرەکان",
+    clearSearch: "پاککردنەوەی گەڕان",
     saveForLater: "پاشەکەوت",
     savedForLater: "پاشەکەوتکراوەکان",
     cancel: "پاشگەزبوونەوە",
@@ -261,6 +263,9 @@ const ckb: DeepPartial<Messages> = {
     factCategory: "بوار",
     factPosted: "بڵاوکرایەوە",
     factDeadline: "دوایین ڕۆژ",
+    welcome: "CV ـەکەت ئامادەیە: {count} کار لەگەڵی دەگونجێن.",
+    welcomeNone: "CV ـەکەت ئامادەیە.",
+    welcomeAction: "جۆری ئەو کارەی دەتەوێت هەڵبژێرە بۆ گونجانی باشتر",
     duplicate: "لەبەرگرتنەوە",
     factSalary: "مووچە",
     salaryMonthly: "{amount} مانگانە",

@@ -4,6 +4,8 @@
 
 const en = {
   common: {
+    clearFilters: "Clear filters",
+    clearSearch: "Clear search",
     saveForLater: "Save",
     savedForLater: "Saved",
     cancel: "Cancel",
@@ -262,6 +264,9 @@ const en = {
     factCategory: "Category",
     factPosted: "Posted",
     factDeadline: "Deadline",
+    welcome: "Your CV is ready: {count} jobs match it.",
+    welcomeNone: "Your CV is ready.",
+    welcomeAction: "Choose the type of work you want for better matches",
     duplicate: "Duplicate",
     factSalary: "Salary",
     salaryMonthly: "{amount} a month",

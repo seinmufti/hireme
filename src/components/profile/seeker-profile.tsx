@@ -449,6 +449,7 @@ function PortfolioForm({
   }, [jumpTo])
 
   const updateProfile = useStore((s) => s.updateProfile)
+  const router = useRouter()
   const saveTalent = useStore((s) => s.saveTalent)
   const [contact, setContact] = useState({
     name: user.name,
@@ -494,6 +495,8 @@ function PortfolioForm({
     const problem = portfolioEntryProblem(portfolio)
     if (problem) return toast.error(problem)
 
+    // The first time the CV is complete, they go on to see the jobs that match it
+    const wasComplete = listingSectionsMissing(user, talent).length === 0
     const profile = updateProfile({ ...contact, company: user.company, bio: user.bio })
     if (!profile.ok) return toast.error(profile.error)
     const saved = saveTalent(portfolio)
@@ -502,6 +505,7 @@ function PortfolioForm({
 
     // What's still missing for the Pool shows in the status at the top of the profile
     toast.success(t("seeker.cvReady"))
+    if (!wasComplete && listingSectionsMissing({ ...user, ...contact }, portfolio).length === 0) return router.push("/jobs?welcome=1")
     onSaved()
   }
 

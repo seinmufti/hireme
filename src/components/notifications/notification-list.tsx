@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { BellIcon, Building2Icon, TargetIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
+import { useLocationLabel, useT, useTimeAgo, useExactDate } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
@@ -28,6 +28,7 @@ export function NotificationList({
 }) {
   const router = useRouter()
   const t = useT()
+  const exact = useExactDate()
   const timeAgo = useTimeAgo()
   const locationLabel = useLocationLabel()
   const userId = useStore((s) => s.currentUserId)
@@ -111,7 +112,7 @@ export function NotificationList({
                   </span>
                   <span className="block truncate text-sm font-medium">{n.job.title}</span>
                   <span className="block truncate text-xs text-muted-foreground">
-                    {n.job.company} · {locationLabel(n.job.location)} · {timeAgo(n.createdAt)}
+                    {n.job.company} · {locationLabel(n.job.location)} · <span title={exact(n.createdAt)}>{timeAgo(n.createdAt)}</span>
                   </span>
                 </span>
                 {!n.readAt && <span className="mt-2 size-2 shrink-0 rounded-full bg-primary" aria-label={t("notifications.unread")} />}

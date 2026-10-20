@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { BriefcaseIcon, MailIcon, MapPinIcon, PhoneIcon, SearchIcon } from "lucide-react"
 import { UserAvatar } from "@/components/user-avatar"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/provider"
 import { companyMatchesQuery, takesApplications } from "@/lib/jobs"
@@ -52,6 +53,11 @@ export function CompaniesView({ initialQuery }: { initialQuery: string }) {
       {results.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
           <p className="font-medium">{t("companies.noResults")}</p>
+          {query.trim() && (
+            <Button variant="outline" size="sm" className="mt-4" onClick={() => setSearch("")}>
+              {t("common.clearSearch")}
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

@@ -25,6 +25,13 @@ export function useI18n() {
 
 export const useT = () => useI18n().t
 
+/** The full date and time ("21 Oct 2026, 09:30"), shown on hover next to "3d ago". */
+export function useExactDate() {
+  const { locale } = useI18n()
+  return (date: Date | string) =>
+    new Date(date).toLocaleString(locale === "en" ? "en-GB" : locale, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+}
+
 /**
  * timeAgo() in the current language: "5d ago" in English (as before), "قبل ٥ أيام" in Arabic and so on.
  * Uses the browser's own translations, so no dictionary entries are needed.

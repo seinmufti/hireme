@@ -1,7 +1,7 @@
 "use client"
 
 import { BanknoteIcon, BriefcaseIcon, Building2Icon, CalendarClockIcon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
-import { useI18n, useLocationLabel, useTimeAgo } from "@/i18n/provider"
+import { useExactDate, useI18n, useLocationLabel, useTimeAgo } from "@/i18n/provider"
 import { daysLeft } from "@/lib/jobs"
 import { formatMoney, formatRange } from "@/lib/salary"
 import type { Job, Salary } from "@/lib/types"
@@ -41,7 +41,8 @@ export function useJobFacts() {
   const timeAgo = useTimeAgo()
   const locationLabel = useLocationLabel()
   const salary = useSalaryLabel()
-  return (job: Job) => [
+  const exact = useExactDate()
+  return (job: Job): { key: JobFact; icon: typeof ClockIcon; label: string; value: string; hint?: string }[] => [
     { key: "company" as JobFact, icon: Building2Icon, label: t("jobs.factCompany"), value: job.company },
     {
       key: "location" as JobFact,
@@ -52,7 +53,7 @@ export function useJobFacts() {
     { key: "salary" as JobFact, icon: BanknoteIcon, label: t("jobs.factSalary"), value: salary(job.salary) },
     { key: "contract" as JobFact, icon: BriefcaseIcon, label: t("jobs.factContract"), value: job.contractType },
     { key: "category" as JobFact, icon: TagIcon, label: t("jobs.factCategory"), value: job.category },
-    { key: "posted" as JobFact, icon: ClockIcon, label: t("jobs.factPosted"), value: t("jobs.posted", { time: timeAgo(job.createdAt) }) },
+    { key: "posted" as JobFact, icon: ClockIcon, label: t("jobs.factPosted"), value: t("jobs.posted", { time: timeAgo(job.createdAt) }), hint: exact(job.createdAt) },
     { key: "deadline" as JobFact, icon: CalendarClockIcon, label: t("jobs.factDeadline"), value: deadline(job) },
   ].filter((f) => f.value)
 }
