@@ -1,11 +1,27 @@
 "use client"
 
+import { useEffect } from "react"
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
+/** Clicking a toast (anywhere but its own buttons, e.g. Undo) closes it, through its close button. */
+function useClickToClose() {
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      const toast = target.closest<HTMLElement>("[data-sonner-toast]")
+      if (!toast || target.closest("button")) return
+      toast.querySelector<HTMLButtonElement>("[data-close-button]")?.click()
+    }
+    document.addEventListener("click", onClick)
+    return () => document.removeEventListener("click", onClick)
+  }, [])
+}
+
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
+  useClickToClose()
 
   return (
     <Sonner
@@ -36,9 +52,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }
+      // Each toast gets Sonner's close button (hidden); clicking the toast presses it (see useClickToClose)
+      closeButton
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast cursor-pointer",
+          closeButton: "!hidden",
         },
       }}
       {...props}

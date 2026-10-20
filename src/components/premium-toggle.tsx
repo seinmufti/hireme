@@ -21,7 +21,9 @@ export function PremiumToggle({ user }: { user: User }) {
       title={t("premium.hint")}
       onClick={() => {
         setPremium(user.id, !premium)
-        toast.success(premium ? t("premium.off") : t("premium.on"))
+        // Gold when it turns on, grey when it turns off (like the crown)
+        if (premium) toast(t("premium.off"), { icon: <CrownIcon className="size-4" />, style: { background: "#f3f4f6", color: "#4b5563", borderColor: "#d1d5db" } })
+        else toast(t("premium.on"), { icon: <CrownIcon className="size-4 fill-amber-400" />, style: { background: "#fef3c7", color: "#92400e", borderColor: "#fcd34d" } })
       }}
       className={cn(
         "flex size-9 items-center justify-center rounded-full transition",
