@@ -26,6 +26,7 @@ import { CertificationList, DegreeList, ExperienceList, LanguageList } from "@/c
 import { PhoneInput } from "@/components/phone-input"
 import { CvImportButton } from "@/components/profile/cv-import-dialog"
 import { sectionsToCheck } from "@/components/profile/cv-import-review"
+import { stillMissing } from "@/lib/cv-import"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -470,7 +471,10 @@ function PortfolioForm({
   const needs = new Set(sectionsMissingEntries(portfolio))
   // After a CV import: fields the AI wasn't sure about or couldn't find also turn their section yellow
   const [toCheck, setToCheck] = useState<string[]>([])
-  const importFlags: Set<string> = sectionsToCheck(toCheck)
+  // Only while those details are still empty: once filled in, the section turns normal again (the toast
+  // listed everything, including details that were filled in but unclear)
+  const stillEmpty = new Set(stillMissing(contact, portfolio))
+  const importFlags: Set<string> = sectionsToCheck(toCheck.filter((p) => stillEmpty.has(p)))
   const sectionClass = (id: SectionId) =>
     cn("scroll-mt-20 space-y-4 rounded-xl border p-6", needs.has(id as ListingSection) || importFlags.has(id) ? NEEDS_DETAILS : "bg-card")
   const setField = (key: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement>) =>
