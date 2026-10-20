@@ -6,7 +6,6 @@ import { Flag } from "@/components/cv/photo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { COUNTRIES, IRAQ_CITIES } from "@/lib/options"
 import { cn } from "@/lib/utils"
 
@@ -209,30 +208,76 @@ export function InstitutionPicker({ country, value, onChange }: { country: strin
   )
 }
 
-/** Country dropdown with flags; Iraq unless changed. */
+/** Searchable country list with flags; Iraq unless changed. */
 export function CountrySelect({ value, onChange }: { value: string; onChange: (code: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const current = COUNTRIES.find((c) => c.code === (value || "IQ"))
+  const q = query.trim().toLowerCase()
+  // Names that start with what was typed come first
+  const matches = COUNTRIES.filter((c) => !q || c.name.toLowerCase().includes(q) || c.code.toLowerCase() === q).sort(
+    (a, b) => Number(b.name.toLowerCase().startsWith(q)) - Number(a.name.toLowerCase().startsWith(q))
+  )
+  const pick = (code: string) => {
+    if (code !== (value || "IQ")) onChange(code)
+    setOpen(false)
+  }
+
   return (
-    <Select
-      items={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
-      value={value || "IQ"}
-      onValueChange={(v) => v && v !== value && onChange(v as string)}
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (next) setQuery("")
+      }}
     >
-      <SelectTrigger className="h-9 w-full">
-        <SelectValue>
-          {(code: string) => (
-            <span className="flex items-center gap-2">
-              <Flag code={code} className="h-3" /> {COUNTRIES.find((c) => c.code === code)?.name}
-            </span>
-          )}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {COUNTRIES.map((c) => (
-          <SelectItem key={c.code} value={c.code}>
-            <Flag code={c.code} className="h-3" /> {c.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            className="flex h-9 w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent pr-2 pl-2.5 text-left text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          />
+        }
+      >
+        <span className="flex min-w-0 items-center gap-2 truncate">
+          {current && <Flag code={current.code} className="h-3" />} {current?.name}
+        </span>
+        <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
+      </PopoverTrigger>
+      <PopoverContent align="start" collisionAvoidance={{ fallbackAxisSide: "none" }} className="w-72 gap-0 p-0">
+        <div className="flex items-center gap-2 border-b px-3">
+          <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                if (matches[0]) pick(matches[0].code)
+              }
+            }}
+            placeholder="Search countries"
+            className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            autoFocus
+          />
+        </div>
+        <div className="max-h-64 overflow-y-auto p-1">
+          {matches.length === 0 && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No country found.</p>}
+          {matches.map((c) => (
+            <button
+              key={c.code}
+              type="button"
+              onClick={() => pick(c.code)}
+              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+            >
+              <span className="flex items-center gap-2">
+                <Flag code={c.code} className="h-3" /> {c.name}
+              </span>
+              {c.code === (value || "IQ") && <CheckIcon className="size-4 shrink-0 text-primary" />}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
