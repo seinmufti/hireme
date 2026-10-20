@@ -2,7 +2,7 @@
 
 import { Fragment, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon, UploadIcon } from "lucide-react"
+import { DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon, UploadIcon, WandSparklesIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Logo } from "@/components/logo"
 import { PhoneInput } from "@/components/phone-input"
@@ -212,6 +212,7 @@ function BackupButtons() {
   )
 }
 
+const DUMMY_EMAIL = /^dummy\d+@example\.com$/
 const EMPTY_FORM ={ name: "", title: "", company: "", phone: "", email: "", gender: "", dateOfBirth: "" }
 
 function NewAccountDialog({
@@ -224,6 +225,8 @@ function NewAccountDialog({
   onCreated: (role: Role) => void
 }) {
   const createAccount = useStore((s) => s.createAccount)
+  // Dummy accounts made so far (they all use a dummyN@example.com email), so the button counts them
+  const dummiesCreated = useStore((s) => s.users.filter((u) => DUMMY_EMAIL.test(u.email)).length)
   const [form, setForm] = useState(EMPTY_FORM)
   const [openFor, setOpenFor] = useState<Role | null>(null)
 
@@ -237,6 +240,19 @@ function NewAccountDialog({
   const isSeeker = role === "SEEKER"
   const set = (key: keyof typeof form) => (value: string) => setForm((f) => ({ ...f, [key]: value }))
   const setText = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => set(key)(e.target.value)
+
+  // Fills in the form with test details; the account is only created when "Create account" is pressed
+  const fillDummy = () => {
+    const n = dummiesCreated + 1
+    setForm({
+      ...EMPTY_FORM,
+      name: `Dummy ${n}`,
+      phone: `+964 750 000 ${String(1000 + n).padStart(4, "0")}`,
+      email: `dummy${n}@example.com`,
+      gender: n % 2 ? "Male" : "Female",
+      dateOfBirth: "1995-05-15",
+    })
+  }
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -299,6 +315,11 @@ function NewAccountDialog({
             </>
           )}
           <DialogFooter>
+            {isSeeker && (
+              <Button type="button" variant="ghost" className="sm:mr-auto" onClick={fillDummy}>
+                <WandSparklesIcon /> Dummy ({dummiesCreated + 1})
+              </Button>
+            )}
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
