@@ -2,19 +2,16 @@
 
 import { Fragment, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon, UploadIcon, WandSparklesIcon } from "lucide-react"
+import { DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon, UploadIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Logo } from "@/components/logo"
-import { PhoneInput } from "@/components/phone-input"
-import { DateOfBirthPicker } from "@/components/profile/date-of-birth-picker"
 import { StoreGate } from "@/components/store-gate"
 import { UserAvatar } from "@/components/user-avatar"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GENDERS, homeFor, type Role } from "@/lib/options"
+import { homeFor, type Role } from "@/lib/options"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useT } from "@/i18n/provider"
 import { downloadBackup, restoreFromFile } from "@/lib/backup"
@@ -179,7 +176,7 @@ function BackupButtons() {
 
   return (
     <div dir="ltr" className="absolute top-5 right-8 flex gap-2">
-      <LanguageSwitcher />
+      <LanguageSwitcher wide />
       <Button variant="outline" size="sm" onClick={() => setAsking({ kind: "reset" })}>
         <RotateCcwIcon /> {t("login.resetDemo")}
       </Button>
@@ -222,8 +219,7 @@ function BackupButtons() {
   )
 }
 
-const DUMMY_EMAIL = /^dummy\d+@example\.com$/
-const EMPTY_FORM ={ name: "", title: "", company: "", phone: "", email: "", gender: "", dateOfBirth: "" }
+const EMPTY_FORM = { name: "", title: "", company: "" }
 
 function NewAccountDialog({
   role,
@@ -236,8 +232,6 @@ function NewAccountDialog({
 }) {
   const t = useT()
   const createAccount = useStore((s) => s.createAccount)
-  // Dummy accounts made so far (they all use a dummyN@example.com email), so the button counts them
-  const dummiesCreated = useStore((s) => s.users.filter((u) => DUMMY_EMAIL.test(u.email)).length)
   const [form, setForm] = useState(EMPTY_FORM)
   const [openFor, setOpenFor] = useState<Role | null>(null)
 
@@ -252,18 +246,6 @@ function NewAccountDialog({
   const set = (key: keyof typeof form) => (value: string) => setForm((f) => ({ ...f, [key]: value }))
   const setText = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => set(key)(e.target.value)
 
-  // Fills in the form with test details; the account is only created when "Create account" is pressed
-  const fillDummy = () => {
-    const n = dummiesCreated + 1
-    setForm({
-      ...EMPTY_FORM,
-      name: `Dummy ${n}`,
-      phone: `+964 750 000 ${String(1000 + n).padStart(4, "0")}`,
-      email: `dummy${n}@example.com`,
-      gender: n % 2 ? "Male" : "Female",
-      dateOfBirth: "1995-05-15",
-    })
-  }
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -285,35 +267,8 @@ function NewAccountDialog({
             <Label htmlFor="new-name">{t("login.fullName")}</Label>
             <Input id="new-name" className="h-9" value={form.name} onChange={setText("name")} autoFocus />
           </div>
-          {isSeeker ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>{t("login.phone")}</Label>
-                <PhoneInput value={form.phone} onChange={set("phone")} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="new-email">{t("login.email")}</Label>
-                <Input id="new-email" className="h-9" type="email" value={form.email} onChange={setText("email")} placeholder="name@example.com" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t("login.gender")}</Label>
-                <Select value={form.gender || null} onValueChange={(v) => set("gender")((v as string) ?? "")}>
-                  <SelectTrigger className="h-9 w-full">
-                    <SelectValue placeholder={t("common.choose")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {GENDERS.map((g) => (
-                      <SelectItem key={g} value={g}>{g}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t("login.dateOfBirth")}</Label>
-                <DateOfBirthPicker value={form.dateOfBirth} onChange={set("dateOfBirth")} />
-              </div>
-            </div>
-          ) : (
+          {/* Job seekers start with just their name; everything else goes in their CV form, which opens next */}
+          {!isSeeker && (
             <>
               <div className="space-y-1.5">
                 <Label htmlFor="new-title">{t("login.jobTitle")}</Label>
@@ -326,11 +281,6 @@ function NewAccountDialog({
             </>
           )}
           <DialogFooter>
-            {isSeeker && (
-              <Button type="button" variant="ghost" className="sm:mr-auto" onClick={fillDummy}>
-                <WandSparklesIcon /> Dummy ({dummiesCreated + 1})
-              </Button>
-            )}
             <Button type="button" variant="outline" onClick={onClose}>
               {t("common.cancel")}
             </Button>

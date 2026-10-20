@@ -17,7 +17,7 @@ import type { Application, Conversation, Degree, Job, JobInput, Message, Notific
 // All app data lives here. It starts as the built-in demo data and every change
 // is saved to this browser's localStorage, so it only affects the current visitor.
 
-/** Employers and recruiters give title and company; job seekers give contact details, gender and birthdate. */
+/** Everyone gives their name; employers and recruiters also their title and company. Job seekers fill in the rest in their CV form. */
 export type NewAccountInput = {
   role: Role
   name: string
@@ -162,14 +162,10 @@ export const useStore = create<Data & Actions>()(
           const isSeeker = role === "SEEKER"
           const phone = input.phone?.trim() ?? ""
           const email = input.email?.trim() ?? ""
-          if (isSeeker) {
-            // New job seekers give their basics up front; they prefill the portfolio
-            if (!PHONE_PATTERN.test(phone)) return fail("Please enter a phone number like +964 750 000 0103.")
-            if (!EMAIL_PATTERN.test(email)) return fail("Please enter a valid email address.")
-            if (!input.gender) return fail("Please choose a gender.")
-            const age = input.dateOfBirth ? ageFrom(input.dateOfBirth) : null
-            if (age === null || age < 16 || age > 80) return fail("Please choose your date of birth.")
-          } else if (!input.company?.trim()) return fail("Please enter the company name.")
+          // Job seekers sign up with just their name; anything else given must still be valid
+          if (phone && !PHONE_PATTERN.test(phone)) return fail("Please enter a phone number like +964 750 000 0103.")
+          if (email && !EMAIL_PATTERN.test(email)) return fail("Please enter a valid email address.")
+          if (!isSeeker && !input.company?.trim()) return fail("Please enter the company name.")
 
           const users = get().users
           const at = now()
