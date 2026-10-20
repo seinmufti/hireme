@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react"
 import Link from "next/link"
-import { ArrowLeftIcon, CrownIcon, DownloadIcon, LoaderCircleIcon, PencilIcon } from "lucide-react"
+import { ArrowLeftIcon, DownloadIcon, LoaderCircleIcon, PencilIcon } from "lucide-react"
 import { CvDocument } from "@/components/cv/cv-document"
 import { printCv } from "@/components/cv/print-cv"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -49,15 +49,8 @@ export function CvView() {
           </Button>
         </div>
       </div>
-      <p className="mx-auto flex w-[210mm] max-w-full items-center gap-1.5 text-xs text-muted-foreground">
-        {premium ? (
-          <>
-            <CrownIcon className="size-3.5 text-amber-600" /> {t("cvPreview.premiumNote")}
-          </>
-        ) : (
-          <>{t("cvPreview.freeNote")}</>
-        )}
-      </p>
+      {/* Only free CVs get a note (about the watermark) */}
+      {!premium && <p className="mx-auto w-[210mm] max-w-full text-xs text-muted-foreground">{t("cvPreview.freeNote")}</p>}
       <CvDocument
         ref={page}
         person={user}

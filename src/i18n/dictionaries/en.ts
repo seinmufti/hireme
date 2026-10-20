@@ -595,7 +595,6 @@ const en = {
     title: "CV preview",
     back: "Profile",
     download: "Download PDF",
-    premiumNote: "Premium: unlimited downloads without a watermark. In the print window, choose “Save as PDF”.",
     freeNote: "Free CVs download with a HireMe watermark. Premium removes it and gives unlimited downloads for a year.",
   },
   cvImport: {

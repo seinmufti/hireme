@@ -61,17 +61,30 @@ export function DevTools({ user }: { user: User | null }) {
         <WrenchIcon className="size-4" />
       </button>
       {/* Collapsed: the label. Open: the tools, sliding out from the oval itself */}
-      <span className={cn("overflow-hidden text-sm font-medium whitespace-nowrap transition-all", open ? "max-w-0 opacity-0" : "ms-1 max-w-24 opacity-100")}>
-        Dev tools
+      {/* Both parts change width on the same slow, soft curve, so the oval grows and shrinks in one motion */}
+      <span
+        className={cn(
+          "grid transition-[grid-template-columns,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          open ? "grid-cols-[0fr] opacity-0" : "grid-cols-[1fr] opacity-100"
+        )}
+      >
+        <span className="overflow-hidden ps-1 text-sm font-medium whitespace-nowrap">Dev tools</span>
       </span>
       <div
         className={cn(
-          "grid transition-[grid-template-columns,opacity] duration-300 ease-out",
-          open ? "grid-cols-[1fr] opacity-100" : "grid-cols-[0fr] opacity-0"
+          "grid transition-[grid-template-columns] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          open ? "grid-cols-[1fr]" : "grid-cols-[0fr]"
         )}
       >
-        {/* Not reachable by keyboard or screen readers while folded away */}
-        <div inert={!open} className={cn("flex items-center gap-3 overflow-hidden", open && "overflow-visible")}>
+        {/* Always clipped (its dropdowns and tooltips open outside it), so nothing pops in mid-animation; the
+            tools fade and slide in a little after the oval starts growing. Not reachable while folded away. */}
+        <div
+          inert={!open}
+          className={cn(
+            "flex items-center gap-3 overflow-hidden transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            open ? "translate-x-0 opacity-100 delay-100" : "-translate-x-3 opacity-0"
+          )}
+        >
           <span className="ms-2 h-7 w-px shrink-0 bg-white/15" aria-hidden />
           <HeaderAccounts />
           {user?.role === "SEEKER" && (
