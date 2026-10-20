@@ -30,7 +30,7 @@ const ckb: DeepPartial<Messages> = {
     cvPreview: "CV",
     companies: "کۆمپانیاکان",
     inbox: "نامەکان",
-    pool: "حەوزی بەهرەکان",
+    pool: "حەوز",
     profile: "پرۆفایل",
     goLogin: "چوون بۆ پەڕەی چوونەژوورەوە",
   },
@@ -109,7 +109,7 @@ const ckb: DeepPartial<Messages> = {
     sent: "نێردرا",
   },
   pool: {
-    title: "حەوزی بەهرەکان",
+    title: "حەوز",
     shared: "{count} کارخواز CV ـیان هاوبەش کردووە. فلتەر بەکاربهێنە بۆ دۆزینەوەی گونجاوترین.",
     sharedOne: "1 کارخواز CV ـی هاوبەش کردووە. فلتەر بەکاربهێنە بۆ دۆزینەوەی گونجاوترین.",
     readOnly: "بینینی {role}: تەنها خوێندنەوە",

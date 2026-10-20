@@ -177,7 +177,7 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   )
 }
 
-/** Sections that still need details for The Pool are yellow. */
+/** Sections that still need details for the Pool are yellow. */
 const NEEDS_DETAILS = "border-amber-300 bg-amber-50"
 
 function Card({
@@ -500,7 +500,7 @@ function PortfolioForm({
     if (!saved.ok) return toast.error(saved.error)
     cleanUpFiles(fileIds(portfolio, contact.photoId))
 
-    // What's still missing for The Pool shows in the status at the top of the profile
+    // What's still missing for the Pool shows in the status at the top of the profile
     toast.success(t("seeker.cvReady"))
     onSaved()
   }

@@ -78,7 +78,7 @@ export const AGE_BUCKETS = [
   { value: "45+", label: "45+", min: 45, max: Infinity },
 ]
 
-/** Where each role lands after signing in: job seekers on Home (their dashboard), everyone else in The Pool. */
+/** Where each role lands after signing in: job seekers on Home (their dashboard), everyone else in the Pool. */
 export const homeFor = (role: Role) => (role === "SEEKER" ? "/home" : "/pool")
 
 // New accounts get the next color from this list automatically

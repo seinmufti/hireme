@@ -8,7 +8,7 @@ import { listingMissing, useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
 export function PoolView() {
-  // Signed-in employers and recruiters only; job seekers don't use The Pool
+  // Signed-in employers and recruiters only; job seekers don't use the Pool
   const viewer = useRoleGuard(["EMPLOYER", "RECRUITER"])
   const users = useStore((s) => s.users)
   const talents = useStore((s) => s.talents)

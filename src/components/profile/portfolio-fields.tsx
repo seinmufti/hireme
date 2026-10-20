@@ -21,7 +21,7 @@ import { LanguagePicker } from "./language-picker"
 import { FieldOfStudyPicker } from "./field-of-study-picker"
 import { MonthPicker, PeriodPicker } from "./month-picker"
 
-// A job seeker's portfolio: their listing in The Pool, edited from the profile page.
+// A job seeker's portfolio: their listing in the Pool, edited from the profile page.
 
 export const EMPTY_PORTFOLIO: TalentInput = {
   gender: "",

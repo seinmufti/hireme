@@ -5,7 +5,7 @@ import type { Talent, User } from "@/lib/types"
 const HIDDEN_REFERENCE = { name: "", position: "", phone: "", email: "" }
 
 /**
- * A job seeker as an employer may see them (in The Pool and among a job's applicants).
+ * A job seeker as an employer may see them (in the Pool and among a job's applicants).
  * Fields are picked one by one: the first name only and never the job seeker's contact details,
  * address, references or exact birth date. Employers reach out through HireMe messages.
  */

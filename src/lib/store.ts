@@ -136,7 +136,7 @@ export const useStore = create<Data & Actions>()(
       /**
        * Notifies job seekers about every open job that matches them and they haven't heard about yet
        * (nor applied to). Runs whenever a match could turn up: a job is posted, edited or reopened, or a
-       * job seeker signs in or changes their CV or work preference. Only job seekers listed in The Pool
+       * job seeker signs in or changes their CV or work preference. Only job seekers listed in the Pool
        * (visible and complete) are notified. `userIds` limits it to those job seekers.
        */
       const notifyNewMatches = (userIds?: string[]) => {
@@ -215,7 +215,7 @@ export const useStore = create<Data & Actions>()(
           const user = me()
           if (user?.role !== "SEEKER") return fail("Only job seekers have a CV.")
           // Drafts save as they are; only mistakes in what was entered block saving.
-          // Whether the portfolio is complete enough for The Pool is checked separately (listingProblem).
+          // Whether the portfolio is complete enough for the Pool is checked separately (listingProblem).
           const problem = portfolioEntryProblem(input)
           if (problem) return fail(problem)
 
@@ -352,7 +352,7 @@ export const useStore = create<Data & Actions>()(
             open: true,
           }
           set((s) => ({ jobs: [...s.jobs, job] }))
-          // Job seekers listed in The Pool whom the job suits
+          // Job seekers listed in the Pool whom the job suits
           return { ok: true, jobId: job.id, notified: notifyNewMatches() }
         },
 
@@ -698,12 +698,12 @@ export const jobComplete = (e: TalentInput["experiences"][number]) =>
   MONTH_VALUE.test(e.start ?? "") &&
   (!!e.current || MONTH_VALUE.test(e.end ?? ""))
 
-/** Profile sections that can hold details The Pool needs. */
+/** Profile sections that can hold details the Pool needs. */
 // In CV order. "personal" holds personal details and contact details together.
 export type ListingSection = "personal" | "about" | "work" | "education" | "skills" | "languages" | "certifications" | "projects"
 
 /**
- * The profile sections that still need details before the portfolio is listed in The Pool.
+ * The profile sections that still need details before the portfolio is listed in the Pool.
  * An empty list means it's complete. Drafts can be saved at any point.
  * About me and skills are optional; projects only need a name once one is added.
  */
