@@ -1,12 +1,13 @@
 "use client"
 
-import { BriefcaseIcon, CakeIcon, GraduationCapIcon, LanguagesIcon, UserIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, CakeIcon, GraduationCapIcon, LanguagesIcon, UserIcon } from "lucide-react"
 import { degreeDuration, formatDuration, formatJobPeriod, formatMonthYear, jobMonths } from "@/lib/format"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
 import { LANGUAGE_LEVELS } from "@/lib/options"
+import { formatMoney } from "@/lib/salary"
 import { cn } from "@/lib/utils"
-import type { Certification, Degree, Experience, LanguageSkill } from "@/lib/types"
+import type { Certification, Degree, Experience, LanguageSkill, WorkPreference } from "@/lib/types"
 
 type FactsInput = {
   gender: string
@@ -14,6 +15,7 @@ type FactsInput = {
   education: string
   languages: LanguageSkill[]
   totalMonths: number
+  workPreference?: WorkPreference | null
 }
 
 const levelLabel = (v: string) => LANGUAGE_LEVELS.find((l) => l.value === v)?.label ?? v
@@ -51,6 +53,10 @@ export function portfolioFacts(t: FactsInput) {
     { icon: UserIcon, label: "Gender", value: t.gender || "—" },
     { icon: GraduationCapIcon, label: "Education", value: t.education || "—" },
     { icon: LanguagesIcon, label: "Languages", value: t.languages.map((l) => l.language).join(", ") || "—" },
+    // Only when they've said what they expect
+    ...(t.workPreference?.expectedSalary
+      ? [{ icon: BanknoteIcon, label: "Expected salary", value: `${formatMoney(t.workPreference.expectedSalary.amount, t.workPreference.expectedSalary.currency)} / month` }]
+      : []),
   ]
 }
 

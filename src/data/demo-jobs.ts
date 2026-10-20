@@ -1,4 +1,4 @@
-import type { Application, Job, JobLocation, Notification, User } from "@/lib/types"
+import type { Application, Job, JobLocation, Notification, Salary, User } from "@/lib/types"
 
 // Built-in demo companies (employer accounts) and the jobs they have posted.
 
@@ -70,7 +70,27 @@ const job = (
   open: true,
   // A month to apply
   deadline: new Date(Date.parse(at(day)) + 30 * 86_400_000).toISOString().slice(0, 10),
+  salary: DEMO_SALARIES[id] ?? null,
 })
+
+/** Most demo jobs show a salary (a month); a few don't, like real listings. */
+export const DEMO_SALARIES: Record<string, Salary> = {
+  "j-zagros-1": { min: 1500, max: 2200, currency: "USD" },
+  "j-zagros-2": { min: 1000, max: 1500, currency: "USD" },
+  "j-zagros-3": { min: 400000, max: null, currency: "IQD" },
+  "j-nawroz-1": { min: 750000, max: 1200000, currency: "IQD" },
+  "j-nawroz-2": { min: 1200, max: 1800, currency: "USD" },
+  "j-nawroz-3": { min: 500000, max: 650000, currency: "IQD" },
+  "j-tigris-1": { min: 900000, max: 1300000, currency: "IQD" },
+  "j-tigris-3": { min: 1000000, max: null, currency: "IQD" },
+  "j-tigris-4": { min: 1100000, max: 1500000, currency: "IQD" },
+  "j-gulf-1": { min: 1800, max: 2500, currency: "USD" },
+  "j-gulf-2": { min: null, max: 6000, currency: "USD" },
+  "j-dilan-1": { min: 550000, max: 700000, currency: "IQD" },
+  "j-dilan-2": { min: 900000, max: 1200000, currency: "IQD" },
+  "j-dilan-4": { min: 400000, max: 500000, currency: "IQD" },
+  "j-shifa-1": { min: 1000000, max: 1400000, currency: "IQD" },
+}
 
 export const DEMO_JOBS: Job[] = [
   job("j-zagros-1", "u-employer", 18, "Senior Full-Stack Developer", "Information Technology", "Full-time", city("Erbil"),

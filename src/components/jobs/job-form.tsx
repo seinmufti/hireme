@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useT } from "@/i18n/provider"
 import { JOB_CITIES, today, WORKPLACES, workplaceOf, type WorkplaceKind } from "@/lib/jobs"
 import { CONTRACT_TYPES, JOB_CATEGORIES } from "@/lib/options"
+import { CURRENCIES, parseAmount } from "@/lib/salary"
 import { jobInputProblem, useStore } from "@/lib/store"
 import type { Job, JobInput } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -24,6 +25,7 @@ const EMPTY: JobInput = {
   location: { remote: false, international: false, iraqCity: "" },
   description: "",
   deadline: "",
+  salary: null,
 }
 
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
@@ -97,6 +99,45 @@ function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChan
   )
 }
 
+/** Optional salary a month: from, to (either may be empty) and the currency. */
+function SalaryFields({ value, onChange }: { value: JobInput["salary"]; onChange: (v: JobInput["salary"]) => void }) {
+  const t = useT()
+  const s = value ?? { min: null, max: null, currency: "IQD" as const }
+  const box = (key: "min" | "max", label: string) => (
+    <Field label={label} className="min-w-0 flex-1">
+      <Input
+        className="h-9"
+        inputMode="numeric"
+        value={s[key] ? s[key]!.toLocaleString("en") : ""}
+        onChange={(e) => onChange({ ...s, [key]: parseAmount(e.target.value) })}
+        placeholder={s.currency === "USD" ? (key === "min" ? "800" : "1,200") : key === "min" ? "750,000" : "1,200,000"}
+      />
+    </Field>
+  )
+  return (
+    <div className="flex flex-wrap items-end gap-3">
+      <div className="flex gap-1.5" role="radiogroup" aria-label={t("jobs.form.currency")}>
+        {CURRENCIES.map((c) => (
+          <button
+            key={c}
+            type="button"
+            role="radio"
+            aria-checked={s.currency === c}
+            onClick={() => onChange({ ...s, currency: c })}
+            className={cn("h-9 rounded-full border px-3 text-sm", s.currency === c ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted")}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+      <div className="flex min-w-0 flex-1 basis-64 gap-3">
+        {box("min", t("jobs.form.salaryFrom"))}
+        {box("max", t("jobs.form.salaryTo"))}
+      </div>
+    </div>
+  )
+}
+
 /** Post a new job, or edit one (`job`). */
 export function JobForm({ job }: { job?: Job }) {
   const t = useT()
@@ -106,7 +147,7 @@ export function JobForm({ job }: { job?: Job }) {
   const jobs = useStore((s) => s.jobs)
   const [value, setValue] = useState<JobInput>(() =>
     job
-      ? { title: job.title, category: job.category, skills: job.skills, contractType: job.contractType, location: job.location, description: job.description, deadline: job.deadline }
+      ? { title: job.title, category: job.category, skills: job.skills, contractType: job.contractType, location: job.location, description: job.description, deadline: job.deadline, salary: job.salary }
       : EMPTY
   )
   const [workplace, setWorkplace] = useState<WorkplaceKind | "">(job ? workplaceOf(job.location) : "")
@@ -182,6 +223,11 @@ export function JobForm({ job }: { job?: Job }) {
       <section className="space-y-4 p-6">
         <h2 className="font-medium">{t("jobs.form.skills")}</h2>
         <SkillsInput value={value.skills} onChange={(v) => set("skills", v)} suggestions={suggestions} />
+      </section>
+
+      <section className="space-y-3 p-6">
+        <h2 className="font-medium">{t("jobs.form.salary")}</h2>
+        <SalaryFields value={value.salary} onChange={(salary) => set("salary", salary)} />
       </section>
 
       <section className="space-y-3 p-6">

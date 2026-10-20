@@ -86,6 +86,7 @@ export type WorkPreference = {
   international: boolean
   iraqCities: string[] // cities in Iraq they would work in
   contractTypes?: string[] // CONTRACT_TYPES values they want (none chosen = any); missing in older saved data
+  expectedSalary?: { amount: number; currency: Currency } | null // a month; missing in older saved data
 }
 
 // A job seeker's portfolio (their listing in the Pool). Name and contact details live on User.
@@ -135,6 +136,11 @@ export type JobLocation = {
   iraqCity: string // "" when remote or international
 }
 
+export type Currency = "IQD" | "USD"
+
+/** A salary range a month; either end may be left open ("from 800", "up to 1,200"). */
+export type Salary = { min: number | null; max: number | null; currency: Currency }
+
 // A job posted by an employer. Job seekers search these and get notified about ones that match them.
 export type Job = {
   id: string
@@ -150,9 +156,10 @@ export type Job = {
   updatedAt: string
   open: boolean // closed jobs stay listed for their employer only
   deadline: string // "YYYY-MM-DD": the last day to apply; after it the job no longer takes applications
+  salary: Salary | null // optional; null when the employer didn't give one
 }
 
-export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description" | "deadline">
+export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description" | "deadline" | "salary">
 
 // "A new job matches your profile", sent to job seekers when an employer posts a job
 export type Notification = {
@@ -161,7 +168,14 @@ export type Notification = {
   jobId: string
   createdAt: string
   readAt: string | null
+  kind?: "match" | "follow" // the job matches them (missing in older saved data), or a company they follow posted it
 }
+
+/** Something a user saved for later: a job (job seekers) or a job seeker (employers and recruiters). */
+export type Saved = { userId: string; id: string; at: string }
+
+/** A job seeker following a company: they hear about every job it posts. */
+export type Follow = { userId: string; employerId: string; at: string }
 
 export type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string }
 

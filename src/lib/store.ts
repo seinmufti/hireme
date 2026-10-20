@@ -3,7 +3,7 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { CORE_TALENTS, CORE_USERS, DEMO_CONVERSATIONS, DEMO_MESSAGES, DEMO_TALENTS, DEMO_USERS, EMPLOYER_USERS } from "@/data/demo"
-import { DEMO_APPLICATIONS, DEMO_JOBS, DEMO_NOTIFICATIONS } from "@/data/demo-jobs"
+import { DEMO_APPLICATIONS, DEMO_JOBS, DEMO_NOTIFICATIONS, DEMO_SALARIES } from "@/data/demo-jobs"
 import { findContactDetail } from "@/lib/contact-guard"
 import { takesApplications, today } from "@/lib/jobs"
 import { matchJob } from "@/lib/matching"
@@ -12,7 +12,7 @@ import { replaceAllOnce, safeStorage, setOnRestored } from "@/lib/safe-storage"
 import { ageFrom, PHONE_PATTERN } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE, professionFrom, withTalentDefaults, withUserDefaults, type LegacyTalent, type LegacyUser } from "@/lib/normalize"
 import { AVATAR_COLORS, type Role } from "@/lib/options"
-import type { Application, Conversation, Degree, Job, JobInput, Message, Notification, ProfileInput, Result, Talent, TalentInput, User } from "@/lib/types"
+import type { Application, Conversation, Degree, Follow, Job, JobInput, Message, Notification, ProfileInput, Result, Saved, Talent, TalentInput, User } from "@/lib/types"
 
 // All app data lives here. It starts as the built-in demo data and every change
 // is saved to this browser's localStorage, so it only affects the current visitor.
@@ -37,6 +37,9 @@ type Data = {
   jobs: Job[]
   notifications: Notification[]
   applications: Application[]
+  savedJobs: Saved[] // job seekers' saved jobs
+  savedTalents: Saved[] // employers' and recruiters' saved job seekers (id: the job seeker's user id)
+  follows: Follow[]
   currentUserId: string | null
 }
 
@@ -57,6 +60,9 @@ type Actions = {
   applyToJob: (jobId: string, note: string) => Result
   withdrawApplication: (applicationId: string) => void
   setApplicationStatus: (applicationId: string, status: string) => void
+  toggleSavedJob: (jobId: string) => void
+  toggleSavedTalent: (seekerId: string) => void
+  toggleFollow: (employerId: string) => void
   resetDemo: () => void
 }
 
@@ -78,6 +84,9 @@ const initialData = (): Data => {
     jobs,
     notifications: DEMO_NOTIFICATIONS.filter((n) => ids.has(n.userId) && jobIds.has(n.jobId)),
     applications: DEMO_APPLICATIONS.filter((a) => ids.has(a.seekerId) && jobIds.has(a.jobId)),
+    savedJobs: [],
+    savedTalents: [],
+    follows: [],
     currentUserId: null,
   }
 }
@@ -352,8 +361,19 @@ export const useStore = create<Data & Actions>()(
             open: true,
           }
           set((s) => ({ jobs: [...s.jobs, job] }))
-          // Job seekers listed in the Pool whom the job suits
-          return { ok: true, jobId: job.id, notified: notifyNewMatches() }
+          // Job seekers listed in the Pool whom the job suits, then followers of the company who haven't heard yet
+          const matched = notifyNewMatches()
+          const heard = new Set(get().notifications.filter((n) => n.jobId === job.id).map((n) => n.userId))
+          const followers = get().follows.filter((f) => f.employerId === employer.id && !heard.has(f.userId))
+          if (followers.length) {
+            set((s) => ({
+              notifications: [
+                ...s.notifications,
+                ...followers.map((f) => ({ id: newId("n"), userId: f.userId, jobId: job.id, createdAt: at, readAt: null, kind: "follow" as const })),
+              ],
+            }))
+          }
+          return { ok: true, jobId: job.id, notified: matched + followers.length }
         },
 
         updateJob: (jobId, input) => {
@@ -430,13 +450,45 @@ export const useStore = create<Data & Actions>()(
 
         // The only way to replace everything on purpose; the previous data is kept as a backup (see safe-storage).
         // Starts over with the same demo a first-time visitor gets (see initialData).
+        // Saved for later: a heart on a job (job seekers), a bookmark on a job seeker (employers, recruiters)
+        toggleSavedJob: (jobId) => {
+          const userId = get().currentUserId
+          if (!userId) return
+          set((s) => ({
+            savedJobs: s.savedJobs.some((x) => x.userId === userId && x.id === jobId)
+              ? s.savedJobs.filter((x) => !(x.userId === userId && x.id === jobId))
+              : [...s.savedJobs, { userId, id: jobId, at: now() }],
+          }))
+        },
+
+        toggleSavedTalent: (seekerId) => {
+          const userId = get().currentUserId
+          if (!userId) return
+          set((s) => ({
+            savedTalents: s.savedTalents.some((x) => x.userId === userId && x.id === seekerId)
+              ? s.savedTalents.filter((x) => !(x.userId === userId && x.id === seekerId))
+              : [...s.savedTalents, { userId, id: seekerId, at: now() }],
+          }))
+        },
+
+        // Following a company: its new jobs reach the job seeker's notifications
+        toggleFollow: (employerId) => {
+          const userId = get().currentUserId
+          if (!userId) return
+          set((s) => ({
+            follows: s.follows.some((f) => f.userId === userId && f.employerId === employerId)
+              ? s.follows.filter((f) => !(f.userId === userId && f.employerId === employerId))
+              : [...s.follows, { userId, employerId, at: now() }],
+          }))
+        },
+
         resetDemo: () => replaceAllOnce(() => set(initialData())),
       }
     },
     {
       name: "hireme-demo",
       // Bump when the demo data or its shape changes so visitors start fresh
-      version: 16,
+      version: 17,
       // v9 -> v10: jobs record start and end dates instead of years and months (see withJobDates)
       // v10 -> v11: the generated demo job seekers are added (see withDemoSeekers)
       // v11 -> v12: CV builder fields (photo, location, summary, skills, projects, job descriptions and
@@ -445,6 +497,7 @@ export const useStore = create<Data & Actions>()(
       // v13 -> v14: job applications, with a few demo ones (see withApplications)
       // v14 -> v15: jobs have an application deadline; saved ones get 30 days from posting (see withDeadlines)
       // v15 -> v16: the guest account is added (see withGuest)
+      // v16 -> v17: job salaries, saved jobs and job seekers, followed companies (see withSalaries)
       migrate: (persisted, version) => {
         let data = withJobDates(migrateOlder(persisted, version))
         if (version < 11) data = withDemoSeekers(data)
@@ -453,10 +506,11 @@ export const useStore = create<Data & Actions>()(
         if (version < 14) data = withApplications(data)
         if (version < 15) data = withDeadlines(data)
         if (version < 16) data = withGuest(data)
+        if (version < 17) data = withSalaries(data)
         return data
       },
       storage: createJSONStorage(() => safeStorage),
-      partialize: ({ users, talents, conversations, messages, jobs, notifications, applications, currentUserId }) => ({
+      partialize: ({ users, talents, conversations, messages, jobs, notifications, applications, savedJobs, savedTalents, follows, currentUserId }) => ({
         users,
         talents,
         conversations,
@@ -464,6 +518,9 @@ export const useStore = create<Data & Actions>()(
         jobs,
         notifications,
         applications,
+        savedJobs,
+        savedTalents,
+        follows,
         currentUserId,
       }),
       // Rehydrated from the client shell, so server and first client render match
@@ -548,6 +605,17 @@ function withJobPostings(data: Data): Data {
 }
 
 /** v14 -> v15: jobs saved before deadlines existed get one 30 days after they were posted (the demo jobs get theirs). */
+/** v16 -> v17: demo jobs get their salaries (others none); nothing saved or followed yet. */
+function withSalaries(data: Data): Data {
+  return {
+    ...data,
+    jobs: data.jobs.map((j) => ({ ...j, salary: j.salary ?? DEMO_SALARIES[j.id] ?? null })),
+    savedJobs: data.savedJobs ?? [],
+    savedTalents: data.savedTalents ?? [],
+    follows: data.follows ?? [],
+  }
+}
+
 /** Adds the one guest account to data saved before guests existed. */
 function withGuest(data: Data): Data {
   if (data.users.some((u) => u.role === "GUEST")) return data
@@ -644,6 +712,9 @@ export function jobInputProblem(input: JobInput) {
   if (!input.description.trim()) return "Please describe the job."
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.deadline ?? "")) return "Please choose the last day to apply."
   if (input.deadline < today()) return "The last day to apply can't be in the past."
+  const pay = input.salary
+  if (pay && [pay.min, pay.max].some((n) => n !== null && !(Number.isFinite(n) && n > 0))) return "Please enter the salary as a number."
+  if (pay?.min && pay.max && pay.min > pay.max) return "The lowest salary can't be more than the highest."
   return null
 }
 
@@ -656,6 +727,8 @@ function cleanJob(input: JobInput): JobInput {
     contractType: input.contractType,
     description: input.description.trim(),
     deadline: input.deadline,
+    // No amount given: no salary shown
+    salary: input.salary && (input.salary.min || input.salary.max) ? { min: input.salary.min || null, max: input.salary.max || null, currency: input.salary.currency } : null,
     // Each skill once, ignoring case
     skills: skills.filter((s, i) => skills.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i),
     // A job is in exactly one kind of place

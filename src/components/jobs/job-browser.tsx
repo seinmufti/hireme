@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
-import { BriefcaseIcon, PlusIcon, SearchIcon, SendIcon, TargetIcon, XIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, PlusIcon, SearchIcon, SendIcon, TargetIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
@@ -90,6 +90,8 @@ export function JobBrowser({
   const [state, setState] = useState<State>({})
   const [query, setQuery] = useState(initialQuery)
   const [onlyMatches, setOnlyMatches] = useState(false)
+  // Only jobs that show a salary
+  const [withSalary, setWithSalary] = useState(false)
   const [sort, setSort] = useState(isSeeker ? "match" : "recent")
 
   const matches = useMemo(() => (talent ? matchingJobs(talent, open) : []), [talent, open])
@@ -111,8 +113,8 @@ export function JobBrowser({
   }
 
   const base = useMemo(
-    () => open.filter((j) => jobMatchesQuery(j, query) && (!onlyMatches || score.has(j.id))),
-    [open, query, onlyMatches, score]
+    () => open.filter((j) => jobMatchesQuery(j, query) && (!onlyMatches || score.has(j.id)) && (!withSalary || !!j.salary)),
+    [open, query, onlyMatches, withSalary, score]
   )
   const results = useMemo(() => {
     const list = base.filter((j) => passes(j, defs, state))
@@ -129,7 +131,7 @@ export function JobBrowser({
   }
 
   const active = defs.flatMap((d) => (state[d.key] ?? []).map((v) => ({ def: d, value: v })))
-  const hasFilters = active.length > 0 || query.trim() !== "" || onlyMatches
+  const hasFilters = active.length > 0 || query.trim() !== "" || onlyMatches || withSalary
 
   return (
     <div className="space-y-6">
@@ -201,6 +203,17 @@ export function JobBrowser({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            aria-pressed={withSalary}
+            onClick={() => setWithSalary((v) => !v)}
+            className={cn(
+              "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
+              withSalary ? "border-primary/40 bg-brand-soft text-foreground" : "hover:bg-muted"
+            )}
+          >
+            <BanknoteIcon className="size-3.5" /> {t("jobs.salaryShown")}
+          </button>
           {defs.map((def) => (
             <FilterDropdown
               key={def.key}
@@ -233,6 +246,7 @@ export function JobBrowser({
                 setState({})
                 setSearch("")
                 setOnlyMatches(false)
+                setWithSalary(false)
               }}
             >
               {t("common.clearAll")}

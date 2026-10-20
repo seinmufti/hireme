@@ -1,17 +1,19 @@
 "use client"
 
 import { useState } from "react"
-import { BriefcaseIcon, CheckIcon, ChevronDownIcon, ClockIcon, GlobeIcon, GraduationCapIcon, MapPinIcon, SearchIcon, WifiIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, CheckIcon, ChevronDownIcon, ClockIcon, GlobeIcon, GraduationCapIcon, MapPinIcon, SearchIcon, WifiIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useT } from "@/i18n/provider"
 import type { MessageKey } from "@/i18n/types"
+import { CURRENCIES, parseAmount } from "@/lib/salary"
+import type { Currency } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { EMPTY_PREFERENCE, IRAQI_CITIES, saveWorkPreference, type HomeTalent, type HomeUser, type WorkPreference } from "./home-data"
 
 /**
- * The type of work the job seeker wants: where (remote, Iraqi cities, international) and which contracts
- * (full-time, part-time, internship; none ticked means any).
+ * The type of work the job seeker wants: where (remote, Iraqi cities, international), which contracts
+ * (full-time, part-time, internship; none ticked means any) and the salary they expect (employers see it in the Pool).
  * Saved straight away; job matching and alerts use it. It isn't shown on the CV.
  */
 export function WorkPreferenceCard({ user, talent }: { user: HomeUser; talent: HomeTalent | null }) {
@@ -75,8 +77,67 @@ export function WorkPreferenceCard({ user, talent }: { user: HomeUser; talent: H
             />
           )
         })}
+
+        <p className="pt-2 text-xs font-medium text-muted-foreground">{t("home.expectedSalary")}</p>
+        <ExpectedSalary
+          value={pref.expectedSalary ?? null}
+          onChange={(expectedSalary) => save({ ...pref, expectedSalary })}
+        />
       </fieldset>
     </section>
+  )
+}
+
+/** The salary a month they expect: the currency and an amount, saved when they leave the box. */
+function ExpectedSalary({
+  value,
+  onChange,
+}: {
+  value: { amount: number; currency: Currency } | null
+  onChange: (v: { amount: number; currency: Currency } | null) => void
+}) {
+  const t = useT()
+  const [currency, setCurrency] = useState<Currency>(value?.currency ?? "IQD")
+  const [draft, setDraft] = useState(value ? value.amount.toLocaleString("en") : "")
+  const commit = (c: Currency, text: string) => {
+    const amount = parseAmount(text)
+    if (amount === (value?.amount ?? null) && c === (value?.currency ?? c)) return
+    onChange(amount ? { amount, currency: c } : null)
+  }
+  return (
+    <div className="flex items-center gap-2 rounded-lg border px-3 py-2">
+      <BanknoteIcon className="size-4 shrink-0 text-muted-foreground" />
+      <input
+        inputMode="numeric"
+        value={draft}
+        onChange={(e) => {
+          const amount = parseAmount(e.target.value)
+          setDraft(amount ? amount.toLocaleString("en") : "")
+        }}
+        onBlur={() => commit(currency, draft)}
+        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        placeholder={currency === "USD" ? "1,000" : "1,000,000"}
+        aria-label={t("home.expectedSalary")}
+        className="h-7 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+      />
+      <div className="flex shrink-0 gap-1" role="radiogroup" aria-label={t("jobs.form.currency")}>
+        {CURRENCIES.map((c) => (
+          <button
+            key={c}
+            type="button"
+            role="radio"
+            aria-checked={currency === c}
+            onClick={() => {
+              setCurrency(c)
+              if (parseAmount(draft)) commit(c, draft)
+            }}
+            className={cn("rounded-full border px-2 py-0.5 text-xs", currency === c ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted")}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 

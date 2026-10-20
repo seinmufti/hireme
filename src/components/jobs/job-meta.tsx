@@ -1,12 +1,24 @@
 "use client"
 
-import { BriefcaseIcon, Building2Icon, CalendarClockIcon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, Building2Icon, CalendarClockIcon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
 import { useI18n, useLocationLabel, useTimeAgo } from "@/i18n/provider"
 import { daysLeft } from "@/lib/jobs"
-import type { Job } from "@/lib/types"
+import { formatMoney, formatRange } from "@/lib/salary"
+import type { Job, Salary } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-export type JobFact = "company" | "location" | "contract" | "category" | "posted" | "deadline"
+export type JobFact = "company" | "location" | "salary" | "contract" | "category" | "posted" | "deadline"
+
+/** "$1,500–2,200 a month", "From 400,000 IQD a month", "Up to $6,000 a month"; "" when there's no salary. */
+export function useSalaryLabel() {
+  const { t } = useI18n()
+  return (s: Salary | null | undefined) => {
+    if (!s || (!s.min && !s.max)) return ""
+    const range = formatRange(s)
+    if (range) return t("jobs.salaryMonthly", { amount: range })
+    return s.min ? t("jobs.salaryFrom", { amount: formatMoney(s.min, s.currency) }) : t("jobs.salaryUpTo", { amount: formatMoney(s.max!, s.currency) })
+  }
+}
 
 /** Company, location, contract type, category and when it was posted, in the current language. */
 /** "Apply by 20 Nov 2026 · 31 days left", "Last day to apply: today" or "Applications closed". */
@@ -28,6 +40,7 @@ export function useJobFacts() {
   const deadline = useDeadlineLabel()
   const timeAgo = useTimeAgo()
   const locationLabel = useLocationLabel()
+  const salary = useSalaryLabel()
   return (job: Job) => [
     { key: "company" as JobFact, icon: Building2Icon, label: t("jobs.factCompany"), value: job.company },
     {
@@ -36,6 +49,7 @@ export function useJobFacts() {
       label: t("jobs.factLocation"),
       value: locationLabel(job.location),
     },
+    { key: "salary" as JobFact, icon: BanknoteIcon, label: t("jobs.factSalary"), value: salary(job.salary) },
     { key: "contract" as JobFact, icon: BriefcaseIcon, label: t("jobs.factContract"), value: job.contractType },
     { key: "category" as JobFact, icon: TagIcon, label: t("jobs.factCategory"), value: job.category },
     { key: "posted" as JobFact, icon: ClockIcon, label: t("jobs.factPosted"), value: t("jobs.posted", { time: timeAgo(job.createdAt) }) },

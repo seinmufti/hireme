@@ -25,6 +25,17 @@ export function JobPostingData({ job }: { job: Job }) {
             address: { "@type": "PostalAddress", ...(international ? {} : { addressLocality: iraqCity, addressCountry: "IQ" }) },
           },
         }),
+    ...(job.salary && {
+      baseSalary: {
+        "@type": "MonetaryAmount",
+        currency: job.salary.currency,
+        value: {
+          "@type": "QuantitativeValue",
+          unitText: "MONTH",
+          ...(job.salary.min && job.salary.max ? { minValue: job.salary.min, maxValue: job.salary.max } : { value: job.salary.min ?? job.salary.max }),
+        },
+      },
+    }),
     skills: job.skills.join(", "),
     industry: job.category,
   }
