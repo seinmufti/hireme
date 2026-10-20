@@ -167,7 +167,6 @@ const ar: DeepPartial<Messages> = {
     saved: "تم حفظ الملف",
   },
   home: {
-    greeting: "أهلًا بعودتك، {name}",
     overall: "نظرة عامة",
     totalExperience: "إجمالي الخبرة العملية",
     noExperience: "لا توجد خبرة بعد",

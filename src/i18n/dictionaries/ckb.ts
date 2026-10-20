@@ -167,7 +167,6 @@ const ckb: DeepPartial<Messages> = {
     saved: "پرۆفایل پاشەکەوتکرا",
   },
   home: {
-    greeting: "بەخێربێیتەوە، {name}",
     overall: "گشتی",
     totalExperience: "کۆی ئەزموونی کار",
     noExperience: "هێشتا ئەزموون نییە",

@@ -168,7 +168,6 @@ const en = {
     saved: "Profile saved",
   },
   home: {
-    greeting: "Welcome back, {name}",
     overall: "Overall",
     totalExperience: "Total work experience",
     noExperience: "No experience yet",
