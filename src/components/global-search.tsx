@@ -22,7 +22,7 @@ type Group = { title: string; items: Item[] }
 const PLACES: { key: MessageKey; href: string; words: string; roles?: Role[] }[] = [
   { key: "nav.home", href: "/home", words: "home dashboard overview", roles: ["SEEKER"] },
   { key: "nav.inbox", href: "/inbox", words: "inbox messages chat conversations", roles: ["SEEKER", "EMPLOYER"] },
-  { key: "nav.jobs", href: "/jobs", words: "jobs vacancies openings work listings" },
+  { key: "nav.jobs", href: "/jobs", words: "jobs vacancies openings work listings", roles: ["SEEKER", "RECRUITER"] },
   { key: "nav.companies", href: "/companies", words: "companies employers businesses contact" },
   { key: "nav.cvPreview", href: "/profile", words: "cv resume profile details edit", roles: ["SEEKER"] },
   { key: "seeker.previewCv", href: "/profile/cv", words: "cv resume preview download pdf", roles: ["SEEKER"] },
@@ -30,7 +30,7 @@ const PLACES: { key: MessageKey; href: string; words: string; roles?: Role[] }[]
   { key: "applications.myTitle", href: "/jobs/applied", words: "applications applied", roles: ["SEEKER"] },
   { key: "notifications.title", href: "/notifications", words: "notifications alerts matches", roles: ["SEEKER"] },
   { key: "jobs.postJob", href: "/jobs/new", words: "post job new vacancy hire", roles: ["EMPLOYER"] },
-  { key: "jobs.myPosts", href: "/jobs/mine", words: "my jobs posts", roles: ["EMPLOYER"] },
+  { key: "jobs.myPosts", href: "/jobs/mine", words: "my jobs posts vacancies listings", roles: ["EMPLOYER"] },
   { key: "nav.profile", href: "/profile", words: "profile account settings", roles: ["EMPLOYER", "RECRUITER"] },
   { key: "seeker.sections.personal", href: "/profile?edit=personal", words: "personal contact phone email address photo location", roles: ["SEEKER"] },
   { key: "seeker.sections.about", href: "/profile?edit=about", words: "about summary bio", roles: ["SEEKER"] },
@@ -75,6 +75,8 @@ export function GlobalSearch({ user }: { user: User }) {
   const [active, setActive] = useState(0)
   const [recent, setRecent] = useState<string[]>([])
   const q = query.trim()
+  // Employers don't search jobs: they only find their own posts here
+  const browsesJobs = user.role !== "EMPLOYER"
 
   // The skills and categories that come up most in open jobs
   const popular = useMemo(() => {
@@ -94,7 +96,7 @@ export function GlobalSearch({ user }: { user: User }) {
       .filter((p) => matchesWords(`${t(p.key)} ${p.words}`, q))
       .slice(0, 4)
       .map((p) => ({ key: p.href, icon: FileTextIcon, label: t(p.key), href: p.href }))
-    const foundJobs = jobs.filter((j) => takesApplications(j) && jobMatchesQuery(j, q))
+    const foundJobs = jobs.filter((j) => (browsesJobs ? takesApplications(j) : j.employerId === user.id) && jobMatchesQuery(j, q))
     const jobItems: Item[] = foundJobs.slice(0, 5).map((j) => ({
       key: j.id,
       icon: BriefcaseIcon,
@@ -102,7 +104,7 @@ export function GlobalSearch({ user }: { user: User }) {
       detail: `${j.company} · ${locationLabel(j.location)}`,
       href: `/jobs/${j.id}`,
     }))
-    if (foundJobs.length > 5) {
+    if (browsesJobs && foundJobs.length > 5) {
       jobItems.push({ key: "all-jobs", icon: SearchIcon, label: t("search.allJobsFor", { count: foundJobs.length, q }), href: `/jobs?q=${encodeURIComponent(q)}` })
     }
     const companies = users
@@ -114,7 +116,7 @@ export function GlobalSearch({ user }: { user: User }) {
       { title: t("search.jobs"), items: jobItems },
       { title: t("search.companies"), items: companies },
     ].filter((g) => g.items.length)
-  }, [q, recent, popular, jobs, users, user.role, t, locationLabel])
+  }, [q, recent, popular, jobs, users, user.role, user.id, browsesJobs, t, locationLabel])
 
   const items = groups.flatMap((g) => g.items)
 
@@ -127,7 +129,7 @@ export function GlobalSearch({ user }: { user: User }) {
   const choose = (item: Item | undefined) => {
     // Enter with nothing picked: all jobs for the words typed
     if (!item) {
-      if (!q) return
+      if (!q || !browsesJobs) return
       item = { key: "all", icon: SearchIcon, label: q, href: `/jobs?q=${encodeURIComponent(q)}` }
     }
     if (item.fill) {

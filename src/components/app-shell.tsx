@@ -27,6 +27,8 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   const home = { href: "/home", label: t("nav.home") }
   const jobs = { href: "/jobs", label: t("nav.jobs") }
+  // Employers don't search jobs; their Jobs tab is their own posts
+  const myJobs = { href: "/jobs/mine", label: t("nav.jobs") }
   // The CV page: your details, with Edit and the Preview CV button
   const cv = { href: "/profile", label: t("nav.cvPreview") }
   const companies = { href: "/companies", label: t("nav.companies") }
@@ -35,7 +37,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   const profile = { href: "/profile", label: t("nav.profile") }
   const links =
     role === "EMPLOYER"
-      ? [pool, jobs, companies, inbox, profile]
+      ? [pool, myJobs, companies, inbox, profile]
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
