@@ -168,8 +168,9 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
       {children}
 
       {/* Always at the bottom of every page, also on premium CVs */}
-      <div className="absolute right-[12mm] bottom-[6mm] flex items-center gap-1.5 text-[9pt] font-semibold not-italic text-neutral-700">
-        <Logo size={20} className="rounded-[4px]" />
+      {/* Centred at the bottom of the page */}
+      <div className="absolute bottom-[5mm] left-1/2 flex -translate-x-1/2 items-center gap-2 text-[12pt] font-semibold not-italic text-neutral-700">
+        <Logo size={34} className="rounded-[6px]" />
         HireMe
       </div>
 

@@ -86,6 +86,7 @@ function Accounts() {
                       placeholder={t("accounts.searchPlaceholder")}
                       aria-label={t("login.searchLabel", { role: t(`roles.${role}`) })}
                       className="h-9 ps-8"
+                      autoComplete="off"
                     />
                   </div>
                 )}
@@ -258,25 +259,26 @@ function NewAccountDialog({
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className={cn(isSeeker && "sm:max-w-md")}>
-        <form onSubmit={submit} className="grid gap-4">
+        {/* No browser suggestions or autofill when creating an account */}
+        <form onSubmit={submit} className="grid gap-4" autoComplete="off">
           <DialogHeader>
             <DialogTitle>{t("login.newAccount", { role: t(`roles.${role}`) })}</DialogTitle>
             {!isSeeker && <DialogDescription>{t("login.staffIntro")}</DialogDescription>}
           </DialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor="new-name">{t("login.fullName")}</Label>
-            <Input id="new-name" className="h-9" value={form.name} onChange={setText("name")} autoFocus />
+            <Input id="new-name" name="hireme-new-name" className="h-9" value={form.name} onChange={setText("name")} autoComplete="off" autoCorrect="off" spellCheck={false} data-1p-ignore data-lpignore="true" autoFocus />
           </div>
           {/* Job seekers start with just their name; everything else goes in their CV form, which opens next */}
           {!isSeeker && (
             <>
               <div className="space-y-1.5">
                 <Label htmlFor="new-title">{t("login.jobTitle")}</Label>
-                <Input id="new-title" className="h-9" value={form.title} onChange={setText("title")} placeholder={t("login.jobTitlePlaceholder")} />
+                <Input id="new-title" name="hireme-new-title" autoComplete="off" spellCheck={false} data-1p-ignore data-lpignore="true" className="h-9" value={form.title} onChange={setText("title")} placeholder={t("login.jobTitlePlaceholder")} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="new-company">{t("login.company")}</Label>
-                <Input id="new-company" className="h-9" value={form.company} onChange={setText("company")} />
+                <Input id="new-company" name="hireme-new-company" autoComplete="off" spellCheck={false} data-1p-ignore data-lpignore="true" className="h-9" value={form.company} onChange={setText("company")} />
               </div>
             </>
           )}

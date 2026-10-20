@@ -60,16 +60,27 @@ type Actions = {
   resetDemo: () => void
 }
 
-const initialData = (): Data => ({
-  users: DEMO_USERS,
-  talents: DEMO_TALENTS,
-  conversations: DEMO_CONVERSATIONS,
-  messages: DEMO_MESSAGES,
-  jobs: DEMO_JOBS,
-  notifications: DEMO_NOTIFICATIONS,
-  applications: DEMO_APPLICATIONS,
-  currentUserId: null,
-})
+/**
+ * What a first-time visitor (and "Reset demo") starts with: one account per role (job seeker, recruiter,
+ * employer), the employer's own jobs, and the job seeker's notifications about them. The other demo
+ * companies and generated job seekers aren't part of it.
+ */
+const initialData = (): Data => {
+  const users = CORE_USERS
+  const ids = new Set(users.map((u) => u.id))
+  const jobs = DEMO_JOBS.filter((j) => ids.has(j.employerId))
+  const jobIds = new Set(jobs.map((j) => j.id))
+  return {
+    users,
+    talents: CORE_TALENTS,
+    conversations: DEMO_CONVERSATIONS,
+    messages: DEMO_MESSAGES,
+    jobs,
+    notifications: DEMO_NOTIFICATIONS.filter((n) => ids.has(n.userId) && jobIds.has(n.jobId)),
+    applications: DEMO_APPLICATIONS.filter((a) => ids.has(a.seekerId) && jobIds.has(a.jobId)),
+    currentUserId: null,
+  }
+}
 
 const now = () => new Date().toISOString()
 const newId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`
@@ -418,12 +429,8 @@ export const useStore = create<Data & Actions>()(
         },
 
         // The only way to replace everything on purpose; the previous data is kept as a backup (see safe-storage).
-        // Starts over with one account per role (plus the demo companies behind the demo jobs), not the generated job seekers.
-        // The demo applications come from generated job seekers, so they go too.
-        resetDemo: () =>
-          replaceAllOnce(() =>
-            set({ ...initialData(), users: [...CORE_USERS, ...EMPLOYER_USERS], talents: CORE_TALENTS, applications: [] })
-          ),
+        // Starts over with the same demo a first-time visitor gets (see initialData).
+        resetDemo: () => replaceAllOnce(() => set(initialData())),
       }
     },
     {
