@@ -1,15 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { CheckIcon, ChevronDownIcon, GlobeIcon, MapPinIcon, SearchIcon, WifiIcon } from "lucide-react"
+import { BriefcaseIcon, CheckIcon, ChevronDownIcon, ClockIcon, GlobeIcon, GraduationCapIcon, MapPinIcon, SearchIcon, WifiIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useT } from "@/i18n/provider"
+import type { MessageKey } from "@/i18n/types"
 import { cn } from "@/lib/utils"
 import { EMPTY_PREFERENCE, IRAQI_CITIES, saveWorkPreference, type HomeTalent, type HomeUser, type WorkPreference } from "./home-data"
 
 /**
- * The type of work the job seeker wants: remote, in one or more Iraqi cities, and/or international.
+ * The type of work the job seeker wants: where (remote, Iraqi cities, international) and which contracts
+ * (full-time, part-time, internship; none ticked means any).
  * Saved straight away; job matching and alerts use it. It isn't shown on the CV.
  */
 export function WorkPreferenceCard({ user, talent }: { user: HomeUser; talent: HomeTalent | null }) {
@@ -59,10 +61,31 @@ export function WorkPreferenceCard({ user, talent }: { user: HomeUser; talent: H
           checked={pref.international}
           onChange={(international) => save({ ...pref, international })}
         />
+
+        <p className="pt-2 text-xs font-medium text-muted-foreground">{t("home.contractType")}</p>
+        {CONTRACTS.map((c) => {
+          const chosen = pref.contractTypes ?? []
+          return (
+            <Toggle
+              key={c.value}
+              icon={c.icon}
+              label={t(c.label)}
+              checked={chosen.includes(c.value)}
+              onChange={(on) => save({ ...pref, contractTypes: on ? [...chosen, c.value] : chosen.filter((x) => x !== c.value) })}
+            />
+          )
+        })}
       </fieldset>
     </section>
   )
 }
+
+// Stored as the CONTRACT_TYPES values (English), shown in the page's language
+const CONTRACTS: { value: string; label: MessageKey; icon: typeof WifiIcon }[] = [
+  { value: "Full-time", label: "home.fullTime", icon: BriefcaseIcon },
+  { value: "Part-time", label: "home.partTime", icon: ClockIcon },
+  { value: "Internship", label: "home.internship", icon: GraduationCapIcon },
+]
 
 function Toggle({
   icon: Icon,

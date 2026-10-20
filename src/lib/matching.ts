@@ -5,7 +5,7 @@ import type { Experience, Job } from "@/lib/types"
 // Skills (hardSkills/softSkills) and work preferences (workPreference) come from the CV builder.
 // Portfolios saved before those existed don't have them, so every one of them is optional here.
 
-export type WorkPreference = { remote?: boolean; international?: boolean; iraqCities?: string[] }
+export type WorkPreference = { remote?: boolean; international?: boolean; iraqCities?: string[]; contractTypes?: string[] }
 
 export type MatchableTalent = {
   experiences?: Experience[]
@@ -44,6 +44,9 @@ export function locationFits(talent: MatchableTalent, job: Job) {
 /** How well one job suits the job seeker, or null when it doesn't match. */
 export function matchJob(talent: MatchableTalent, job: Job): JobMatch | null {
   if (!job.open || !locationFits(talent, job)) return null
+  // Contract types the job seeker wants (none chosen: any)
+  const contracts = talent.workPreference?.contractTypes ?? []
+  if (contracts.length && !contracts.includes(job.contractType)) return null
 
   const have = new Set([...(talent.hardSkills ?? []), ...(talent.softSkills ?? [])].map(norm))
   const skills = job.skills.filter((s) => have.has(norm(s)))

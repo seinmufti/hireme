@@ -85,6 +85,7 @@ export type WorkPreference = {
   remote: boolean
   international: boolean
   iraqCities: string[] // cities in Iraq they would work in
+  contractTypes?: string[] // CONTRACT_TYPES values they want (none chosen = any); missing in older saved data
 }
 
 // A job seeker's portfolio (their listing in The Pool). Name and contact details live on User.
