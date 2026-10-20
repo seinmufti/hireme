@@ -14,7 +14,8 @@ import { useT } from "@/i18n/provider"
 import type { User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-const SHOWN = 3
+// One account per role: the one signed in to most recently. The rest are under "+N more".
+const SHOWN = 1
 
 // Left to right in the header
 const ORDER: Role[] = ["SEEKER", "RECRUITER", "EMPLOYER"]
@@ -133,8 +134,8 @@ export function HeaderAccounts() {
     <div className="flex items-center">
       {ORDER.map((role, i) => {
         const all = users.filter((u) => u.role === role)
-        // The header only has room for a few: the ones signed in to most recently (the signed-in account
-        // first), then the rest in order. The full list is under "more".
+        // Only the account signed in to most recently is shown (the signed-in account, when it has this role);
+        // the full list is under "more".
         const recent = recentLogins()
         const rank = (u: User) => {
           const i = recent.indexOf(u.id)
