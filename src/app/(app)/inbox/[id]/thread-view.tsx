@@ -7,8 +7,10 @@ import { latestJob } from "@/components/pool/talent-meta"
 import { UserAvatar } from "@/components/user-avatar"
 import { firstName } from "@/lib/format"
 import { useCurrentUser, useStore } from "@/lib/store"
+import { useT } from "@/i18n/provider"
 
 export function ThreadView({ id }: { id: string }) {
+  const t = useT()
   const user = useCurrentUser()
   const users = useStore((s) => s.users)
   const talents = useStore((s) => s.talents)
@@ -25,7 +27,7 @@ export function ThreadView({ id }: { id: string }) {
   }, [mine, id, messages.length, markRead])
 
   if (!user || !conversation || !mine) {
-    return <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Conversation not found.</div>
+    return <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">{t("inbox.notFound")}</div>
   }
 
   const isEmployer = user.role === "EMPLOYER"
@@ -35,7 +37,7 @@ export function ThreadView({ id }: { id: string }) {
   // Employers only ever see a job seeker's first name
   const otherName = isEmployer ? firstName(other.name) : other.name
   const subtitle = isEmployer
-    ? (talent ? latestJob(talent.experiences) : "Job seeker")
+    ? (talent ? latestJob(talent.experiences) : t("inbox.jobSeeker"))
     : [other.title, other.company].filter(Boolean).join(" · ")
 
   return (
@@ -56,7 +58,7 @@ export function ThreadView({ id }: { id: string }) {
           read: !!m.readAt,
         }))}
       />
-      <ReplyBox conversationId={id} placeholder={`Reply to ${firstName(other.name)}…`} />
+      <ReplyBox conversationId={id} placeholder={t("inbox.replyTo", { name: firstName(other.name) })} />
     </>
   )
 }

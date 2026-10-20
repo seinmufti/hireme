@@ -5,8 +5,10 @@ import { ConversationList } from "@/components/inbox/conversation-list"
 import { firstName } from "@/lib/format"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
+import { useT } from "@/i18n/provider"
 
 export function InboxShell({ children }: { children: React.ReactNode }) {
+  const t = useT()
   const user = useRoleGuard(["EMPLOYER", "SEEKER"])
   const users = useStore((s) => s.users)
   const talents = useStore((s) => s.talents)
@@ -31,29 +33,29 @@ export function InboxShell({ children }: { children: React.ReactNode }) {
             name: isEmployer ? firstName(other.name) : other.name,
             avatarColor: other.avatarColor,
             subtitle: isEmployer
-              ? (talents.find((t) => t.userId === other.id)?.experiences[0]?.title ?? "Job seeker")
-              : other.company || "Employer",
-            preview: last ? `${last.senderId === user.id ? "You: " : ""}${last.body}` : "",
+              ? (talents.find((x) => x.userId === other.id)?.experiences[0]?.title ?? t("inbox.jobSeeker"))
+              : other.company || t("inbox.employer"),
+            preview: last ? `${last.senderId === user.id ? t("inbox.you") : ""}${last.body}` : "",
             at: c.updatedAt,
             unread: thread.filter((m) => m.senderId !== user.id && !m.readAt).length,
           },
         ]
       })
-  }, [user, users, talents, conversations, messages])
+  }, [user, users, talents, conversations, messages, t])
 
   if (!user) return null
 
   return (
-    <div className="grid h-[calc(100dvh-8rem)] grid-cols-[340px_1fr] overflow-hidden rounded-xl border bg-card">
+    <div className="grid h-[calc(100dvh-11rem)] grid-cols-[340px_1fr] overflow-hidden rounded-xl border bg-card">
       <ConversationList
         items={items}
         emptyHint={
           user.role === "EMPLOYER"
-            ? "Find someone in The Pool and send them a message."
-            : "When an employer messages you, it will show up here."
+            ? t("inbox.employerEmpty")
+            : t("inbox.seekerEmpty")
         }
       />
-      <div className="flex min-h-0 flex-col border-l">{children}</div>
+      <div className="flex min-h-0 flex-col border-s">{children}</div>
     </div>
   )
 }

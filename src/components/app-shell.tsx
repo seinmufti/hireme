@@ -1,10 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { GlobalSearch } from "@/components/global-search"
 import { HeaderAccounts } from "@/components/header-accounts"
+import { LanguageSwitcher } from "@/components/language-switcher"
 import { Logo } from "@/components/logo"
 import { NavLinks } from "@/components/nav-links"
 import { StoreGate } from "@/components/store-gate"
+import { useI18n } from "@/i18n/provider"
+import { homeFor } from "@/lib/options"
 import { unreadCountFor, useCurrentUser, useStore } from "@/lib/store"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -16,36 +20,52 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
+  const { t, dir } = useI18n()
   const user = useCurrentUser()
   const unread = useStore((s) => (user && user.role !== "RECRUITER" ? unreadCountFor(s, user.id) : 0))
   const role = user?.role
 
-  const pool = { href: "/pool", label: "The Pool" }
-  const inbox = { href: "/inbox", label: "Inbox", badge: unread }
-  const profile = { href: "/profile", label: "Profile" }
+  const home = { href: "/home", label: t("nav.home") }
+  const jobs = { href: "/jobs", label: t("nav.jobs") }
+  const cv = { href: "/profile/cv", label: t("nav.cvPreview") }
+  const companies = { href: "/companies", label: t("nav.companies") }
+  const pool = { href: "/pool", label: t("nav.pool") }
+  const inbox = { href: "/inbox", label: t("nav.inbox"), badge: unread }
+  const profile = { href: "/profile", label: t("nav.profile") }
   const links =
     role === "EMPLOYER"
-      ? [profile, pool, inbox]
+      ? [pool, jobs, companies, inbox, profile]
       : role === "RECRUITER"
-        ? [profile, pool]
+        ? [pool, companies, profile]
         : role === "SEEKER"
-          ? [profile, inbox]
+          ? [home, jobs, cv, companies, inbox]
           : []
 
   return (
     <>
       <header className="sticky top-0 z-40 border-b bg-card/90 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-8">
-          <div className="flex h-full items-center gap-6">
-            {/* The logo goes back to the account picker, where you can switch or create accounts */}
-            <Link href="/login" title="Switch or create an account" className="flex shrink-0 items-center gap-2.5">
-              <Logo size={34} />
-              <span className="text-lg font-semibold tracking-tight">HireMe</span>
-            </Link>
+        {/* Demo bar: switch between the demo accounts, and pick the language */}
+        <div className="border-b bg-muted/40">
+          <div dir="ltr" className="mx-auto flex h-14 w-full max-w-7xl items-center justify-end gap-4 px-8">
+            <HeaderAccounts />
+            <span className="h-8 w-px bg-border" aria-hidden />
+            <LanguageSwitcher />
+          </div>
+        </div>
+        {/* Logo on the far left and the same physical order in every language; the text inside follows the language */}
+        <div dir="ltr" className="mx-auto flex h-14 w-full max-w-7xl items-center gap-6 px-8">
+          <Link href={role ? homeFor(role) : "/login"} title={t("nav.goHome")} className="flex shrink-0 items-center gap-2.5">
+            <Logo size={32} />
+            <span className="text-lg font-semibold tracking-tight">HireMe</span>
+          </Link>
+          <div dir={dir} className="flex h-full items-stretch">
             <NavLinks links={links} />
           </div>
-
-          <HeaderAccounts />
+          {user && (
+            <div dir={dir} className="ml-auto">
+              <GlobalSearch user={user} />
+            </div>
+          )}
         </div>
       </header>
       <main className="mx-auto w-full max-w-7xl flex-1 px-8 py-8">{children}</main>

@@ -10,6 +10,21 @@ Desktop-only talent pool connecting **Job Seekers**, **Recruiters** and **Employ
 
 Phones and windows narrower than 1024px see a "Not available on mobile yet" screen.
 
+## Home and languages
+
+- **Home** (`/home`) is the job seeker's landing page: *Overall* (total experience, languages, location) on the left, their CV summary with **Preview CV** and matching jobs in the middle, and *Actions* (notifications, quick links, the type of work they want) on the right.
+- The app comes in **English, Arabic and Kurdish (Sorani)**. The language switcher is in the header (and on the login page). The choice is kept in the `hireme-locale` cookie, so the server renders the page in that language and sets `dir="rtl"` for Arabic and Kurdish.
+- Even in right-to-left languages, the logo stays on the far left, stats stay on the left and actions on the right. Those panels set `dir="ltr"` on their container and the language's `dir` on each panel.
+
+### Adding or changing text
+
+1. Add the English text to `src/i18n/dictionaries/en.ts` under a section (e.g. `jobs: { title: "Jobs" }`). Use `{name}` for values filled in later.
+2. Add the same key to `ar.ts` and `ckb.ts`. Anything left out falls back to English, so a page never breaks over a missing translation.
+3. In a client component: `const t = useT()` (from `@/i18n/provider`), then `t("jobs.title")` or `t("home.greeting", { name })`. Keys are type-checked. For keys built at runtime, use `t.dynamic(key, fallback)`.
+4. Use logical Tailwind classes (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`, `text-start`, `border-s`) instead of `ml-`, `pl-`, `left-`, `text-left` so layouts mirror in Arabic and Kurdish.
+
+Data people type in (names, job titles) and the built-in option lists (job categories, languages, degree levels) aren't translated.
+
 ## Demo data
 
 There is no backend. The demo data is built in (`src/data/demo.ts`), and everything a visitor changes is saved in **their own browser** (localStorage), so it never affects anyone else. The "Reset demo" button on the login page resets it.

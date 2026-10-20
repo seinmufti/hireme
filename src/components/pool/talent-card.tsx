@@ -6,6 +6,7 @@ import { UserAvatar } from "@/components/user-avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
 import type { PoolTalent } from "@/lib/filters"
 import { timeAgo } from "@/lib/format"
+import { useT } from "@/i18n/provider"
 import { ExperienceList, latestJob, portfolioFacts } from "./talent-meta"
 
 export function TalentCard({
@@ -19,9 +20,10 @@ export function TalentCard({
   onOpen: () => void
   onMessage: () => void
 }) {
+  const t = useT()
   return (
     <article className="flex flex-col rounded-xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-sm">
-      <button type="button" onClick={onOpen} className="flex items-start gap-3 text-left">
+      <button type="button" onClick={onOpen} className="flex items-start gap-3 text-start">
         <UserAvatar name={talent.firstName} color={talent.avatarColor} size={44} />
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-semibold hover:underline">{talent.firstName}</h3>
@@ -44,16 +46,16 @@ export function TalentCard({
       </div>
 
       <div className="mt-auto flex items-center gap-2 pt-4">
-        <span className="text-xs text-muted-foreground">Updated {timeAgo(talent.updatedAt)}</span>
-        <Button variant="ghost" size="sm" className="ml-auto" onClick={onOpen}>View</Button>
+        <span className="text-xs text-muted-foreground">{t("common.updated", { time: timeAgo(talent.updatedAt) })}</span>
+        <Button variant="ghost" size="sm" className="ms-auto" onClick={onOpen}>{t("common.view")}</Button>
         {canMessage &&
           (talent.conversationId ? (
             <Link href={`/inbox/${talent.conversationId}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-              <MessageSquareTextIcon /> Conversation
+              <MessageSquareTextIcon /> {t("pool.conversation")}
             </Link>
           ) : (
             <Button size="sm" onClick={onMessage}>
-              <SendIcon /> Send message
+              <SendIcon /> {t("pool.sendMessage")}
             </Button>
           ))}
       </div>

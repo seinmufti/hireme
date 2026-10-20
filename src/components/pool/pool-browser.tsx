@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react"
 import { EyeIcon, SearchIcon, UsersIcon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ROLE_LABEL, type Role } from "@/lib/options"
+import { type Role } from "@/lib/options"
+import { useT } from "@/i18n/provider"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { applyFilters, buildFilters, labelFor, optionCounts, type FilterState, type PoolTalent } from "@/lib/filters"
@@ -13,10 +14,10 @@ import { TalentCard } from "./talent-card"
 import { TalentProfileDialog } from "./talent-profile-dialog"
 
 const SORTS = [
-  { value: "recent", label: "Recently updated" },
-  { value: "exp-desc", label: "Most experienced" },
-  { value: "exp-asc", label: "Least experienced" },
-]
+  { value: "recent", key: "pool.sortRecent" },
+  { value: "exp-desc", key: "pool.sortMostExp" },
+  { value: "exp-asc", key: "pool.sortLeastExp" },
+] as const
 
 export function PoolBrowser({
   talents,
@@ -25,6 +26,8 @@ export function PoolBrowser({
   talents: PoolTalent[]
   viewer: Sender & { role: Role }
 }) {
+  const t = useT()
+  const sorts = SORTS.map((s) => ({ value: s.value, label: t(s.key) }))
   const canMessage = viewer.role === "EMPLOYER"
   const defs = useMemo(() => buildFilters(talents), [talents])
   const [state, setState] = useState<FilterState>({})
@@ -53,37 +56,37 @@ export function PoolBrowser({
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">The Pool</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("pool.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            {talents.length} job seeker{talents.length === 1 ? " has" : "s have"} shared a portfolio. Filter to find your match.
+            {talents.length === 1 ? t("pool.sharedOne") : t("pool.shared", { count: talents.length })}
           </p>
         </div>
         {!canMessage && (
           <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground">
-            <EyeIcon className="size-4" /> {ROLE_LABEL[viewer.role]} view: read-only
+            <EyeIcon className="size-4" /> {t("pool.readOnly", { role: t(`roles.${viewer.role}`) })}
           </div>
         )}
       </div>
 
-      <div className="sticky top-16 z-30 -mx-8 space-y-3 border-b bg-background/95 px-8 py-3 backdrop-blur">
+      <div className="sticky top-28 z-30 -mx-8 space-y-3 border-b bg-background/95 px-8 py-3 backdrop-blur">
         <div className="flex items-center gap-3">
           <div className="relative w-80">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search name or job title…"
-              className="h-8 pl-8"
+              placeholder={t("pool.searchPlaceholder")}
+              className="h-8 ps-8"
             />
           </div>
-          <div className="ml-auto flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Sort</span>
-            <Select items={SORTS} value={sort} onValueChange={(v) => v && setSort(v)}>
+          <div className="ms-auto flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">{t("common.sort")}</span>
+            <Select items={sorts} value={sort} onValueChange={(v) => v && setSort(v)}>
               <SelectTrigger size="sm" className="w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {SORTS.map((s) => (
+                {sorts.map((s) => (
                   <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                 ))}
               </SelectContent>
@@ -110,14 +113,14 @@ export function PoolBrowser({
                 key={def.key + value}
                 type="button"
                 onClick={() => setState((s) => ({ ...s, [def.key]: (s[def.key] ?? []).filter((v) => v !== value) }))}
-                className="flex items-center gap-1 rounded-full border bg-card py-0.5 pr-1.5 pl-2.5 text-xs hover:bg-muted"
+                className="flex items-center gap-1 rounded-full border bg-card py-0.5 pe-1.5 ps-2.5 text-xs hover:bg-muted"
               >
-                <span className="text-muted-foreground">{def.label}:</span> {label}
+                <span className="text-muted-foreground">{t.dynamic(`pool.filters.${def.key}`, def.label)}:</span> {label}
                 <XIcon className="size-3 text-muted-foreground" />
               </button>
             ))}
             <Button variant="link" size="xs" onClick={() => { setState({}); setQuery("") }}>
-              Clear all
+              {t("common.clearAll")}
             </Button>
           </div>
         )}
@@ -126,14 +129,14 @@ export function PoolBrowser({
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <UsersIcon className="size-4" />
         <span>
-          <span className="font-semibold text-foreground">{results.length}</span> of {talents.length} job seeker{talents.length === 1 ? "" : "s"} match
+          {t("pool.matchCount", { count: results.length, total: talents.length })}
         </span>
       </div>
 
       {results.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
-          <p className="font-medium">No job seekers match these filters</p>
-          <p className="mt-1 text-sm text-muted-foreground">Try removing a filter or two.</p>
+          <p className="font-medium">{t("pool.noMatch")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("pool.noMatchHint")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">

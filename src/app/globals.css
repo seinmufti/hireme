@@ -130,4 +130,8 @@
   html {
     @apply font-sans;
   }
+  /* Arabic and Kurdish: an Arabic-script font first; Latin words and numbers fall back to Geist */
+  html[dir="rtl"] {
+    font-family: var(--font-arabic), var(--font-sans), sans-serif;
+  }
 }
