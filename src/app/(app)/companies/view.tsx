@@ -27,7 +27,8 @@ export function CompaniesView({ initialQuery }: { initialQuery: string }) {
   const setSearch = (q: string) => {
     setQuery(q)
     // Keep the address in step, so the search can be shared or reloaded
-    window.history.replaceState(null, "", q.trim() ? `/companies?q=${encodeURIComponent(q.trim())}` : "/companies")
+    const base = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+    window.history.replaceState(null, "", q.trim() ? `${base}/companies?q=${encodeURIComponent(q.trim())}` : `${base}/companies`)
   }
 
   if (!viewer) return null

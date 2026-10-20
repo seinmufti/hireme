@@ -70,7 +70,7 @@ export function CvImportButton<P extends object, T extends object>({
       const file = await shrinkImage(picked)
       const body = new FormData()
       body.append("file", file)
-      const res = await fetch("/api/cv-import", { method: "POST", body })
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/cv-import`, { method: "POST", body })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.cv) throw new Error(data?.error ?? t("cvImport.failed"))
       const cv = data.cv as CvImport

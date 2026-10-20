@@ -5,10 +5,18 @@ import type { NextConfig } from "next";
 // data saved by the app on port 3000.
 const isTestServer = process.env.HIREME_TEST_SERVER === "1"
 
+/** The app lives under /hireme, so nordlyssolutions.com/hireme can serve it (see nordlys' hosted routes). */
+const BASE_PATH = "/hireme"
+
 const nextConfig: NextConfig = {
   distDir: isTestServer ? ".next-test" : ".next",
+  basePath: BASE_PATH,
+  // Lets client code prefix the few URLs Next.js doesn't (fetch, history.replaceState)
+  env: { NEXT_PUBLIC_BASE_PATH: BASE_PATH },
   async redirects() {
     return [
+      // The bare domain (e.g. hireme-pink.vercel.app) opens the app
+      { source: "/", destination: BASE_PATH, permanent: false, basePath: false },
       { source: "/", destination: "/login", permanent: false },
       { source: "/accounts", destination: "/login", permanent: false },
     ]

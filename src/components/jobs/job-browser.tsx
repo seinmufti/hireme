@@ -103,7 +103,8 @@ export function JobBrowser({
   const setSearch = (q: string) => {
     setQuery(q)
     // Keep the address in step, so the search can be shared or reloaded
-    window.history.replaceState(null, "", q.trim() ? `/jobs?q=${encodeURIComponent(q.trim())}` : "/jobs")
+    const base = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+    window.history.replaceState(null, "", q.trim() ? `${base}/jobs?q=${encodeURIComponent(q.trim())}` : `${base}/jobs`)
   }
 
   const base = useMemo(
