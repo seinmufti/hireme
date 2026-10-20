@@ -39,7 +39,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, inbox, jobs, companies, cv]
+          ? [home, cv, jobs, inbox, companies]
           : []
 
   return (
