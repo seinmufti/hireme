@@ -464,7 +464,7 @@ function PortfolioForm({
   const savedFiles = useRef(new Set(fileIds(talent ?? EMPTY_PORTFOLIO, user.photoId).filter(Boolean)))
   // Follows what's typed: a section turns normal as soon as its required details are in
   const needs = new Set(listingSectionsMissing(contact, portfolio))
-  const sectionClass = (id: SectionId) => cn("scroll-mt-20 space-y-4 p-6", needs.has(id as ListingSection) && "bg-amber-50")
+  const sectionClass = (id: SectionId) => cn("scroll-mt-20 space-y-4 rounded-xl border p-6", needs.has(id as ListingSection) ? NEEDS_DETAILS : "bg-card")
   const setField = (key: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setContact((c) => ({ ...c, [key]: e.target.value }))
   const list = <K extends "experiences" | "degrees" | "certifications" | "languages" | "projects">(key: K) =>
@@ -507,7 +507,7 @@ function PortfolioForm({
   )
 
   return (
-    <form onSubmit={save} className="divide-y rounded-xl border bg-card">
+    <form onSubmit={save} className="space-y-4">
       <section id="edit-personal" className={sectionClass("personal")}>
         {heading("personal")}
         <PhotoField
@@ -608,7 +608,7 @@ function PortfolioForm({
         />
       </section>
 
-      <div className="sticky bottom-0 flex items-center justify-end gap-2 rounded-b-xl bg-card/95 p-4 backdrop-blur">
+      <div className="sticky bottom-4 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
         <span className="mr-auto text-xs text-muted-foreground">Ready saves your details and shows your CV.</span>
         <Button type="button" variant="ghost" onClick={cancel}>
           Cancel
