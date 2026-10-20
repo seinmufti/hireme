@@ -252,11 +252,7 @@ function NewAccountDialog({
         <form onSubmit={submit} className="grid gap-4">
           <DialogHeader>
             <DialogTitle>New {ROLE_LABEL[role].toLowerCase()}</DialogTitle>
-            <DialogDescription>
-              {isSeeker
-                ? "These details are added to your portfolio. You'll fill in the rest on your profile."
-                : "You can add contact details later on your profile."}
-            </DialogDescription>
+            {!isSeeker && <DialogDescription>You can add contact details later on your profile.</DialogDescription>}
           </DialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor="new-name">Full name</Label>
