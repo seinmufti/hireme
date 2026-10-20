@@ -13,7 +13,7 @@ export type HomeTalent = Talent
 export const EMPTY_PREFERENCE: WorkPreference = { remote: false, international: false, iraqCities: [], contractTypes: [] }
 
 /** The CV form, opened at a section (or the profession field) with the cursor in it. */
-export const editCvAt = (target: ListingSection | "preference" | "profession") => `/profile?edit=${target}`
+export const editCvAt = (target: ListingSection | "profession") => `/profile?edit=${target}`
 
 /** Saves the job seeker's work-type preference on their portfolio. */
 export function saveWorkPreference(userId: string, workPreference: WorkPreference) {

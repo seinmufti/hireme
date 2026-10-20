@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { BriefcaseIcon, PlusIcon, SearchIcon, SendIcon, SparklesIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
@@ -70,11 +70,14 @@ export function JobBrowser({
   role,
   talent,
   initialQuery,
+  aside,
 }: {
   jobs: Job[]
   role: Role
   talent: MatchableTalent | null
   initialQuery: string
+  /** Shown beside the results (the job seeker's work preference) */
+  aside?: ReactNode
 }) {
   const t = useT()
   const isSeeker = role === "SEEKER"
@@ -243,18 +246,23 @@ export function JobBrowser({
         {query.trim() && <> {t("jobs.resultFor", { q: query.trim() })}</>}
       </p>
 
-      {results.length === 0 ? (
-        <div className="rounded-xl border border-dashed bg-card py-16 text-center">
-          <p className="font-medium">{t("jobs.noResults")}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t("jobs.noResultsHint")}</p>
+      <div className="flex items-start gap-6">
+        <div className="min-w-0 flex-1">
+          {results.length === 0 ? (
+            <div className="rounded-xl border border-dashed bg-card py-16 text-center">
+              <p className="font-medium">{t("jobs.noResults")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("jobs.noResultsHint")}</p>
+            </div>
+          ) : (
+            <div className={cn("grid grid-cols-2 gap-4", !aside && "xl:grid-cols-3")}>
+              {results.map((j) => (
+                <JobCard key={j.id} job={j} match={isSeeker && score.has(j.id)} have={have} applied={applied.get(j.id)} />
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
-          {results.map((j) => (
-            <JobCard key={j.id} job={j} match={isSeeker && score.has(j.id)} have={have} applied={applied.get(j.id)} />
-          ))}
-        </div>
-      )}
+        {aside && <aside className="w-72 shrink-0">{aside}</aside>}
+      </div>
     </div>
   )
 }

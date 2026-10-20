@@ -21,15 +21,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { saveUpload, UPLOAD_ACCEPT, useStoredFile } from "@/lib/files"
 import { projectDuration } from "@/lib/format"
-import { IRAQ_CITIES } from "@/lib/options"
-import type { Project, WorkPreference } from "@/lib/types"
+import type { Project } from "@/lib/types"
 import { useT } from "@/i18n/provider"
-import { cn } from "@/lib/utils"
 import { CityPicker, CountrySelect } from "./pickers"
 import { PeriodPicker } from "./month-picker"
 import { Field } from "./portfolio-fields"
 
-// Fields added for the CV builder: photo, location, skills, projects, work preference and uploads.
+// Fields added for the CV builder: photo, location, skills, projects and uploads.
 
 /** Uploads for one entry (degree, license, language): images (shrunk) or PDFs, up to 10 MB each. */
 export function AttachmentField({ label, value, onChange }: { label: string; value: string[]; onChange: (ids: string[]) => void }) {
@@ -348,70 +346,3 @@ export function ProjectFields({ value, onChange }: { value: Project[]; onChange:
   )
 }
 
-/** Where the job seeker wants to work. Used for job matching and employers' filters; not shown on the CV. */
-export function WorkPreferenceFields({ value, onChange }: { value: WorkPreference; onChange: (v: WorkPreference) => void }) {
-  const t = useT()
-  // "Local" (cities in Iraq) is on while cities are picked, or once ticked while picking the first one
-  const [localTicked, setLocalTicked] = useState(false)
-  const local = value.iraqCities.length > 0 || localTicked
-  const toggle = (checked: boolean, onToggle: (on: boolean) => void, label: string, hint: string) => (
-    <label
-      className={cn(
-        "flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 text-sm transition-colors",
-        checked ? "border-primary bg-primary/5" : "hover:bg-muted/50"
-      )}
-    >
-      <input type="checkbox" className="mt-0.5 size-4 accent-primary" checked={checked} onChange={(e) => onToggle(e.target.checked)} />
-      <span>
-        <span className="font-medium">{label}</span>
-        <span className="block text-xs text-muted-foreground">{hint}</span>
-      </span>
-    </label>
-  )
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
-        {toggle(value.remote, (remote) => onChange({ ...value, remote }), t("form.remote"), t("form.remoteHint"))}
-        {toggle(
-          local,
-          (on) => {
-            setLocalTicked(on)
-            // Unticking Local clears the cities
-            if (!on && value.iraqCities.length) onChange({ ...value, iraqCities: [] })
-          },
-          t("form.local"),
-          t("form.localHint")
-        )}
-        {toggle(value.international, (international) => onChange({ ...value, international }), t("form.international"), t("form.internationalHint"))}
-      </div>
-      {local && (
-        <Field label={t("form.citiesInIraq")}>
-          {/* All cities: ticks every city; unticking clears them. Removing one city unticks it (it's derived). */}
-          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="size-4 accent-primary"
-              checked={IRAQ_CITIES.every((c) => value.iraqCities.includes(c))}
-              onChange={(e) => {
-                setLocalTicked(true)
-                onChange({ ...value, iraqCities: e.target.checked ? [...IRAQ_CITIES] : [] })
-              }}
-            />
-            {t("form.allCities")}
-          </label>
-          <TagPicker
-            value={value.iraqCities}
-            onChange={(iraqCities) => {
-              // Local stays open while cities are being changed, even with none left
-              setLocalTicked(true)
-              onChange({ ...value, iraqCities })
-            }}
-            suggestions={IRAQ_CITIES}
-            allowCustom={false}
-            placeholder={t("form.searchCitiesPlaceholder")}
-          />
-        </Field>
-      )}
-    </div>
-  )
-}

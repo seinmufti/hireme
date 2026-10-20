@@ -31,7 +31,7 @@ export function HomeView() {
           </section>
         </div>
         <div dir={dir} className="sticky top-20">
-          <ActionsPanel user={user} talent={talent ?? null} />
+          <ActionsPanel />
         </div>
       </div>
     </div>

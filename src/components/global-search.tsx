@@ -40,7 +40,7 @@ const PLACES: { key: MessageKey; href: string; words: string; roles?: Role[] }[]
   { key: "seeker.sections.languages", href: "/profile?edit=languages", words: "languages english arabic kurdish", roles: ["SEEKER"] },
   { key: "seeker.sections.certifications", href: "/profile?edit=certifications", words: "licenses certifications certificates", roles: ["SEEKER"] },
   { key: "seeker.sections.projects", href: "/profile?edit=projects", words: "projects activities volunteering", roles: ["SEEKER"] },
-  { key: "seeker.sections.preference", href: "/profile?edit=preference", words: "work type remote local international preference", roles: ["SEEKER"] },
+  { key: "seeker.sections.preference", href: "/jobs", words: "work type remote local international preference", roles: ["SEEKER"] },
 ]
 
 const RECENT_KEY = "hireme-recent-searches"

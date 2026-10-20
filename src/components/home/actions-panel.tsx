@@ -3,11 +3,9 @@
 import Link from "next/link"
 import { ChevronRightIcon, FileTextIcon, PencilIcon } from "lucide-react"
 import { useT } from "@/i18n/provider"
-import type { HomeTalent, HomeUser } from "./home-data"
-import { WorkPreferenceCard } from "./work-preference"
 
-/** Right sidebar: quick actions and the type of work the job seeker wants. */
-export function ActionsPanel({ user, talent }: { user: HomeUser; talent: HomeTalent | null }) {
+/** Right sidebar: quick actions. */
+export function ActionsPanel() {
   const t = useT()
 
   const actions = [
@@ -34,8 +32,6 @@ export function ActionsPanel({ user, talent }: { user: HomeUser; talent: HomeTal
           ))}
         </ul>
       </section>
-
-      <WorkPreferenceCard user={user} talent={talent} />
     </aside>
   )
 }

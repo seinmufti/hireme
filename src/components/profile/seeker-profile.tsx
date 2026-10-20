@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
-  BriefcaseIcon,
   CakeIcon,
   CircleAlertIcon,
   CircleCheckIcon,
@@ -38,7 +37,7 @@ import type { Translate } from "@/i18n/translate"
 import { certificationComplete, degreeComplete, filled, jobComplete, listingSectionsMissing, sectionsMissingEntries, portfolioEntryProblem, useStore, type ListingSection } from "@/lib/store"
 import type { Talent, TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { AttachmentThumb, LocationFields, PhotoField, ProjectFields, TagPicker, WorkPreferenceFields } from "./cv-fields"
+import { AttachmentThumb, LocationFields, PhotoField, ProjectFields, TagPicker } from "./cv-fields"
 import {
   CertificationFields,
   DegreeFields,
@@ -50,10 +49,10 @@ import {
   toPortfolioInput,
 } from "./portfolio-fields"
 
-type SectionId = ListingSection | "preference"
+type SectionId = ListingSection
 /** Where the form can open: a section, or the profession field in the personal section. */
 export type EditTarget = SectionId | "profession"
-const EDIT_TARGETS: EditTarget[] = ["personal", "about", "work", "education", "skills", "languages", "certifications", "projects", "preference", "profession"]
+const EDIT_TARGETS: EditTarget[] = ["personal", "about", "work", "education", "skills", "languages", "certifications", "projects", "profession"]
 
 // Sections in CV order, as they appear on the profile and in the form
 const sectionTitle = (t: Translate, id: SectionId) => t(`seeker.sections.${id}`)
@@ -242,8 +241,6 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
     { icon: HomeIcon, label: t("seeker.address"), value: user.address, private: true },
     { icon: LinkIcon, label: t("seeker.linkedin"), value: user.linkedin.replace(/^https?:\/\/(www\.)?/, ""), href: user.linkedin, external: true },
   ]
-  const pref = p.workPreference
-  const prefs = [pref.remote && t("seeker.remote"), pref.international && t("seeker.international"), ...pref.iraqCities].filter(Boolean)
 
   return (
     <div className="space-y-4">
@@ -396,19 +393,6 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         )}
       </Card>
 
-      <Card id="preference" onEdit={onEdit} note={<>· <LockIcon className="inline size-3" /> {t("seeker.preferenceNote")}</>}>
-        {prefs.length ? (
-          <div className="flex flex-wrap gap-1.5">
-            {prefs.map((x) => (
-              <span key={x as string} className="flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm">
-                <BriefcaseIcon className="size-3.5 text-muted-foreground" /> {x}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <Empty>{t("seeker.preferenceEmpty")}</Empty>
-        )}
-      </Card>
     </div>
   )
 }
@@ -628,13 +612,6 @@ function PortfolioForm({
         <ProjectFields value={portfolio.projects} onChange={list("projects")} />
       </section>
 
-      <section id="edit-preference" className={sectionClass("preference")}>
-        {heading("preference", t("seeker.preferenceHint"))}
-        <WorkPreferenceFields
-          value={portfolio.workPreference}
-          onChange={(workPreference) => setPortfolio((p) => ({ ...p, workPreference }))}
-        />
-      </section>
 
       <div className="sticky bottom-4 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
         <span className="me-auto text-xs text-muted-foreground">{t("seeker.readyHint")}</span>
