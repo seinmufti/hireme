@@ -165,7 +165,13 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
         checked={visible}
         onCheckedChange={(v) => {
           setPortfolioVisible(v)
-          toast.success(v ? "Your profile is visible to employers" : "Your profile is hidden from employers")
+          if (!v) toast.success("Your profile is hidden from employers")
+          // Turned on but not complete: say what's still needed
+          else if (sections.length)
+            toast.warning("Your profile isn't visible to employers yet", {
+              description: `Required details missing in: ${sections.map((s) => SECTION_TITLES[s]).join(", ")}.`,
+            })
+          else toast.success("Your profile is visible to employers")
         }}
         aria-label="Your profile is visible to employers"
         className="group relative inline-flex h-7 w-16 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-input transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:bg-primary"
