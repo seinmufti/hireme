@@ -154,8 +154,7 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
         <Tooltip>
           <TooltipTrigger render={<span tabIndex={0} className="cursor-help rounded outline-none" />}>{status}</TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-64">
-            {sections.length} {sections.length === 1 ? "section needs" : "sections need"} required details. Look for the yellow{" "}
-            {sections.length === 1 ? "section" : "sections"} below.
+            Required details missing in: {sections.map((s) => SECTION_TITLES[s]).join(", ")}.
           </TooltipContent>
         </Tooltip>
       ) : (
