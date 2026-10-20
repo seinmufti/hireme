@@ -1,16 +1,18 @@
 "use client"
 
-import { useRef, useState } from "react"
-import { FileUpIcon, Loader2Icon, SparklesIcon } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { FileUpIcon, SparklesIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useT } from "@/i18n/provider"
+import type { MessageKey } from "@/i18n/types"
 import {
   CV_IMPORT_ACCEPT,
   CV_IMPORT_MAX_BYTES,
   describePath,
+  sectionOf,
   findConflicts,
   mergeCvImport,
   stillMissing,
@@ -19,7 +21,82 @@ import {
 } from "@/lib/cv-import"
 import { cn } from "@/lib/utils"
 
-type Step = { kind: "pick" } | { kind: "reading"; fileName: string } | { kind: "conflicts"; cv: CvImport; conflicts: ImportConflict[] }
+type Step = { kind: "pick" } | { kind: "reading"; fileName: string; estimateMs: number } | { kind: "conflicts"; cv: CvImport; conflicts: ImportConflict[] }
+
+/**
+ * How long reading a CV usually takes, from the file alone (the AI doesn't report its progress):
+ * plain text is quickest, PDFs take longer the bigger they are, photos are read as images.
+ */
+function estimateReadingMs(file: File) {
+  const name = file.name.toLowerCase()
+  if (file.type.startsWith("image/")) return 35_000
+  if (name.endsWith(".pdf")) return Math.min(75_000, 25_000 + (file.size / 50_000) * 3_000)
+  if (name.endsWith(".docx")) return 25_000
+  return 15_000
+}
+
+/** The steps shown while a CV is read, from the share of the estimated time that has passed. */
+const STAGES: { from: number; key: MessageKey }[] = [
+  { from: 0, key: "cvImport.stageUpload" },
+  { from: 0.08, key: "cvImport.stageRead" },
+  { from: 0.2, key: "cvImport.stageContact" },
+  { from: 0.35, key: "cvImport.stageWork" },
+  { from: 0.55, key: "cvImport.stageEducation" },
+  { from: 0.7, key: "cvImport.stageSkills" },
+  { from: 0.82, key: "cvImport.stageCheck" },
+  { from: 0.9, key: "cvImport.stageFill" },
+]
+
+/**
+ * A ring that fills while the CV is read, with "About 20 seconds left". It's an estimate: the ring
+ * reaches 90% at the expected time and then creeps on ("Almost done…") until the answer arrives.
+ */
+function ReadingProgress({ estimateMs, fileName }: { estimateMs: number; fileName: string }) {
+  const t = useT()
+  const [started] = useState(() => Date.now())
+  const [now, setNow] = useState(started)
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(timer)
+  }, [])
+  const elapsed = now - started
+  const progress =
+    elapsed < estimateMs ? (elapsed / estimateMs) * 0.9 : 0.9 + 0.09 * (1 - Math.exp(-(elapsed - estimateMs) / 20_000))
+  const secondsLeft = Math.ceil((estimateMs - elapsed) / 1000)
+  const r = 26
+  const circumference = 2 * Math.PI * r
+  // What it's working on, step by step along the same estimate (the AI doesn't say which part it's on)
+  const stage = STAGES.findLast((s) => progress >= s.from) ?? STAGES[0]
+
+  return (
+    <div className="flex flex-col items-center gap-3 py-6 text-center" role="status" aria-live="polite">
+      <div className="relative size-20">
+        <svg viewBox="0 0 64 64" className="size-20 -rotate-90">
+          <circle cx="32" cy="32" r={r} fill="none" strokeWidth="6" className="stroke-muted" />
+          <circle
+            cx="32"
+            cy="32"
+            r={r}
+            fill="none"
+            strokeWidth="6"
+            strokeLinecap="round"
+            className="stroke-primary transition-[stroke-dashoffset] duration-300 ease-linear"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference * (1 - progress)}
+          />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold tabular-nums">
+          {Math.round(progress * 100)}%
+        </span>
+      </div>
+      <span key={stage.key} className="animate-in font-medium fade-in">{t(stage.key)}</span>
+      <span className="text-sm text-muted-foreground">
+        {secondsLeft > 1 ? t("cvImport.secondsLeft", { count: secondsLeft }) : t("cvImport.almostDone")}
+      </span>
+      <span className="max-w-full truncate text-xs text-muted-foreground">{fileName}</span>
+    </div>
+  )
+}
 
 /** Photos of a CV can be huge; the AI reads them just as well at this size. */
 async function shrinkImage(file: File) {
@@ -60,12 +137,35 @@ export function CvImportButton<P extends object, T extends object>({
     const needsLook = [...new Set([...cv.uncertain, ...stillMissing(next.profile as Record<string, unknown>, next.portfolio as Record<string, unknown>)])]
     onApply(next, needsLook)
     setOpen(false)
-    toast.success(needsLook.length ? t("cvImport.doneCheck") : t("cvImport.doneAll"))
+    if (!needsLook.length) {
+      toast.success(t("cvImport.doneAll"))
+      return
+    }
+    // What the CV didn't have or wasn't clear about, as a toast; each item jumps to its part of the form.
+    // It stays until closed (click it), since there may be a few things to fix.
+    toast.warning(t("cvImport.reviewTitle"), {
+      duration: Infinity,
+      description: (
+        <ul className="mt-1 list-disc space-y-0.5 ps-4">
+          {needsLook.map((p) => (
+            <li key={p}>
+              <button
+                type="button"
+                className="text-start underline-offset-2 hover:underline"
+                onClick={() => document.getElementById(`edit-${sectionOf(p)}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+              >
+                {describePath(p, t)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ),
+    })
   }
 
   const read = async (picked: File) => {
     if (picked.size > CV_IMPORT_MAX_BYTES) return toast.error(t("cvImport.tooBig"))
-    setStep({ kind: "reading", fileName: picked.name })
+    setStep({ kind: "reading", fileName: picked.name, estimateMs: estimateReadingMs(picked) })
     try {
       const file = await shrinkImage(picked)
       const body = new FormData()
@@ -147,11 +247,7 @@ export function CvImportButton<P extends object, T extends object>({
           />
 
           {step.kind === "reading" && (
-            <div className="flex flex-col items-center gap-3 py-8 text-center" role="status">
-              <Loader2Icon className="size-8 animate-spin text-primary" />
-              <span className="font-medium">{t("cvImport.reading")}</span>
-              <span className="max-w-full truncate text-xs text-muted-foreground">{t("cvImport.readingHint", { file: step.fileName })}</span>
-            </div>
+            <ReadingProgress estimateMs={step.estimateMs} fileName={step.fileName} />
           )}
 
           {step.kind === "conflicts" && (

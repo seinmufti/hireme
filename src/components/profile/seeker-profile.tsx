@@ -25,7 +25,7 @@ import { Flag, ProfilePhoto } from "@/components/cv/photo"
 import { CertificationList, DegreeList, ExperienceList, LanguageList } from "@/components/pool/talent-meta"
 import { PhoneInput } from "@/components/phone-input"
 import { CvImportButton } from "@/components/profile/cv-import-dialog"
-import { CvImportReview, sectionsToCheck } from "@/components/profile/cv-import-review"
+import { sectionsToCheck } from "@/components/profile/cv-import-review"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -521,7 +521,6 @@ function PortfolioForm({
           }}
         />
       </div>
-      <CvImportReview paths={toCheck} onDismiss={() => setToCheck([])} />
       <section id="edit-personal" className={sectionClass("personal")}>
         {heading("personal")}
         <PhotoField
