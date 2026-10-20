@@ -119,7 +119,17 @@ export function SeekerProfile({ user }: { user: User }) {
       <PoolStatus user={user} talent={talent} />
 
       {editing ? (
-        <PortfolioForm user={user} talent={talent} jumpTo={jumpTo} onCancel={() => setEditing(false)} />
+        <PortfolioForm
+          user={user}
+          talent={talent}
+          jumpTo={jumpTo}
+          onCancel={() => setEditing(false)}
+          onSaved={() => {
+            // Back to the CV page, from the top
+            setEditing(false)
+            window.scrollTo({ top: 0 })
+          }}
+        />
       ) : (
         <PortfolioView user={user} talent={talent} onEdit={edit} />
       )}
@@ -410,13 +420,14 @@ function PortfolioForm({
   talent,
   jumpTo,
   onCancel,
+  onSaved,
 }: {
   user: User
   talent: Talent | null
   jumpTo: EditTarget | null
   onCancel: () => void
+  onSaved: () => void
 }) {
-  const router = useRouter()
   const t = useT()
   // Opened from a section's Edit button: scroll that section into view
   useEffect(() => {
@@ -491,7 +502,7 @@ function PortfolioForm({
 
     // What's still missing for The Pool shows in the status at the top of the profile
     toast.success(t("seeker.cvReady"))
-    router.push("/profile/cv")
+    onSaved()
   }
 
   const cancel = () => {
