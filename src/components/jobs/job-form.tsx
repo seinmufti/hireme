@@ -206,7 +206,7 @@ export function JobForm({ job }: { job?: Job }) {
         />
       </section>
 
-      <div className="sticky bottom-16 flex lg:bottom-0 justify-end gap-2 rounded-b-xl bg-card/95 p-4 backdrop-blur">
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] flex lg:bottom-0 justify-end gap-2 rounded-b-xl bg-card/95 p-4 backdrop-blur">
         <Button type="button" variant="ghost" onClick={() => router.back()}>
           {t("common.cancel")}
         </Button>

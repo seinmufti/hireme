@@ -51,7 +51,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b bg-card/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b bg-card/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         {/* Follows the language: logo on the left in English, on the right in Arabic and Kurdish */}
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:gap-6 lg:px-8">
           <Link href="/login" title={t("nav.goLogin")} className="flex shrink-0 items-center gap-2.5">
@@ -79,7 +79,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       {/* Room at the bottom for the Dev tools button (and, on smaller screens, the tab bar) */}
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-5 pb-40 sm:px-6 lg:px-8 lg:pt-8 lg:pb-24">{children}</main>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-5 pb-[calc(10rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pt-8 lg:pb-[calc(6rem+env(safe-area-inset-bottom))]">{children}</main>
       <BottomNav links={links} />
       {/* Demo accounts and the Premium crown */}
       <DevTools user={user} />

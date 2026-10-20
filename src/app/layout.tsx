@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "HireMe — the talent pool connecting employers and job seekers.",
 }
 
-// Phones: content may run under the notch and home bar; the tab bar keeps clear of them (safe-area insets)
+// Phones: the page may run under the notch and home bar; the header, tab bar, floating buttons and side padding keep clear (safe-area insets)
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -37,7 +37,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <div className="flex min-h-dvh flex-col">
             <TooltipProvider>{children}</TooltipProvider>
             {/* Pop-ups always on the right, the actions side, in every language; on phones above the tab bar */}
-            <Toaster position="bottom-right" theme="light" dir={dir} mobileOffset={{ bottom: "5.5rem" }} />
+            <Toaster position="bottom-right" theme="light" dir={dir} mobileOffset={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom))" }} />
           </div>
         </I18nProvider>
       </body>

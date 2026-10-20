@@ -159,7 +159,7 @@ export function GlobalSearch({ user }: { user: User }) {
     <div
       className={cn(
         "lg:relative lg:block lg:w-64",
-        expanded ? "fixed inset-x-0 top-0 z-50 flex h-14 items-center gap-2 border-b bg-card px-4 sm:px-6" : "hidden"
+        expanded ? "fixed inset-x-0 top-0 z-50 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-2 border-b bg-card px-4 pt-[env(safe-area-inset-top)] sm:px-6" : "hidden"
       )}
     >
       <div className="relative min-w-0 flex-1">
@@ -216,7 +216,7 @@ export function GlobalSearch({ user }: { user: User }) {
           role="listbox"
           // Keeps the input focused (and the list open) while clicking inside it
           onMouseDown={(e) => e.preventDefault()}
-          className="fixed inset-x-0 top-14 z-50 max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b bg-popover p-1 shadow-lg lg:absolute lg:inset-x-auto lg:end-0 lg:top-11 lg:max-h-[min(30rem,calc(100dvh-8rem))] lg:w-96 lg:rounded-xl lg:border"
+          className="fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-50 max-h-[calc(100dvh-3.5rem-env(safe-area-inset-top))] overflow-y-auto border-b bg-popover p-1 shadow-lg lg:absolute lg:inset-x-auto lg:end-0 lg:top-11 lg:max-h-[min(30rem,calc(100dvh-8rem))] lg:w-96 lg:rounded-xl lg:border"
         >
           {groups.length === 0 && (
             <p className="px-3 py-6 text-center text-sm text-muted-foreground">

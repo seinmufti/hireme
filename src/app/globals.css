@@ -126,6 +126,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Phones in landscape: keep clear of the notch and rounded corners (the page uses viewport-fit=cover) */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   html {
     @apply font-sans;

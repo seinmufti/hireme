@@ -110,7 +110,7 @@ export function SeekerProfile({ user }: { user: User }) {
           href="/profile/cv"
           aria-label={t("seeker.previewCv")}
           title={t("seeker.previewCv")}
-          className="fixed end-4 bottom-36 z-40 flex size-14 lg:end-6 lg:bottom-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
+          className="fixed end-4 bottom-[calc(9rem+env(safe-area-inset-bottom))] z-40 flex size-14 lg:end-6 lg:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
         >
           <EyeIcon className="size-6" />
         </Link>
@@ -623,7 +623,7 @@ function PortfolioForm({
       </section>
 
 
-      <div className="sticky bottom-20 flex lg:bottom-4 items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
+      <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex lg:bottom-[calc(1rem+env(safe-area-inset-bottom))] items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
         <Button type="button" variant="ghost" onClick={cancel}>
           {t("common.cancel")}
         </Button>
