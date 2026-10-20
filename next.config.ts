@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
     return [
       // The bare domain (e.g. hireme-pink.vercel.app) opens the app
       { source: "/", destination: BASE_PATH, permanent: false, basePath: false },
+      // Old addresses from before the app moved under /hireme (e.g. /profile/cv) still work
+      { source: "/:path((?!hireme(?:/|$)|_next/|api/).*)", destination: `${BASE_PATH}/:path`, permanent: false, basePath: false },
       { source: "/", destination: "/login", permanent: false },
       { source: "/accounts", destination: "/login", permanent: false },
     ]
