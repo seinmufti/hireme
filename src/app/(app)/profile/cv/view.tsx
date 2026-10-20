@@ -8,7 +8,7 @@ import { printCv } from "@/components/cv/print-cv"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { EMPTY_PORTFOLIO, toPortfolioInput } from "@/components/profile/portfolio-fields"
 import { ageFrom } from "@/lib/format"
-import { isPremium } from "@/lib/premium"
+import { useIsPremium } from "@/lib/premium"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
@@ -18,8 +18,8 @@ export function CvView() {
   const talent = useStore((s) => s.talents.find((t) => t.userId === user?.id)) ?? null
   const page = useRef<HTMLDivElement>(null)
   const [downloading, setDownloading] = useState(false)
+  const premium = useIsPremium(user)
   if (!user) return null
-  const premium = isPremium(user)
 
   const download = async () => {
     if (!page.current) return

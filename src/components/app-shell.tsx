@@ -7,6 +7,7 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { Logo } from "@/components/logo"
 import { NavLinks } from "@/components/nav-links"
 import { NotificationBell } from "@/components/notifications/notification-bell"
+import { PremiumToggle } from "@/components/premium-toggle"
 import { StoreGate } from "@/components/store-gate"
 import { useI18n } from "@/i18n/provider"
 import { homeFor } from "@/lib/options"
@@ -66,6 +67,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             <div dir={dir} className="ml-auto flex items-center gap-4">
               <GlobalSearch user={user} />
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
+              {role === "SEEKER" && <PremiumToggle user={user} />}
               {role === "SEEKER" && <NotificationBell />}
             </div>
           )}

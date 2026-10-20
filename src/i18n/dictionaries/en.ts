@@ -33,6 +33,12 @@ const en = {
     profile: "Profile",
     goHome: "Go to Home",
   },
+  premium: {
+    label: "Premium",
+    hint: "Demo: switch Premium on or off to see both modes",
+    on: "Premium on: CV downloads without a watermark",
+    off: "Premium off: CV downloads have a watermark",
+  },
   search: {
     placeholder: "Search jobs, companies…",
     label: "Search HireMe",
