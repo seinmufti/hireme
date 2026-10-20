@@ -28,7 +28,6 @@ import { PhoneInput } from "@/components/phone-input"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { deleteFile } from "@/lib/files"
 import { ageFrom, formatDuration, formatMonthYear, totalMonths } from "@/lib/format"
 import { countryName, HARD_SKILLS, SOFT_SKILLS } from "@/lib/options"
@@ -146,20 +145,15 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5",
+        "flex items-start justify-between gap-3 rounded-xl border px-4 py-2.5",
         inPool ? "border-emerald-300 bg-emerald-50" : "border-amber-300 bg-amber-50"
       )}
     >
-      {sections.length ? (
-        <Tooltip>
-          <TooltipTrigger render={<span tabIndex={0} className="cursor-help rounded outline-none" />}>{status}</TooltipTrigger>
-          <TooltipContent side="bottom" className="max-w-64">
-            {missing}
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        status
-      )}
+      <div>
+        {status}
+        {/* What's still needed, under the status */}
+        {sections.length > 0 && <div className="mt-1.5 pl-5.5 text-sm text-amber-900">{missing}</div>}
+      </div>
       {/* On = visible to employers, off = hidden */}
       <SwitchPrimitive.Root
         checked={inPool}
