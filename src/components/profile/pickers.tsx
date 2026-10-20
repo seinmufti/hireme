@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { COUNTRIES, IRAQ_CITIES, MAIN_COUNTRIES } from "@/lib/options"
+import { handleListKeys, OPTION_ACTIVE, resetActiveOption } from "@/lib/list-keys"
 import { cn } from "@/lib/utils"
 
 // Pickers for a country's cities and institutions: choose from a searchable list, or (only when nothing
@@ -84,13 +85,11 @@ function SearchablePicker({
           <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                if (matches[0]) pick(matches[0])
-              }
+            onChange={(e) => {
+              setQuery(e.target.value)
+              resetActiveOption(e.currentTarget)
             }}
+            onKeyDown={handleListKeys}
             placeholder={labels.search}
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
@@ -108,7 +107,8 @@ function SearchablePicker({
               key={item}
               type="button"
               onClick={() => pick(item)}
-              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+              data-option
+              className={cn("flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted", OPTION_ACTIVE)}
             >
               {item}
               {item === value && <CheckIcon className="size-4 shrink-0 text-primary" />}
@@ -125,7 +125,8 @@ function SearchablePicker({
                 setCustom(true)
                 onChange(query.trim())
               }}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+              data-option
+              className={cn("flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted", OPTION_ACTIVE)}
             >
               <PencilLineIcon className="size-4 text-muted-foreground" />
               {q ? <>Other: write &ldquo;{query.trim()}&rdquo;</> : "Other (write your own)"}
@@ -249,13 +250,11 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
           <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                if (matches[0]) pick(matches[0].code)
-              }
+            onChange={(e) => {
+              setQuery(e.target.value)
+              resetActiveOption(e.currentTarget)
             }}
+            onKeyDown={handleListKeys}
             placeholder="Search countries"
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
@@ -279,7 +278,8 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
                 <button
                   type="button"
                   onClick={() => pick(c.code)}
-                  className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                  data-option
+              className={cn("flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted", OPTION_ACTIVE)}
                 >
                   <span className="flex items-center gap-2">
                     <Flag code={c.code} className="h-3" /> {c.name}

@@ -5,6 +5,7 @@ import { CheckIcon, ChevronDownIcon, ChevronRightIcon, SearchIcon } from "lucide
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { FilterDef } from "@/lib/filters"
+import { handleListKeys, OPTION_ACTIVE, resetActiveOption } from "@/lib/list-keys"
 import { cn } from "@/lib/utils"
 
 function OptionRow({
@@ -28,12 +29,14 @@ function OptionRow({
     <button
       type="button"
       role="option"
+      data-option
       aria-selected={isOn}
       onClick={onClick}
       onMouseEnter={onHover}
       onFocus={onHover}
       className={cn(
-        "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
+        "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
+        OPTION_ACTIVE,
         highlighted && "bg-muted",
         count === 0 && !isOn && "text-muted-foreground/60"
       )}
@@ -58,6 +61,16 @@ function OptionRow({
       {chevron && <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground" />}
     </button>
   )
+}
+
+/** ArrowUp and ArrowDown move focus to the previous or next option when focus is on an option. */
+function focusRowWithArrows(e: React.KeyboardEvent<HTMLElement>) {
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return
+  const rows = [...e.currentTarget.querySelectorAll<HTMLElement>("[data-option]")]
+  const at = rows.indexOf(e.target as HTMLElement)
+  if (at < 0) return
+  e.preventDefault()
+  rows[(at + (e.key === "ArrowDown" ? 1 : rows.length - 1)) % rows.length].focus()
 }
 
 export function FilterDropdown({
@@ -130,13 +143,17 @@ export function FilterDropdown({
                 <SearchIcon className="size-3.5 text-muted-foreground" />
                 <input
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => {
+                    setQuery(e.target.value)
+                    resetActiveOption(e.currentTarget)
+                  }}
+                  onKeyDown={handleListKeys}
                   placeholder={`Search ${def.label.toLowerCase()}…`}
                   className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 />
               </div>
             )}
-            <div className="max-h-72 overflow-y-auto p-1" role="listbox" aria-multiselectable>
+            <div className="max-h-72 overflow-y-auto p-1" role="listbox" aria-multiselectable onKeyDown={focusRowWithArrows}>
               {visible.length === 0 && <p className="px-2 py-4 text-center text-sm text-muted-foreground">No options</p>}
               {sections.filter(([, list]) => list.length > 0).map(([title, list]) => (
                 <div key={title}>
@@ -164,7 +181,7 @@ export function FilterDropdown({
           {children.length > 0 && (
             <div className="w-64 shrink-0 border-l">
               <div className="border-b px-3 py-2 text-xs font-medium text-muted-foreground">{hovered}: choose a field</div>
-              <div className="max-h-72 overflow-y-auto p-1" role="listbox" aria-multiselectable>
+              <div className="max-h-72 overflow-y-auto p-1" role="listbox" aria-multiselectable onKeyDown={focusRowWithArrows}>
                 {children.map((child) => (
                   <OptionRow
                     key={child.value}

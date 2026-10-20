@@ -4,6 +4,7 @@ import { useState } from "react"
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { IRAQI_LANGUAGES, LANGUAGES, MAIN_LANGUAGES } from "@/lib/options"
+import { handleListKeys, OPTION_ACTIVE, resetActiveOption } from "@/lib/list-keys"
 import { cn } from "@/lib/utils"
 
 /**
@@ -63,16 +64,11 @@ export function LanguagePicker({
           <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              // Enter picks the first match
-              const first = [...main, ...iraqi, ...others][0]
-              if (e.key === "Enter" && first) {
-                e.preventDefault()
-                onChange(first)
-                setOpen(false)
-              }
+            onChange={(e) => {
+              setQuery(e.target.value)
+              resetActiveOption(e.currentTarget)
             }}
+            onKeyDown={handleListKeys}
             placeholder="Search languages"
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
@@ -93,7 +89,8 @@ export function LanguagePicker({
                         onChange(language)
                         setOpen(false)
                       }}
-                      className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                      data-option
+                      className={cn("flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted", OPTION_ACTIVE)}
                     >
                       {language}
                       {language === value && <CheckIcon className="size-4 text-primary" />}

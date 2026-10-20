@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { FIELD_GROUPS, FIELDS_OF_STUDY } from "@/lib/options"
+import { handleListKeys, OPTION_ACTIVE, resetActiveOption } from "@/lib/list-keys"
 import { cn } from "@/lib/utils"
 
 /**
@@ -72,7 +73,11 @@ export function FieldOfStudyPicker({ value, onChange }: { value: string; onChang
           <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              resetActiveOption(e.currentTarget)
+            }}
+            onKeyDown={handleListKeys}
             placeholder="Search fields, e.g. biology"
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
@@ -88,7 +93,8 @@ export function FieldOfStudyPicker({ value, onChange }: { value: string; onChang
                   key={field}
                   type="button"
                   onClick={() => pick(field)}
-                  className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                  data-option
+                  className={cn("flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted", OPTION_ACTIVE)}
                 >
                   {field}
                   {field === value && <CheckIcon className="size-4 text-primary" />}
@@ -105,7 +111,8 @@ export function FieldOfStudyPicker({ value, onChange }: { value: string; onChang
               setWriting(true)
               onChange(query.trim())
             }}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+            data-option
+            className={cn("flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted", OPTION_ACTIVE)}
           >
             <PencilLineIcon className="size-4 text-muted-foreground" />
             {q ? <>Other: write &ldquo;{query.trim()}&rdquo;</> : "Other (write your own)"}
