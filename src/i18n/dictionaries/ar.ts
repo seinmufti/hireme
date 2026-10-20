@@ -636,6 +636,7 @@ const ar: DeepPartial<Messages> = {
     newCount: "{count} جديدة",
     markAllRead: "تعليم الكل كمقروء",
     allRead: "لا توجد إشعارات جديدة",
+    seeAll: "عرض كل الإشعارات ({count})",
     empty: "لا توجد إشعارات بعد. سنخبرك عندما تُنشر وظيفة تناسب ملفك.",
     newJob: "وظيفة جديدة تناسب ملفك",
     open: "الإشعارات",

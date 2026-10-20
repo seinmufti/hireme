@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { BellIcon, SparklesIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,15 +12,18 @@ import { cn } from "@/lib/utils"
 /**
  * The signed-in user's notifications ("a new job matches your profile"), newest first.
  * Self-contained, so it can sit in the header dropdown or, roomier (`section`), as a section on Home.
- * `onNavigate` runs when a notification is opened (e.g. to close the dropdown).
+ * `onNavigate` runs when a notification is opened (e.g. to close the dropdown). With `limit`, only the newest
+ * few show, followed by "See all notifications" when there are more.
  */
 export function NotificationList({
   onNavigate,
   section,
+  limit,
   className,
 }: {
   onNavigate?: () => void
   section?: boolean
+  limit?: number
   className?: string
 }) {
   const router = useRouter()
@@ -77,7 +81,7 @@ export function NotificationList({
         </div>
       ) : (
         <ul className={cn("min-h-0 overflow-y-auto", section ? "divide-y" : "p-1")}>
-          {items.map((n) => (
+          {(limit ? items.slice(0, limit) : items).map((n) => (
             <li key={n.id}>
               <button
                 type="button"
@@ -107,6 +111,15 @@ export function NotificationList({
             </li>
           ))}
         </ul>
+      )}
+      {limit && items.length > limit && (
+        <Link
+          href="/notifications"
+          onClick={onNavigate}
+          className="border-t px-3 py-2 text-center text-sm font-medium text-primary hover:bg-muted"
+        >
+          {t("notifications.seeAll", { count: items.length })}
+        </Link>
       )}
     </div>
   )
