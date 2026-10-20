@@ -127,4 +127,38 @@ export type Message = {
   createdAt: string
 }
 
+/** Where a job is: on site in an Iraqi city, remote, or abroad (international). */
+export type JobLocation = {
+  remote: boolean
+  international: boolean
+  iraqCity: string // "" when remote or international
+}
+
+// A job posted by an employer. Job seekers search these and get notified about ones that match them.
+export type Job = {
+  id: string
+  employerId: string
+  title: string
+  company: string // the employer's company when it was posted
+  category: string // a JOB_CATEGORIES value, or written by the employer
+  skills: string[]
+  contractType: string // a CONTRACT_TYPES value
+  location: JobLocation
+  description: string
+  createdAt: string
+  updatedAt: string
+  open: boolean // closed jobs stay listed for their employer only
+}
+
+export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description">
+
+// "A new job matches your profile", sent to job seekers when an employer posts a job
+export type Notification = {
+  id: string
+  userId: string
+  jobId: string
+  createdAt: string
+  readAt: string | null
+}
+
 export type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string }

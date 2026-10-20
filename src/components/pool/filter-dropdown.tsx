@@ -78,11 +78,14 @@ export function FilterDropdown({
   selected,
   counts,
   onChange,
+  countLabel = "Candidates",
 }: {
-  def: FilterDef
+  // Only what the dropdown shows, so other lists (e.g. job search) can use it too
+  def: Pick<FilterDef, "label" | "mode" | "options" | "children" | "pinned">
   selected: string[]
   counts: Map<string, number>
   onChange: (values: string[]) => void
+  countLabel?: string
 }) {
   const [query, setQuery] = useState("")
   // The option whose sub-choices (e.g. fields of study) are showing beside the list
@@ -136,7 +139,7 @@ export function FilterDropdown({
               <span className="text-xs font-medium text-muted-foreground">
                 {def.mode === "all" ? "Must have all selected" : "Match any selected"}
               </span>
-              <span className="text-xs text-muted-foreground">Candidates</span>
+              <span className="text-xs text-muted-foreground">{countLabel}</span>
             </div>
             {searchable && (
               <div className="flex items-center gap-2 border-b px-3">

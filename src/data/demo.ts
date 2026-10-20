@@ -1,5 +1,6 @@
 import { professionFrom, withTalentDefaults, withUserDefaults, type LegacyTalent } from "@/lib/normalize"
 import type { Conversation, Message, Talent, User } from "@/lib/types"
+import { DEMO_EMPLOYER_USERS } from "./demo-jobs"
 import { DEMO_SEEKER_TALENTS, DEMO_SEEKER_USERS } from "./demo-seekers"
 
 // Built-in demo data: one account per role. Every visitor starts from this;
@@ -180,8 +181,15 @@ const SEEKER_USERS = DEMO_SEEKER_USERS.map(withUserDefaults)
 // Profession: the latest job title, or "<field> graduate" for people without work experience yet
 const professionOf = (userId: string) => professionFrom(DEMO_SEEKER_TALENTS.find((t) => t.userId === userId))
 
-// The three main demo accounts, then the generated job seekers (see demo-seekers.ts)
-export const DEMO_USERS: User[] = [...CORE_USERS, ...SEEKER_USERS.map((u) => ({ ...u, title: u.title || professionOf(u.id) }))]
+// The other demo companies (see demo-jobs.ts)
+export const EMPLOYER_USERS = DEMO_EMPLOYER_USERS.map(withUserDefaults)
+
+// The three main demo accounts, the other demo companies, then the generated job seekers (see demo-seekers.ts)
+export const DEMO_USERS: User[] = [
+  ...CORE_USERS,
+  ...EMPLOYER_USERS,
+  ...SEEKER_USERS.map((u) => ({ ...u, title: u.title || professionOf(u.id) })),
+]
 
 export const DEMO_TALENTS: Talent[] = [
   ...CORE_TALENTS,

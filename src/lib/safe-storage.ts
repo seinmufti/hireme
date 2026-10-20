@@ -3,13 +3,13 @@ import type { StateStorage } from "zustand/middleware"
 // The app's data lives in localStorage, shared by every tab of this site. Each tab saves its whole
 // copy, so a tab holding older data could save over newer data and an account would vanish.
 // This storage layer makes that impossible:
-//  - saving never drops an item (account, portfolio, conversation, message) that's already stored;
+//  - saving never drops an item (account, portfolio, conversation, message, job, notification) that's already stored;
 //    anything a tab is missing is put back, and a warning with a stack trace is logged
 //  - the data can only be replaced on purpose, through replaceAllOnce (the reset button)
 //  - the previous version is always kept as a backup, so even a reset can be undone
 
 const BACKUP_KEY = "hireme-demo-backup"
-const LISTS = ["users", "talents", "conversations", "messages"] as const
+const LISTS = ["users", "talents", "conversations", "messages", "jobs", "notifications"] as const
 
 let replacing = false
 let onRestored: (() => void) | null = null

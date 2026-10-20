@@ -7,6 +7,9 @@ Desktop-only talent pool connecting **Job Seekers**, **Recruiters** and **Employ
 - **Job Seeker** has no access to The Pool. They fill in their CV on their profile (that is what employers see in The Pool) and reply to employers in the Inbox. **Ready** saves it and opens `/profile/cv`, the A4 CV preview, where **Download PDF** prints exactly that page (choose "Save as PDF"). Every CV has a small HireMe logo at the bottom; free CVs would also get a watermark, but everyone is premium for now (`isPremium` in `src/lib/premium.ts`).
 - **Employer** searches The Pool (`/pool`) with filters (each dropdown shows how many candidates each option would match), opens a candidate's CV (without contact details, address or references, and no download) and sends an editable template message.
 - **Recruiter** can view The Pool (read-only for now).
+- **Jobs** (`/jobs`, `/jobs?q=sales`): everyone can search open jobs by keyword (title, category, skills, description) and filter by category, location (city in Iraq, remote, international) and contract type. Job seekers see which jobs match their profile (`src/lib/matching.ts`). Applying is coming later.
+- **Employers** post jobs (`/jobs/new`) and manage them (`/jobs/mine`: edit, close, reopen). Posting a job notifies every job seeker in The Pool it matches; they see it under the bell in the header.
+- **Companies** (`/companies`, `/companies?q=erbil`): every employer's company, contact details and open jobs.
 
 Phones and windows narrower than 1024px see a "Not available on mobile yet" screen.
 

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { HeaderAccounts } from "@/components/header-accounts"
 import { Logo } from "@/components/logo"
 import { NavLinks } from "@/components/nav-links"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 import { StoreGate } from "@/components/store-gate"
 import { unreadCountFor, useCurrentUser, useStore } from "@/lib/store"
 
@@ -23,13 +24,15 @@ function Shell({ children }: { children: React.ReactNode }) {
   const pool = { href: "/pool", label: "The Pool" }
   const inbox = { href: "/inbox", label: "Inbox", badge: unread }
   const profile = { href: "/profile", label: "Profile" }
+  const jobs = { href: "/jobs", label: role === "EMPLOYER" ? "Jobs" : "Find jobs" }
+  const companies = { href: "/companies", label: "Companies" }
   const links =
     role === "EMPLOYER"
-      ? [profile, pool, inbox]
+      ? [profile, pool, jobs, companies, inbox]
       : role === "RECRUITER"
-        ? [profile, pool]
+        ? [profile, pool, jobs, companies]
         : role === "SEEKER"
-          ? [profile, inbox]
+          ? [profile, jobs, companies, inbox]
           : []
 
   return (
@@ -45,7 +48,11 @@ function Shell({ children }: { children: React.ReactNode }) {
             <NavLinks links={links} />
           </div>
 
-          <HeaderAccounts />
+          <div className="flex items-center gap-4">
+            <HeaderAccounts />
+            {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
+            {role === "SEEKER" && <NotificationBell />}
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-7xl flex-1 px-8 py-8">{children}</main>
