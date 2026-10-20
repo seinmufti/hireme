@@ -187,7 +187,10 @@ function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onO
   )
 }
 
-/** For the employer on their job's page: everyone who applied, newest first. */
+/**
+ * For the employer on their job's page: everyone who applied, as a board with a column per status
+ * (newest first in each). Drag a card to another column, or pick the status on the card (phones, keyboards).
+ */
 export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
   const t = useT()
   const statusLabel = useStatusLabel()
@@ -198,6 +201,8 @@ export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
   const setStatus = useStore((s) => s.setApplicationStatus)
   const [viewing, setViewing] = useState<string | null>(null)
   const [messaging, setMessaging] = useState<string | null>(null)
+  // The column a card is being dragged over
+  const [over, setOver] = useState<string | null>(null)
 
   const applicants = useMemo(
     () =>
@@ -214,6 +219,12 @@ export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
     [all, users, talents, conversations, job.id, viewer.id]
   )
   const find = (id: string | null) => applicants.find((x) => x.application.id === id)?.talent ?? null
+  const move = (applicationId: string, status: string) => {
+    const a = applicants.find((x) => x.application.id === applicationId)
+    if (!a || a.application.status === status) return
+    setStatus(applicationId, status)
+    toast.success(`${a.talent.firstName}: ${statusLabel(status)}`)
+  }
 
   return (
     <section id="applicants" className="scroll-mt-20 rounded-xl border bg-card">
@@ -226,21 +237,41 @@ export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
       {applicants.length === 0 ? (
         <p className="px-5 py-8 text-center text-sm text-muted-foreground">{t("applications.noApplicants")}</p>
       ) : (
-        <ul className="divide-y">
-          {applicants.map(({ application, talent }) => (
-            <ApplicantRow
-              key={application.id}
-              application={application}
-              talent={talent}
-              onView={() => setViewing(application.id)}
-              onMessage={() => setMessaging(application.id)}
-              onStatus={(status) => {
-                setStatus(application.id, status)
-                toast.success(`${talent.firstName}: ${statusLabel(status)}`)
-              }}
-            />
-          ))}
-        </ul>
+        <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-3">
+          {APPLICATION_STATUSES.map((status) => {
+            const column = applicants.filter((x) => x.application.status === status)
+            return (
+              <div
+                key={status}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setOver(status)
+                }}
+                onDragLeave={() => setOver((o) => (o === status ? null : o))}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  setOver(null)
+                  move(e.dataTransfer.getData("text/plain"), status)
+                }}
+                className={cn("flex min-h-32 flex-col gap-2 rounded-lg bg-muted/40 p-2 transition-colors", over === status && "bg-brand-soft ring-2 ring-primary/30")}
+              >
+                <h3 className="flex items-center justify-between px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  {statusLabel(status)} <span className="tabular-nums">{column.length}</span>
+                </h3>
+                {column.map(({ application, talent }) => (
+                  <ApplicantCard
+                    key={application.id}
+                    application={application}
+                    talent={talent}
+                    onView={() => setViewing(application.id)}
+                    onMessage={() => setMessaging(application.id)}
+                    onStatus={(next) => move(application.id, next)}
+                  />
+                ))}
+              </div>
+            )
+          })}
+        </div>
       )}
 
       <TalentProfileDialog
@@ -263,7 +294,7 @@ export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
   )
 }
 
-function ApplicantRow({
+function ApplicantCard({
   application,
   talent,
   onView,
@@ -280,31 +311,35 @@ function ApplicantRow({
   const timeAgo = useTimeAgo()
   const statusLabel = useStatusLabel()
   return (
-    <li className="flex items-start gap-4 px-5 py-4">
-      <button type="button" onClick={onView} className="shrink-0" aria-label={t("applications.viewCv", { name: talent.firstName })}>
-        <ProfilePhoto photoId={talent.photoId} name={talent.firstName} color={talent.avatarColor} size={40} />
-      </button>
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={onView} className="truncate font-medium hover:underline">
+    <article
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", application.id)
+        e.dataTransfer.effectAllowed = "move"
+      }}
+      className="cursor-grab space-y-2 rounded-lg border bg-card p-3 shadow-xs active:cursor-grabbing"
+    >
+      <div className="flex items-center gap-2.5">
+        <button type="button" onClick={onView} className="shrink-0" aria-label={t("applications.viewCv", { name: talent.firstName })}>
+          <ProfilePhoto photoId={talent.photoId} name={talent.firstName} color={talent.avatarColor} size={32} />
+        </button>
+        <div className="min-w-0">
+          <button type="button" onClick={onView} className="block truncate text-sm font-medium hover:underline">
             {talent.firstName}
           </button>
-          <span className="truncate text-sm text-muted-foreground">{talent.title}</span>
+          <p className="truncate text-xs text-muted-foreground">{talent.title}</p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {[
-            talent.totalMonths ? t("applications.experience", { duration: formatDuration(talent.totalMonths) }) : t("applications.noExperience"),
-            talent.city,
-            t("applications.appliedAgo", { time: timeAgo(application.createdAt) }),
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
-        {application.note && <p className="rounded-md bg-muted/50 px-3 py-2 text-sm whitespace-pre-line">{application.note}</p>}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <p className="text-xs text-muted-foreground">
+        {[
+          talent.totalMonths ? t("applications.experience", { duration: formatDuration(talent.totalMonths) }) : t("applications.noExperience"),
+          t("applications.appliedAgo", { time: timeAgo(application.createdAt) }),
+        ].join(" · ")}
+      </p>
+      {application.note && <p className="line-clamp-3 rounded-md bg-muted/50 px-2 py-1.5 text-xs whitespace-pre-line">{application.note}</p>}
+      <div className="flex items-center gap-1">
         <Select value={application.status} onValueChange={(v) => v && onStatus(v as string)}>
-          <SelectTrigger size="sm" className="w-36" aria-label={t("applications.statusOf", { name: talent.firstName })}>
+          <SelectTrigger size="sm" className="h-7 min-w-0 flex-1 text-xs" aria-label={t("applications.statusOf", { name: talent.firstName })}>
             <SelectValue>{(v: string) => statusLabel(v)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -313,19 +348,19 @@ function ApplicantRow({
             ))}
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" onClick={onView}>
-          <FileUserIcon /> {t("applications.cv")}
+        <Button variant="ghost" size="icon-sm" onClick={onView} aria-label={t("applications.viewCv", { name: talent.firstName })}>
+          <FileUserIcon />
         </Button>
         {talent.conversationId ? (
-          <Link href={`/inbox/${talent.conversationId}`} className={buttonVariants({ variant: "ghost", size: "sm" })} aria-label={t("applications.openConversation")}>
+          <Link href={`/inbox/${talent.conversationId}`} className={buttonVariants({ variant: "ghost", size: "icon-sm" })} aria-label={t("applications.openConversation")}>
             <MessageSquareTextIcon />
           </Link>
         ) : (
-          <Button variant="ghost" size="sm" onClick={onMessage} aria-label={t("applications.message", { name: talent.firstName })}>
+          <Button variant="ghost" size="icon-sm" onClick={onMessage} aria-label={t("applications.message", { name: talent.firstName })}>
             <MessageSquareTextIcon />
           </Button>
         )}
       </div>
-    </li>
+    </article>
   )
 }
