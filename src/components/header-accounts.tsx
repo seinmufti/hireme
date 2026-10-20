@@ -48,7 +48,10 @@ function MoreAccounts({
         if (next) setQuery("")
       }}
     >
+      {/* Opens on hover too (click still works) */}
       <PopoverTrigger
+        openOnHover
+        delay={100}
         render={
           <button
             type="button"
