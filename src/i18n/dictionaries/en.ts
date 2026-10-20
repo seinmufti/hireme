@@ -184,6 +184,7 @@ const en = {
     latestJob: "Latest job",
     skills: "Skills",
     noSkills: "No skills added yet",
+    noSummary: "Add a few sentences about you",
     cvIncomplete: "Your CV still needs some details before employers can find you.",
     cvComplete: "Your CV is complete and visible to employers.",
     cvHidden: "Your profile is hidden from employers.",

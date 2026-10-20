@@ -183,6 +183,7 @@ const ar: DeepPartial<Messages> = {
     latestJob: "آخر وظيفة",
     skills: "المهارات",
     noSkills: "لم تُضف مهارات بعد",
+    noSummary: "أضف بضع جمل عنك",
     cvIncomplete: "لا تزال سيرتك الذاتية تحتاج بعض التفاصيل قبل أن يجدك أصحاب العمل.",
     cvComplete: "سيرتك الذاتية مكتملة ومرئية لأصحاب العمل.",
     cvHidden: "ملفك مخفي عن أصحاب العمل.",

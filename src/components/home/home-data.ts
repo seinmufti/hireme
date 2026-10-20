@@ -1,7 +1,7 @@
 "use client"
 
 import { IRAQ_CITIES } from "@/lib/options"
-import { useStore } from "@/lib/store"
+import { useStore, type ListingSection } from "@/lib/store"
 import type { Talent, User } from "@/lib/types"
 
 // What Home reads from the store: the job seeker and their CV.
@@ -11,6 +11,9 @@ export type HomeUser = User
 export type HomeTalent = Talent
 
 export const EMPTY_PREFERENCE: WorkPreference = { remote: false, international: false, iraqCities: [] }
+
+/** The CV form, opened at a section (or the profession field) with the cursor in it. */
+export const editCvAt = (target: ListingSection | "preference" | "profession") => `/profile?edit=${target}`
 
 /** Saves the job seeker's work-type preference on their portfolio. */
 export function saveWorkPreference(userId: string, workPreference: WorkPreference) {

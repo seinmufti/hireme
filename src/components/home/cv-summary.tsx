@@ -8,9 +8,9 @@ import { useT } from "@/i18n/provider"
 import { formatJobPeriod } from "@/lib/format"
 import { listingSectionsMissing } from "@/lib/store"
 import { cn } from "@/lib/utils"
-import type { HomeTalent, HomeUser } from "./home-data"
+import { editCvAt, type HomeTalent, type HomeUser } from "./home-data"
 
-/** The middle of Home: the job seeker's CV at a glance, with Preview CV and Edit CV. */
+/** The middle of Home: the job seeker's CV at a glance. Anything missing links to that part of the CV form. */
 export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent | null }) {
   const t = useT()
   const missing = listingSectionsMissing(user, talent)
@@ -33,7 +33,7 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
           {user.title ? (
             <p className="truncate text-sm text-muted-foreground">{user.title}</p>
           ) : (
-            <Link href="/profile" className="text-sm text-primary hover:underline">
+            <Link href={editCvAt("profession")} className="text-sm text-primary hover:underline">
               {t("home.noTitle")}
             </Link>
           )}
@@ -45,13 +45,30 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
         </div>
       </div>
 
-      <div className={cn("mx-5 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm", status.className)}>
-        <status.icon className="size-4 shrink-0" />
-        {status.text}
-        {visible && !missing.length && <EyeIcon className="ms-auto size-4 shrink-0 opacity-60" />}
-      </div>
+      {/* Missing details: opens the form at the first section that needs them */}
+      {visible && missing.length ? (
+        <Link
+          href={editCvAt(missing[0])}
+          className={cn("mx-5 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:underline", status.className)}
+        >
+          <status.icon className="size-4 shrink-0" />
+          {status.text}
+        </Link>
+      ) : (
+        <div className={cn("mx-5 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm", status.className)}>
+          <status.icon className="size-4 shrink-0" />
+          {status.text}
+          {visible && <EyeIcon className="ms-auto size-4 shrink-0 opacity-60" />}
+        </div>
+      )}
 
-      {talent?.summary && <p className="px-5 pt-4 text-sm leading-relaxed whitespace-pre-line">{talent.summary}</p>}
+      {talent?.summary ? (
+        <p className="px-5 pt-4 text-sm leading-relaxed whitespace-pre-line">{talent.summary}</p>
+      ) : (
+        <Link href={editCvAt("about")} className="block px-5 pt-4 text-sm text-primary hover:underline">
+          {t("home.noSummary")}
+        </Link>
+      )}
 
       <dl className="grid grid-cols-2 gap-5 p-5 text-sm">
         <div className="min-w-0">
@@ -66,7 +83,9 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
                 </div>
               </>
             ) : (
-              <span className="text-muted-foreground">{t("home.noExperience")}</span>
+              <Link href={editCvAt("work")} className="text-primary hover:underline">
+                {t("home.noExperience")}
+              </Link>
             )}
           </dd>
         </div>
@@ -83,7 +102,7 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
                 {skills.length > 10 && <li className="px-1 text-xs text-muted-foreground">+{skills.length - 10}</li>}
               </ul>
             ) : (
-              <Link href="/profile" className="text-primary hover:underline">
+              <Link href={editCvAt("skills")} className="text-primary hover:underline">
                 {t("home.noSkills")}
               </Link>
             )}

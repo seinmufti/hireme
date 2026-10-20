@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BriefcaseIcon, ChevronRightIcon, FileTextIcon, PencilIcon } from "lucide-react"
+import { ChevronRightIcon, FileTextIcon, PencilIcon } from "lucide-react"
 import { useT } from "@/i18n/provider"
 import type { HomeTalent, HomeUser } from "./home-data"
 import { WorkPreferenceCard } from "./work-preference"
@@ -14,7 +14,6 @@ export function ActionsPanel({ user, talent }: { user: HomeUser; talent: HomeTal
     // Edit CV is only here on Home
     { href: "/profile?edit=1", icon: PencilIcon, label: t("home.editCv") },
     { href: "/profile/cv", icon: FileTextIcon, label: t("home.previewCv") },
-    { href: "/jobs", icon: BriefcaseIcon, label: t("home.findJobs") },
   ]
 
   return (

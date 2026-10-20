@@ -51,6 +51,9 @@ import {
 } from "./portfolio-fields"
 
 type SectionId = ListingSection | "preference"
+/** Where the form can open: a section, or the profession field in the personal section. */
+export type EditTarget = SectionId | "profession"
+const EDIT_TARGETS: EditTarget[] = ["personal", "about", "work", "education", "skills", "languages", "certifications", "projects", "preference", "profession"]
 
 // Sections in CV order, as they appear on the profile and in the form
 const sectionTitle = (t: Translate, id: SectionId) => t(`seeker.sections.${id}`)
@@ -64,15 +67,17 @@ export function SeekerProfile({ user }: { user: User }) {
   // "?edit=1" (right after creating an account, or from the CV preview's Edit button) opens the form straight away
   const params = useSearchParams()
   const startEditing = params.has("edit")
+  const startAt = EDIT_TARGETS.find((x) => x === params.get("edit")) ?? null
   const [editing, setEditing] = useState(startEditing)
-  // Which form section to scroll to when editing starts from a section's Edit button
-  const [jumpTo, setJumpTo] = useState<SectionId | null>(null)
+  // Which form section to scroll to when editing starts from a section's Edit button or a link (?edit=work)
+  const [jumpTo, setJumpTo] = useState<EditTarget | null>(startAt)
   const edit = (section: SectionId) => {
     setJumpTo(section)
     setEditing(true)
   }
   useEffect(() => {
-    if (startEditing) router.replace("/profile")
+    // Keep the scroll position: the form may be scrolling to a section (?edit=work)
+    if (startEditing) router.replace("/profile", { scroll: false })
   }, [startEditing, router])
 
   const location = [user.city, countryName(user.country)].filter(Boolean).join(", ")
@@ -436,14 +441,28 @@ function PortfolioForm({
 }: {
   user: User
   talent: Talent | null
-  jumpTo: SectionId | null
+  jumpTo: EditTarget | null
   onCancel: () => void
 }) {
   const router = useRouter()
   const t = useT()
   // Opened from a section's Edit button: scroll that section into view
   useEffect(() => {
-    if (jumpTo) document.getElementById(`edit-${jumpTo}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    if (!jumpTo) return
+    // A moment later: when the form opens with the page (a link to ?edit=work), the page is still settling
+    // and an immediate scroll gets cut short
+    const timer = setTimeout(() => {
+      const section = document.getElementById(`edit-${jumpTo === "profession" ? "personal" : jumpTo}`)
+      if (!section) return
+      section.scrollIntoView({ behavior: "smooth", block: "start" })
+      // Put the cursor in the field it's about: the profession, or the section's first field (or its Add button)
+      const field =
+        jumpTo === "profession"
+          ? document.getElementById("edit-profession")
+          : section.querySelector<HTMLElement>("input:not([type=file]):not([type=checkbox]), textarea, button[role=combobox], [data-slot=select-trigger], button:not([type=button][aria-label])")
+      field?.focus({ preventScroll: true })
+    }, 150)
+    return () => clearTimeout(timer)
   }, [jumpTo])
 
   const updateProfile = useStore((s) => s.updateProfile)
@@ -538,7 +557,7 @@ function PortfolioForm({
             <Input className="h-9" value={contact.name} onChange={setField("name")} />
           </Field>
           <Field label={t("seeker.profession")}>
-            <Input className="h-9" value={contact.title} onChange={setField("title")} placeholder={t("seeker.professionPlaceholder")} />
+            <Input id="edit-profession" className="h-9" value={contact.title} onChange={setField("title")} placeholder={t("seeker.professionPlaceholder")} />
           </Field>
         </div>
         <PersonalFields value={portfolio} onChange={setPortfolio} />

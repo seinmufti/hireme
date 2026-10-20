@@ -1,9 +1,10 @@
 "use client"
 
+import Link from "next/link"
 import { BriefcaseIcon, GraduationCapIcon, LanguagesIcon, MapPinIcon } from "lucide-react"
 import { useI18n } from "@/i18n/provider"
 import { highestEducation, totalMonths } from "@/lib/format"
-import { countryName, flagOf, type HomeTalent, type HomeUser } from "./home-data"
+import { countryName, editCvAt, flagOf, type HomeTalent, type HomeUser } from "./home-data"
 
 /** Left sidebar: the job seeker's totals at a glance. */
 export function OverallPanel({ user, talent }: { user: HomeUser; talent: HomeTalent | null }) {
@@ -21,7 +22,7 @@ export function OverallPanel({ user, talent }: { user: HomeUser; talent: HomeTal
       <h2 className="mb-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("home.overall")}</h2>
       <dl className="space-y-5 text-sm">
         <Stat icon={BriefcaseIcon} label={t("home.totalExperience")}>
-          {months ? <span className="text-2xl font-semibold tracking-tight">{duration}</span> : <Muted>{t("home.noExperience")}</Muted>}
+          {months ? <span className="text-2xl font-semibold tracking-tight">{duration}</span> : <Missing href={editCvAt("work")}>{t("home.noExperience")}</Missing>}
         </Stat>
 
         <Stat icon={LanguagesIcon} label={t("home.languages")}>
@@ -35,7 +36,7 @@ export function OverallPanel({ user, talent }: { user: HomeUser; talent: HomeTal
               ))}
             </ul>
           ) : (
-            <Muted>{t("home.noLanguages")}</Muted>
+            <Missing href={editCvAt("languages")}>{t("home.noLanguages")}</Missing>
           )}
         </Stat>
 
@@ -46,12 +47,12 @@ export function OverallPanel({ user, talent }: { user: HomeUser; talent: HomeTal
               {[user.city, country && countryName(country, locale)].filter(Boolean).join(", ")}
             </span>
           ) : (
-            <Muted>{t("home.noLocation")}</Muted>
+            <Missing href={editCvAt("personal")}>{t("home.noLocation")}</Missing>
           )}
         </Stat>
 
         <Stat icon={GraduationCapIcon} label={t("home.education")}>
-          {education ? <span className="font-medium">{education}</span> : <Muted>{t("common.noneYet")}</Muted>}
+          {education ? <span className="font-medium">{education}</span> : <Missing href={editCvAt("education")}>{t("common.noneYet")}</Missing>}
         </Stat>
       </dl>
     </section>
@@ -70,4 +71,9 @@ function Stat({ icon: Icon, label, children }: { icon: typeof BriefcaseIcon; lab
   )
 }
 
-const Muted = ({ children }: { children: React.ReactNode }) => <span className="text-muted-foreground">{children}</span>
+/** Something not filled in yet: opens the CV form where it goes. */
+const Missing = ({ href, children }: { href: string; children: React.ReactNode }) => (
+  <Link href={href} className="text-primary hover:underline">
+    {children}
+  </Link>
+)
