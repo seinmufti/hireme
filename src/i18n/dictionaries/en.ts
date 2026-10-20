@@ -634,6 +634,7 @@ const en = {
     title: "Notifications",
     newCount: "{count} new",
     markAllRead: "Mark all as read",
+    allRead: "You're all caught up",
     empty: "No notifications yet. We'll let you know when a new job matches your profile.",
     newJob: "New job matches your profile",
     open: "Notifications",

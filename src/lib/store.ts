@@ -53,6 +53,7 @@ type Actions = {
   setJobOpen: (jobId: string, open: boolean) => void
   markNotificationRead: (notificationId: string) => void
   markAllNotificationsRead: () => void
+  checkJobMatches: () => void
   applyToJob: (jobId: string, note: string) => Result
   withdrawApplication: (applicationId: string) => void
   setApplicationStatus: (applicationId: string, status: string) => void
@@ -121,12 +122,36 @@ export const useStore = create<Data & Actions>()(
         }))
       }
 
+      /**
+       * Notifies job seekers about every open job that matches them and they haven't heard about yet
+       * (nor applied to). Runs whenever a match could turn up: a job is posted, edited or reopened, or a
+       * job seeker signs in or changes their CV or work preference. Only job seekers listed in The Pool
+       * (visible and complete) are notified. `userIds` limits it to those job seekers.
+       */
+      const notifyNewMatches = (userIds?: string[]) => {
+        const { users, talents, jobs, notifications, applications } = get()
+        const heard = new Set(notifications.map((n) => `${n.userId} ${n.jobId}`))
+        const applied = new Set(applications.map((a) => `${a.seekerId} ${a.jobId}`))
+        const at = now()
+        const fresh = talents.flatMap((t) => {
+          if (userIds && !userIds.includes(t.userId)) return []
+          const u = users.find((x) => x.id === t.userId)
+          if (u?.role !== "SEEKER" || !t.published || listingMissing(u, t).length) return []
+          return jobs
+            .filter((j) => j.open && !heard.has(`${u.id} ${j.id}`) && !applied.has(`${u.id} ${j.id}`) && matchJob(t, j))
+            .map((j) => ({ id: newId("n"), userId: u.id, jobId: j.id, createdAt: at, readAt: null }))
+        })
+        if (fresh.length) set((s) => ({ notifications: [...s.notifications, ...fresh] }))
+        return fresh.length
+      }
+
       return {
         ...initialData(),
 
         switchAccount: (userId) => {
           rememberLogin(userId)
           set({ currentUserId: userId })
+          notifyNewMatches([userId])
         },
 
         createAccount: (input) => {
@@ -190,6 +215,7 @@ export const useStore = create<Data & Actions>()(
             }
             return { talents: [...s.talents, { ...emptyTalent(user.id, at), published: visible }] }
           })
+          if (visible) notifyNewMatches([user.id])
         },
 
         saveTalent: (input) => {
@@ -238,6 +264,7 @@ export const useStore = create<Data & Actions>()(
                 : [...s.talents, { ...data, id: newId("t"), userId: user.id, createdAt: data.updatedAt }],
             }
           })
+          notifyNewMatches([user.id])
           return { ok: true }
         },
 
@@ -331,15 +358,9 @@ export const useStore = create<Data & Actions>()(
             updatedAt: at,
             open: true,
           }
-          // Job seekers listed in The Pool (visible and complete) whom the job suits
-          const { users, talents } = get()
-          const recipients = talents.flatMap((t) => {
-            const u = users.find((x) => x.id === t.userId)
-            return u?.role === "SEEKER" && t.published && !listingMissing(u, t).length && matchJob(t, job) ? [u.id] : []
-          })
-          const notifications = recipients.map((userId) => ({ id: newId("n"), userId, jobId: job.id, createdAt: at, readAt: null }))
-          set((s) => ({ jobs: [...s.jobs, job], notifications: [...s.notifications, ...notifications] }))
-          return { ok: true, jobId: job.id, notified: notifications.length }
+          set((s) => ({ jobs: [...s.jobs, job] }))
+          // Job seekers listed in The Pool whom the job suits
+          return { ok: true, jobId: job.id, notified: notifyNewMatches() }
         },
 
         updateJob: (jobId, input) => {
@@ -349,6 +370,8 @@ export const useStore = create<Data & Actions>()(
           if (problem) return fail(problem)
           const patch = { ...cleanJob(input), updatedAt: now() }
           set((s) => ({ jobs: s.jobs.map((j) => (j.id === jobId ? { ...j, ...patch } : j)) }))
+          // An edited job can suit job seekers it didn't before
+          notifyNewMatches()
           return { ok: true }
         },
 
@@ -358,6 +381,7 @@ export const useStore = create<Data & Actions>()(
           set((s) => ({
             jobs: s.jobs.map((j) => (j.id === jobId && j.employerId === employerId ? { ...j, open, updatedAt: now() } : j)),
           }))
+          if (open) notifyNewMatches()
         },
 
         markNotificationRead: (notificationId) => {
@@ -372,6 +396,12 @@ export const useStore = create<Data & Actions>()(
           if (!get().notifications.some((n) => n.userId === userId && !n.readAt)) return
           const at = now()
           set((s) => ({ notifications: s.notifications.map((n) => (n.userId === userId && !n.readAt ? { ...n, readAt: at } : n)) }))
+        },
+
+        // The signed-in job seeker's work preference changed somewhere outside saveTalent (e.g. on Home)
+        checkJobMatches: () => {
+          const userId = get().currentUserId
+          if (userId) notifyNewMatches([userId])
         },
 
         // A job seeker applies with their CV (employers see it without contact details) and an optional note

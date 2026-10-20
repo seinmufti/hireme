@@ -3,14 +3,14 @@
 import { ActionsPanel } from "@/components/home/actions-panel"
 import { CvSummary } from "@/components/home/cv-summary"
 import type { HomeTalent, HomeUser } from "@/components/home/home-data"
-import { JobMatches } from "@/components/home/job-matches"
 import { OverallPanel } from "@/components/home/overall-panel"
+import { NotificationList } from "@/components/notifications/notification-list"
 import { useI18n } from "@/i18n/provider"
 import { firstName } from "@/lib/format"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
-// A job seeker's Home: Overall on the left, their CV and matching jobs in the middle, Actions on the right.
+// A job seeker's Home: Overall on the left, their CV and notifications in the middle, Actions on the right.
 export function HomeView() {
   const { t, dir } = useI18n()
   const user = useRoleGuard(["SEEKER"]) as HomeUser | null
@@ -28,7 +28,10 @@ export function HomeView() {
         </div>
         <div dir={dir} className="min-w-0 space-y-6">
           <CvSummary user={user} talent={talent ?? null} />
-          <JobMatches talent={talent ?? null} />
+          {/* New jobs that match the job seeker (the same list as the bell in the header) */}
+          <section className="overflow-hidden rounded-xl border bg-card">
+            <NotificationList section className="max-h-[32rem]" />
+          </section>
         </div>
         <div dir={dir} className="sticky top-32">
           <ActionsPanel user={user} talent={talent ?? null} />

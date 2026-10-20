@@ -10,10 +10,18 @@ import { cn } from "@/lib/utils"
 
 /**
  * The signed-in user's notifications ("a new job matches your profile"), newest first.
- * Self-contained, so it can sit in the header dropdown or in a side panel.
+ * Self-contained, so it can sit in the header dropdown or, roomier (`section`), as a section on Home.
  * `onNavigate` runs when a notification is opened (e.g. to close the dropdown).
  */
-export function NotificationList({ onNavigate, className }: { onNavigate?: () => void; className?: string }) {
+export function NotificationList({
+  onNavigate,
+  section,
+  className,
+}: {
+  onNavigate?: () => void
+  section?: boolean
+  className?: string
+}) {
   const router = useRouter()
   const t = useT()
   const timeAgo = useTimeAgo()
@@ -39,11 +47,23 @@ export function NotificationList({ onNavigate, className }: { onNavigate?: () =>
 
   return (
     <div className={cn("flex min-h-0 flex-col", className)}>
-      <div className="flex items-center justify-between border-b px-3 py-2">
-        <span className="text-sm font-medium">
-          {t("notifications.title")}
-          {unread > 0 && <span className="ms-1.5 text-xs font-normal text-muted-foreground">{t("notifications.newCount", { count: unread })}</span>}
-        </span>
+      <div className={cn("flex items-center justify-between border-b", section ? "gap-3 px-5 py-4" : "px-3 py-2")}>
+        {section ? (
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-primary">
+              <BellIcon className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="font-semibold">{t("notifications.title")}</h2>
+              <p className="text-sm text-muted-foreground">{unread > 0 ? t("notifications.newCount", { count: unread }) : t("notifications.allRead")}</p>
+            </div>
+          </div>
+        ) : (
+          <span className="text-sm font-medium">
+            {t("notifications.title")}
+            {unread > 0 && <span className="ms-1.5 text-xs font-normal text-muted-foreground">{t("notifications.newCount", { count: unread })}</span>}
+          </span>
+        )}
         {unread > 0 && (
           <Button variant="link" size="xs" onClick={markAllRead}>
             {t("notifications.markAllRead")}
@@ -56,7 +76,7 @@ export function NotificationList({ onNavigate, className }: { onNavigate?: () =>
           <p>{t("notifications.empty")}</p>
         </div>
       ) : (
-        <ul className="min-h-0 overflow-y-auto p-1">
+        <ul className={cn("min-h-0 overflow-y-auto", section ? "divide-y" : "p-1")}>
           {items.map((n) => (
             <li key={n.id}>
               <button
@@ -66,7 +86,11 @@ export function NotificationList({ onNavigate, className }: { onNavigate?: () =>
                   onNavigate?.()
                   router.push(`/jobs/${n.job.id}`)
                 }}
-                className={cn("flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-start hover:bg-muted", !n.readAt && "bg-brand-soft/60")}
+                className={cn(
+                  "flex w-full items-start gap-2.5 text-start hover:bg-muted",
+                  section ? "gap-3 px-5 py-3.5" : "rounded-md px-2 py-2",
+                  !n.readAt && "bg-brand-soft/60"
+                )}
               >
                 <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
                   <SparklesIcon className="size-3.5" />

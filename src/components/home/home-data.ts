@@ -1,36 +1,24 @@
 "use client"
 
-import { useMemo } from "react"
-import { matchingJobs } from "@/lib/matching"
 import { IRAQ_CITIES } from "@/lib/options"
 import { useStore } from "@/lib/store"
-import type { Job, Talent, User } from "@/lib/types"
+import type { Talent, User } from "@/lib/types"
 
-// What Home reads from the store: the job seeker, their CV, and the jobs that match it.
+// What Home reads from the store: the job seeker and their CV.
 
 export type WorkPreference = Talent["workPreference"]
 export type HomeUser = User
 export type HomeTalent = Talent
-export type HomeJob = Job
 
 export const EMPTY_PREFERENCE: WorkPreference = { remote: false, international: false, iraqCities: [] }
-
-/** Every open job, newest first. */
-export function useJobs(): HomeJob[] {
-  const jobs = useStore((s) => s.jobs)
-  return useMemo(() => jobs.filter((j) => j.open).sort((a, b) => b.createdAt.localeCompare(a.createdAt)), [jobs])
-}
-
-/** Jobs that fit the job seeker, best first (see lib/matching.ts, also used for notifications). */
-export function matchJobs(talent: HomeTalent | null, jobs: HomeJob[]) {
-  return talent ? matchingJobs(talent, jobs).map((m) => m.job) : []
-}
 
 /** Saves the job seeker's work-type preference on their portfolio. */
 export function saveWorkPreference(userId: string, workPreference: WorkPreference) {
   useStore.setState((s) => ({
     talents: s.talents.map((t) => (t.userId === userId ? { ...t, workPreference, updatedAt: new Date().toISOString() } : t)),
   }))
+  // Jobs in the newly chosen places may match now
+  useStore.getState().checkJobMatches()
 }
 
 /** "🇮🇶" from "IQ". */
