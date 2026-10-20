@@ -47,11 +47,14 @@ function Shell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b bg-card/90 backdrop-blur">
         {/* Demo bar: switch between the demo accounts, and pick the language */}
         <div className="border-b bg-muted/40">
-          {/* Accounts in the middle, the language on the right */}
+          {/* Accounts in the middle; the Premium demo crown (job seekers) and the language on the right */}
           <div className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-8">
             <span aria-hidden />
             <HeaderAccounts />
-            <LanguageSwitcher className="justify-self-end" />
+            <div className="flex items-center gap-2 justify-self-end">
+              {role === "SEEKER" && user && <PremiumToggle user={user} />}
+              <LanguageSwitcher />
+            </div>
           </div>
         </div>
         {/* Follows the language: logo on the left in English, on the right in Arabic and Kurdish */}
@@ -67,7 +70,6 @@ function Shell({ children }: { children: React.ReactNode }) {
             <div className="ms-auto flex items-center gap-4">
               <GlobalSearch user={user} />
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
-              {role === "SEEKER" && <PremiumToggle user={user} />}
               {role === "SEEKER" && <NotificationBell />}
             </div>
           )}
