@@ -39,7 +39,7 @@ export function CvView() {
         <Link href="/profile" className={buttonVariants({ variant: "ghost", size: "sm" })}>
           <ArrowLeftIcon className="rtl:rotate-180" /> {t("cvPreview.back")}
         </Link>
-        <h1 className="text-lg font-semibold tracking-tight">{t("cvPreview.title")}</h1>
+        <h1 className="hidden text-lg font-semibold tracking-tight sm:block">{t("cvPreview.title")}</h1>
         <div className="ms-auto flex items-center gap-2">
           <Link href="/profile?edit=1" className={buttonVariants({ variant: "outline" })}>
             <PencilIcon /> {t("common.edit")}

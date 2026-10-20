@@ -112,6 +112,19 @@ export function CvDocument({
     setPages((current) => (JSON.stringify(current) === JSON.stringify(next) ? current : next))
   }
 
+  // Narrower than an A4 page (phones): the pages are shown smaller to fit; printing is unaffected
+  const box = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+  useEffect(() => {
+    const el = box.current
+    if (!el) return
+    const fit = () => setScale(Math.min(1, el.clientWidth / (PAGE_W * MM)))
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(el)
+    return () => observer.disconnect()
+  })
+
   // Re-measure after every render (the content may have changed), when fonts arrive and when images load
   useLayoutEffect(layout)
   useEffect(() => {
@@ -123,7 +136,9 @@ export function CvDocument({
 
   return (
     // The CV is always in English, so it stays left to right even when the app is in Arabic or Kurdish
-    <div dir="ltr" className={cn("relative", className)}>
+    // Clipped sideways: the hidden measuring copy below is A4-wide and mustn't widen a phone's page
+    <div ref={box} dir="ltr" className={cn("relative overflow-x-clip", className)}>
+      <div style={scale < 1 ? { zoom: scale } : undefined}>
       <div ref={ref} className="cv-pages flex flex-col items-center gap-[8mm]">
         {pages.map((indexes, p) => (
           <Page key={p} premium={premium}>
@@ -132,6 +147,7 @@ export function CvDocument({
             ))}
           </Page>
         ))}
+      </div>
       </div>
       {/* The same blocks, invisible, at the page's content width: their heights decide the pages */}
       <div

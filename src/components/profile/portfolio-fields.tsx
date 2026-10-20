@@ -126,7 +126,7 @@ export function PersonalFields({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label={t("form.gender")} missing={!value.gender}>
           <Choice value={value.gender} options={GENDERS} onChange={(v) => set("gender", v)} />
         </Field>
@@ -155,7 +155,7 @@ function LevelSlider({ label, language, value, onChange }: { label: string; lang
   const current = SLIDER_LEVELS[index]
   const color = levelColor(index)
   return (
-    <div className="grid grid-cols-[4.5rem_1fr_10.5rem] items-center gap-3">
+    <div className="grid grid-cols-[4rem_minmax(0,1fr)_5.5rem] items-center gap-3 sm:grid-cols-[4.5rem_1fr_10.5rem]">
       <span className="text-xs text-muted-foreground">{label}</span>
       <div>
         <input
@@ -204,8 +204,8 @@ export function LanguageFields({
         <p className="text-sm text-muted-foreground">{t("form.noLanguages")}</p>
       )}
       {value.map((l, i) => (
-        // Language on the left; its speaking and reading sliders stacked on the right
-        <div key={i} className={cn("grid grid-cols-[11rem_1fr_2rem] items-center gap-4 rounded-lg border p-3", !l.language && MISSING_ROW)}>
+        // Language on the left; its speaking and reading sliders stacked on the right (phones: underneath)
+        <div key={i} className={cn("grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-3 rounded-lg border p-3 sm:grid-cols-[11rem_1fr_2rem] sm:gap-4", !l.language && MISSING_ROW)}>
           <LanguagePicker
             value={l.language}
             // A language that's already listed can't be picked twice
@@ -213,7 +213,7 @@ export function LanguageFields({
             autoOpen={justAdded === i}
             onChange={(language) => update(i, { language })}
           />
-          <div className="space-y-2">
+          <div className="order-last col-span-2 space-y-2 sm:order-none sm:col-span-1">
             <LevelSlider label={t("form.speaking")} language={l.language} value={l.speaking} onChange={(speaking) => update(i, { speaking })} />
             <LevelSlider label={t("form.reading")} language={l.language} value={l.reading} onChange={(reading) => update(i, { reading })} />
           </div>
@@ -226,7 +226,7 @@ export function LanguageFields({
           >
             <Trash2Icon />
           </Button>
-          <div className="col-span-3 border-t pt-3">
+          <div className="order-last col-span-2 border-t pt-3 sm:col-span-3">
             <AttachmentField
               label={t("form.languageCertificate")}
               value={l.attachmentIds}
@@ -344,7 +344,7 @@ export function ExperienceFields({
             </Button>
           </div>
           <div className="grid grid-cols-12 gap-3">
-            <Field label={t("form.category")} className="col-span-6" missing={!filled(e.category)}>
+            <Field label={t("form.category")} className="col-span-12 sm:col-span-6" missing={!filled(e.category)}>
               <ChoiceWithOther
                 value={e.category}
                 options={JOB_CATEGORIES}
@@ -352,13 +352,13 @@ export function ExperienceFields({
                 writePlaceholder={t("form.writeCategory")}
               />
             </Field>
-            <Field label={t("form.positionTitle")} className="col-span-6" missing={!filled(e.title)}>
+            <Field label={t("form.positionTitle")} className="col-span-12 sm:col-span-6" missing={!filled(e.title)}>
               <Input className="h-9" value={e.title} onChange={(ev) => update(e.id, { title: ev.target.value })} placeholder={t("form.positionPlaceholder")} />
             </Field>
-            <Field label={t("form.employer")} className="col-span-6" missing={!filled(e.employer)}>
+            <Field label={t("form.employer")} className="col-span-12 sm:col-span-6" missing={!filled(e.employer)}>
               <Input className="h-9" value={e.employer} onChange={(ev) => update(e.id, { employer: ev.target.value })} placeholder={t("form.employerPlaceholder")} />
             </Field>
-            <Field label={t("form.contractType")} className="col-span-6" missing={!e.contractType}>
+            <Field label={t("form.contractType")} className="col-span-12 sm:col-span-6" missing={!e.contractType}>
               <Choice value={e.contractType} options={CONTRACT_TYPES} onChange={(v) => update(e.id, { contractType: v })} />
             </Field>
             <Field label={t("form.period")} className="col-span-12" missing={!MONTH.test(e.start ?? "") || (!e.current && !MONTH.test(e.end ?? ""))}>
@@ -397,7 +397,7 @@ export function ExperienceFields({
                       <Trash2Icon /> {t("form.removeReference")}
                     </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {(
                       [
                         ["name", t("form.refName"), t("form.refNamePlaceholder")],
@@ -521,13 +521,13 @@ export function DegreeFields({
       {(d, update) => {
         const studying = d.status === "Studying"
         return (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2 grid grid-cols-12 gap-3">
-              <Field label={t("form.country")} className="col-span-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2 grid grid-cols-12 gap-3">
+              <Field label={t("form.country")} className="col-span-12 sm:col-span-4">
                 {/* An institution of the old country does not fit the new one */}
                 <CountrySelect value={d.country ?? "IQ"} onChange={(country) => update({ country, institution: "" })} />
               </Field>
-              <Field label={t("form.institution")} className="col-span-8" missing={!filled(d.institution)}>
+              <Field label={t("form.institution")} className="col-span-12 sm:col-span-8" missing={!filled(d.institution)}>
                 <InstitutionPicker
                   key={d.country ?? "IQ"}
                   country={d.country ?? "IQ"}
@@ -542,10 +542,10 @@ export function DegreeFields({
             <Field label={t("form.fieldOfStudy")} missing={!filled(d.field)}>
               <FieldOfStudyPicker value={d.field} onChange={(field) => update({ field })} />
             </Field>
-            <Field label={t("form.degreeName")} className="col-span-2" missing={!filled(d.name)}>
+            <Field label={t("form.degreeName")} className="sm:col-span-2" missing={!filled(d.name)}>
               <Input className="h-9" value={d.name} onChange={(e) => update({ name: e.target.value })} placeholder={t("form.degreeNamePlaceholder")} />
             </Field>
-            <Field label={t("form.status")} className="col-span-2" missing={!filled(d.status)}>
+            <Field label={t("form.status")} className="sm:col-span-2" missing={!filled(d.status)}>
               <div className="flex gap-1.5">
                 {DEGREE_STATUSES.map((st) => (
                   <button
@@ -585,11 +585,11 @@ export function DegreeFields({
               </>
             )}
             {degreeDuration(d) && (
-              <p className="col-span-2 text-right text-sm text-muted-foreground">
+              <p className="sm:col-span-2 text-right text-sm text-muted-foreground">
                 {t("form.duration")} <span className="font-medium text-foreground">{degreeDuration(d)}</span>
               </p>
             )}
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <AttachmentField label={t("form.degreeCertificate")} value={d.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />
             </div>
           </div>
@@ -624,10 +624,10 @@ export function CertificationFields({
             <Field label={t("form.licenseTitle")} className="col-span-12" missing={!filled(c.title)}>
               <Input className="h-9" value={c.title} onChange={(e) => update({ title: e.target.value })} placeholder={t("form.licenseTitlePlaceholder")} />
             </Field>
-            <Field label={t("form.issuingInstitution")} className="col-span-8" missing={!filled(c.institution)}>
+            <Field label={t("form.issuingInstitution")} className="col-span-12 sm:col-span-8" missing={!filled(c.institution)}>
               <Input className="h-9" value={c.institution} onChange={(e) => update({ institution: e.target.value })} placeholder={t("form.issuingPlaceholder")} />
             </Field>
-            <Field label={t("form.issueDate")} className="col-span-4" missing={!MONTH.test(c.issued ?? "")}>
+            <Field label={t("form.issueDate")} className="col-span-12 sm:col-span-4" missing={!MONTH.test(c.issued ?? "")}>
               <MonthPicker value={c.issued} onChange={(issued) => update({ issued })} max={thisMonth()} />
             </Field>
             <div className="col-span-12">

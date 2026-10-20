@@ -44,7 +44,7 @@ export function DevTools({ user }: { user: User | null }) {
         setHovered(true)
       }}
       onMouseLeave={closeSoon}
-      className="dark fixed bottom-5 left-1/2 z-50 flex h-12 -translate-x-1/2 items-center rounded-full bg-black ps-1.5 pe-4 text-white shadow-2xl ring-1 ring-white/10"
+      className="dark fixed bottom-20 left-1/2 max-w-[calc(100vw-1rem)] lg:bottom-5 z-50 flex h-12 -translate-x-1/2 items-center rounded-full bg-black ps-1.5 pe-4 text-white shadow-2xl ring-1 ring-white/10"
     >
       <button
         type="button"

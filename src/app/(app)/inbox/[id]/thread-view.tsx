@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useMemo } from "react"
+import Link from "next/link"
+import { ArrowLeftIcon } from "lucide-react"
 import { ReplyBox } from "@/components/inbox/reply-box"
 import { ThreadMessages } from "@/components/inbox/thread-messages"
 import { latestJob } from "@/components/pool/talent-meta"
@@ -42,7 +44,11 @@ export function ThreadView({ id }: { id: string }) {
 
   return (
     <>
-      <div className="flex items-center gap-3 border-b px-6 py-4">
+      <div className="flex items-center gap-3 border-b px-4 py-3 lg:px-6 lg:py-4">
+        {/* Phones and tablets: back to the list of conversations */}
+        <Link href="/inbox" aria-label={t("inbox.title")} className="-ms-1 flex size-8 shrink-0 items-center justify-center rounded-full hover:bg-muted lg:hidden">
+          <ArrowLeftIcon className="size-4 rtl:rotate-180" />
+        </Link>
         <UserAvatar name={otherName} color={other.avatarColor} size={40} />
         <div>
           <div className="font-semibold">{otherName}</div>

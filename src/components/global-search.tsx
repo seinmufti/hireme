@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { BriefcaseIcon, Building2Icon, ClockIcon, CornerDownLeftIcon, FileTextIcon, SearchIcon, TrendingUpIcon } from "lucide-react"
+import { BriefcaseIcon, Building2Icon, ClockIcon, CornerDownLeftIcon, FileTextIcon, SearchIcon, TrendingUpIcon, XIcon } from "lucide-react"
 import { useLocationLabel, useT } from "@/i18n/provider"
 import type { MessageKey } from "@/i18n/types"
 import { companyMatchesQuery, jobMatchesQuery, takesApplications } from "@/lib/jobs"
@@ -74,6 +74,8 @@ export function GlobalSearch({ user }: { user: User }) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
   const [recent, setRecent] = useState<string[]>([])
+  // Phones and tablets: a search icon that opens the search across the top of the screen
+  const [expanded, setExpanded] = useState(false)
   const q = query.trim()
   // Employers don't search jobs: they only find their own posts here
   const browsesJobs = user.role !== "EMPLOYER"
@@ -139,14 +141,34 @@ export function GlobalSearch({ user }: { user: User }) {
     }
     if (q) remember(q)
     setOpen(false)
+    setExpanded(false)
     setQuery("")
     router.push(item.href!)
   }
 
   return (
-    <div className="relative w-64">
+    <>
+    <button
+      type="button"
+      onClick={() => setExpanded(true)}
+      aria-label={t("search.label")}
+      className="flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground lg:hidden"
+    >
+      <SearchIcon className="size-5" />
+    </button>
+    <div
+      className={cn(
+        "lg:relative lg:block lg:w-64",
+        expanded ? "fixed inset-x-0 top-0 z-50 flex h-14 items-center gap-2 border-b bg-card px-4 sm:px-6" : "hidden"
+      )}
+    >
+      <div className="relative min-w-0 flex-1">
       <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
       <input
+        // Opened from the search icon: ready to type
+        ref={(el) => {
+          if (el && expanded && document.activeElement !== el && window.innerWidth < 1024) el.focus()
+        }}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value)
@@ -162,7 +184,10 @@ export function GlobalSearch({ user }: { user: User }) {
           if (e.key === "ArrowDown") setActive((i) => Math.min(i + 1, items.length - 1))
           else if (e.key === "ArrowUp") setActive((i) => Math.max(i - 1, 0))
           else if (e.key === "Enter") choose(items[active])
-          else if (e.key === "Escape") setOpen(false)
+          else if (e.key === "Escape") {
+            setOpen(false)
+            setExpanded(false)
+          }
           else return
           e.preventDefault()
         }}
@@ -173,13 +198,25 @@ export function GlobalSearch({ user }: { user: User }) {
         aria-controls="global-search-results"
         className="h-9 w-full rounded-full border bg-background ps-8 pe-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
       />
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          setExpanded(false)
+          setOpen(false)
+        }}
+        aria-label={t("common.close")}
+        className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted lg:hidden"
+      >
+        <XIcon className="size-5" />
+      </button>
       {open && (
         <div
           id="global-search-results"
           role="listbox"
           // Keeps the input focused (and the list open) while clicking inside it
           onMouseDown={(e) => e.preventDefault()}
-          className="absolute end-0 top-11 z-50 max-h-[min(30rem,calc(100dvh-8rem))] w-96 overflow-y-auto rounded-xl border bg-popover p-1 shadow-lg"
+          className="fixed inset-x-0 top-14 z-50 max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b bg-popover p-1 shadow-lg lg:absolute lg:inset-x-auto lg:end-0 lg:top-11 lg:max-h-[min(30rem,calc(100dvh-8rem))] lg:w-96 lg:rounded-xl lg:border"
         >
           {groups.length === 0 && (
             <p className="px-3 py-6 text-center text-sm text-muted-foreground">
@@ -229,5 +266,6 @@ export function GlobalSearch({ user }: { user: User }) {
         </div>
       )}
     </div>
+    </>
   )
 }

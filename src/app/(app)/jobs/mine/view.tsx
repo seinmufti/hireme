@@ -33,7 +33,7 @@ export function MyJobsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("jobs.myPosts")}</h1>
           <p className="text-sm text-muted-foreground">
@@ -55,8 +55,9 @@ export function MyJobsView() {
             const notified = notifications.filter((n) => n.jobId === j.id).length
             const applied = applications.filter((a) => a.jobId === j.id).length
             return (
-              <li key={j.id} className={cn("flex items-center gap-4 px-5 py-4", !j.open && "bg-muted/30")}>
-                <div className="min-w-0 flex-1">
+              // Phones: the job on its own line, its numbers and buttons wrapping underneath
+              <li key={j.id} className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 sm:px-5 md:flex-nowrap", !j.open && "bg-muted/30")}>
+                <div className="min-w-0 basis-full md:flex-1 md:basis-0">
                   <div className="flex items-center gap-2">
                     <Link href={`/jobs/${j.id}`} className="truncate font-medium hover:underline">
                       {j.title}

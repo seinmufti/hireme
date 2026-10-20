@@ -52,13 +52,13 @@ function Accounts() {
       : (talents.find((x) => x.userId === u.id)?.experiences[0]?.title ?? t(`roles.${u.role}`))
 
   return (
-    // Exactly one screen tall: if accounts don't fit, only the account lists scroll, never the page
-    <main className="relative flex h-dvh flex-col items-center justify-center overflow-hidden px-8 py-5">
+    // Laptops and up: exactly one screen tall (only the account lists scroll). Phones: the roles stack and the page scrolls
+    <main className="relative flex min-h-dvh flex-col items-center px-4 py-5 md:h-dvh md:justify-center md:overflow-hidden md:px-8">
       <BackupButtons />
       <Logo size={48} className="shrink-0" />
       <h1 className="mt-2 shrink-0 text-2xl font-semibold tracking-tight">{t("login.welcome")}</h1>
 
-      <div className="mt-5 flex min-h-0 items-stretch rounded-2xl border bg-card p-5 shadow-sm">
+      <div className="mt-5 flex min-h-0 w-full max-w-sm flex-col items-stretch rounded-2xl border bg-card p-5 shadow-sm md:w-auto md:max-w-none md:flex-row">
         {ORDER.map((role, i) => {
           // Most recently created first (accounts created together keep the newest last-added first)
           const all = users
@@ -72,8 +72,8 @@ function Accounts() {
           const group = all.filter((u) => !q || `${u.name} ${subtitleFor(u)}`.toLowerCase().includes(q))
           return (
             <Fragment key={role}>
-              {i > 0 && <span className="mx-8 w-px bg-border" aria-hidden />}
-              <section className="flex min-h-0 w-56 flex-col items-center">
+              {i > 0 && <span className="my-5 h-px bg-border md:mx-8 md:my-0 md:h-auto md:w-px" aria-hidden />}
+              <section className="flex min-h-0 w-full flex-col items-center md:w-56">
                 <h2 className="mb-3 shrink-0 text-sm font-semibold tracking-wide text-muted-foreground uppercase">{t(`roles.${role}`)}</h2>
                 {/* Tall enough for 4 accounts; more than that scrolls (and it shrinks on short screens) */}
                 {searchable && (
@@ -89,7 +89,7 @@ function Accounts() {
                     />
                   </div>
                 )}
-                <div className={cn("flex min-h-0 w-full flex-col gap-2 overflow-y-auto", searchable ? "h-[218px]" : "h-[270px]")}>
+                <div className={cn("flex min-h-0 w-full flex-col gap-2 overflow-y-auto", searchable ? "max-h-[218px] md:h-[218px]" : "max-h-[270px] md:h-[270px]")}>
                   {searchable && group.length === 0 && (
                     <p className="py-6 text-center text-sm text-muted-foreground">{t("accounts.noneFound")}</p>
                   )}
@@ -175,7 +175,7 @@ function BackupButtons() {
   }
 
   return (
-    <div dir="ltr" className="absolute top-5 right-8 flex gap-2">
+    <div dir="ltr" className="mb-5 flex flex-wrap justify-center gap-2 md:absolute md:top-5 md:right-8 md:mb-0">
       <LanguageSwitcher wide />
       <Button variant="outline" size="sm" onClick={() => setAsking({ kind: "reset" })}>
         <RotateCcwIcon /> {t("login.resetDemo")}

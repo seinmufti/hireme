@@ -139,8 +139,8 @@ function EditForm({ user, onDone }: { user: User; onDone: () => void }) {
     <form onSubmit={save} className="divide-y rounded-xl border bg-card">
       <section className="space-y-4 p-6">
         <h2 className="font-medium">{t("profile.aboutYou")}</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t("profile.fullName")} className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label={t("profile.fullName")} className="sm:col-span-2">
             <Input className="h-9" value={form.name} onChange={set("name")} autoFocus />
           </Field>
           <Field label={t("profile.jobTitle")}>
@@ -157,7 +157,7 @@ function EditForm({ user, onDone }: { user: User; onDone: () => void }) {
 
       <section className="space-y-4 p-6">
         <h2 className="font-medium">{t("profile.contact")}</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label={t("profile.email")}>
             <Input className="h-9" type="email" value={form.email} onChange={set("email")} placeholder="name@example.com" />
           </Field>

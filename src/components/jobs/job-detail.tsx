@@ -44,7 +44,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
         </div>
       )}
 
-      <div className="grid grid-cols-[1fr_20rem] items-start gap-6">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_20rem]">
         <article className="space-y-6 rounded-xl border bg-card p-6">
           <header className="space-y-3">
             <div>

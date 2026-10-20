@@ -43,7 +43,7 @@ export function CompanyView({ id }: { id: string }) {
       <Link href="/companies" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {t("companies.allCompanies")}
       </Link>
-      <div className="grid grid-cols-[1fr_20rem] items-start gap-6">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_20rem]">
         <section className="space-y-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{company.company || company.name}</h1>
@@ -52,7 +52,7 @@ export function CompanyView({ id }: { id: string }) {
             </p>
           </div>
           {jobs.length > 0 && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {jobs.map((j) => (
                 <JobCard key={j.id} job={j} matches={talent ? matchPoints(talent, j) : undefined} isMatch={matched.has(j.id)} have={have} />
               ))}

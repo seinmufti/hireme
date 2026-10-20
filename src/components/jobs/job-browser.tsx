@@ -133,7 +133,7 @@ export function JobBrowser({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("jobs.title")}</h1>
           <p className="text-sm text-muted-foreground">
@@ -159,9 +159,9 @@ export function JobBrowser({
         )}
       </div>
 
-      <div className="sticky top-14 z-30 -mx-8 space-y-3 border-b bg-background/95 px-8 py-3 backdrop-blur">
-        <div className="flex items-center gap-3">
-          <div className="relative w-96">
+      <div className="z-30 -mx-4 space-y-3 border-b bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:sticky lg:top-14 lg:-mx-8 lg:px-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative w-full sm:w-96">
             <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
@@ -246,14 +246,14 @@ export function JobBrowser({
         {query.trim() && <> {t("jobs.resultFor", { q: query.trim() })}</>}
       </p>
 
-      <div className="flex items-start gap-6">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
           {results.length === 0 ? (
             <div className="rounded-xl border border-dashed bg-card py-16 text-center">
               <p className="font-medium">{t("jobs.noResults")}</p>
             </div>
           ) : (
-            <div className={cn("grid grid-cols-2 gap-4", !aside && "xl:grid-cols-3")}>
+            <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", !aside && "xl:grid-cols-3")}>
               {results.map((j) => (
                 <JobCard key={j.id} job={j} matches={isSeeker && talent ? matchPoints(talent, j) : undefined}
                   isMatch={score.has(j.id)} have={have} applied={applied.get(j.id)} canApply={isSeeker} />
@@ -261,7 +261,7 @@ export function JobBrowser({
             </div>
           )}
         </div>
-        {aside && <aside className="w-72 shrink-0">{aside}</aside>}
+        {aside && <aside className="w-full lg:w-72 lg:shrink-0">{aside}</aside>}
       </div>
     </div>
   )

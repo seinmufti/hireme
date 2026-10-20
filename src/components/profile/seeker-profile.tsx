@@ -110,7 +110,7 @@ export function SeekerProfile({ user }: { user: User }) {
           href="/profile/cv"
           aria-label={t("seeker.previewCv")}
           title={t("seeker.previewCv")}
-          className="fixed end-6 bottom-6 z-40 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
+          className="fixed end-4 bottom-36 z-40 flex size-14 lg:end-6 lg:bottom-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
         >
           <EyeIcon className="size-6" />
         </Link>
@@ -255,7 +255,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
   return (
     <div className="space-y-4">
       <Card id="personal" onEdit={onEdit}>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
+        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
           {details.map((d) => (
             <div key={d.label} className={cn("flex min-w-0 items-center gap-2.5", item(!!d.required && !d.value))} title={d.label}>
               <d.icon className="size-4 shrink-0 text-muted-foreground" />
@@ -329,7 +329,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         {p.hardSkills.length + p.softSkills.length === 0 ? (
           <Empty>{t("seeker.skillsEmpty")}</Empty>
         ) : (
-          <div className="grid grid-cols-2 gap-6 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
             {[
               [t("seeker.hardSkills"), p.hardSkills],
               [t("seeker.softSkills"), p.softSkills],
@@ -538,7 +538,7 @@ function PortfolioForm({
           color={user.avatarColor}
           onChange={(photoId) => setContact((c) => ({ ...c, photoId }))}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label={t("seeker.fullName")}>
             <Input className="h-9" value={contact.name} onChange={setField("name")} />
           </Field>
@@ -547,14 +547,14 @@ function PortfolioForm({
           </Field>
         </div>
         <PersonalFields value={portfolio} onChange={setPortfolio} />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label={t("seeker.phoneNumber")} missing={!contact.phone}>
             <PhoneInput value={contact.phone} onChange={(phone) => setContact((c) => ({ ...c, phone }))} />
           </Field>
           <Field label={t("seeker.email")} missing={!contact.email}>
             <Input className="h-9" type="email" value={contact.email} onChange={setField("email")} placeholder="name@example.com" />
           </Field>
-          <Field label={t("seeker.linkedinOptional")} className="col-span-2">
+          <Field label={t("seeker.linkedinOptional")} className="sm:col-span-2">
             <Input className="h-9" value={contact.linkedin} onChange={setField("linkedin")} placeholder="https://linkedin.com/in/…" />
           </Field>
         </div>
@@ -623,7 +623,7 @@ function PortfolioForm({
       </section>
 
 
-      <div className="sticky bottom-4 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
+      <div className="sticky bottom-20 flex lg:bottom-4 items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
         <Button type="button" variant="ghost" onClick={cancel}>
           {t("common.cancel")}
         </Button>

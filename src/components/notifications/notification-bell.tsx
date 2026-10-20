@@ -31,7 +31,7 @@ export function NotificationBell() {
           </span>
         )}
       </PopoverTrigger>
-      <PopoverContent align="end" className="max-h-[min(32rem,calc(100dvh-6rem))] w-96 gap-0 p-0">
+      <PopoverContent align="end" className="max-h-[min(32rem,calc(100dvh-6rem))] w-[min(24rem,calc(100vw-1rem))] gap-0 p-0">
         <NotificationList limit={5} onNavigate={() => setOpen(false)} />
       </PopoverContent>
     </Popover>

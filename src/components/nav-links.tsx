@@ -1,10 +1,14 @@
 "use client"
 
+import type { ComponentType } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
-export function NavLinks({ links }: { links: { href: string; label: string; badge?: number }[] }) {
+export type NavLink = { href: string; label: string; icon: ComponentType<{ className?: string }>; badge?: number }
+
+/** Laptops and desktops: the links along the top. Smaller screens get them at the bottom (BottomNav). */
+export function NavLinks({ links }: { links: NavLink[] }) {
   const pathname = usePathname()
   return (
     <nav className="flex h-full items-stretch gap-1">

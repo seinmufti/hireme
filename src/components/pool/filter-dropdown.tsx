@@ -137,8 +137,9 @@ export function FilterDropdown({
         <ChevronDownIcon className="text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto gap-0 p-0" onMouseLeave={() => setHovered(null)}>
-        <div className="flex">
-          <div className="w-72 shrink-0">
+        {/* Phones: the second list (fields of a category) goes underneath */}
+        <div className="flex flex-col sm:flex-row">
+          <div className="w-[min(18rem,calc(100vw-2rem))] shrink-0">
             <div className="flex items-center justify-between border-b px-3 py-2">
               <span className="text-xs font-medium text-muted-foreground">
                 {def.mode === "all" ? t("pool.filterAll") : t("pool.filterAny")}
@@ -186,7 +187,7 @@ export function FilterDropdown({
           </div>
 
           {children.length > 0 && (
-            <div className="w-64 shrink-0 border-l">
+            <div className="w-[min(18rem,calc(100vw-2rem))] shrink-0 border-t sm:w-64 sm:border-t-0 sm:border-l">
               <div className="border-b px-3 py-2 text-xs font-medium text-muted-foreground">{hovered}: choose a field</div>
               <div className="max-h-[min(18rem,calc(var(--available-height)-4.5rem))] overflow-y-auto p-1" role="listbox" aria-multiselectable onKeyDown={focusRowWithArrows}>
                 {children.map((child) => (

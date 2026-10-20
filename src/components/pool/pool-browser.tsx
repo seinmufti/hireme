@@ -54,7 +54,7 @@ export function PoolBrowser({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("pool.title")}</h1>
           <p className="text-sm text-muted-foreground">
@@ -68,9 +68,9 @@ export function PoolBrowser({
         )}
       </div>
 
-      <div className="sticky top-14 z-30 -mx-8 space-y-3 border-b bg-background/95 px-8 py-3 backdrop-blur">
-        <div className="flex items-center gap-3">
-          <div className="relative w-80">
+      <div className="z-30 -mx-4 space-y-3 border-b bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:sticky lg:top-14 lg:-mx-8 lg:px-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative w-full sm:w-80">
             <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
@@ -138,7 +138,7 @@ export function PoolBrowser({
           <p className="font-medium">{t("pool.noMatch")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {results.map((t) => (
             <TalentCard
               key={t.id}

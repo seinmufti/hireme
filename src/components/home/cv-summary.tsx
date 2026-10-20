@@ -62,7 +62,7 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
         </Link>
       )}
 
-      <dl className="grid grid-cols-2 gap-5 p-5 text-sm">
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 text-sm">
         <div className="min-w-0">
           <dt className="mb-1 text-xs text-muted-foreground">{t("home.latestJob")}</dt>
           <dd>

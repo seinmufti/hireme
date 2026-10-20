@@ -1,11 +1,13 @@
 "use client"
 
 import { useMemo } from "react"
+import { usePathname } from "next/navigation"
 import { ConversationList } from "@/components/inbox/conversation-list"
 import { firstName } from "@/lib/format"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { useT } from "@/i18n/provider"
+import { cn } from "@/lib/utils"
 
 export function InboxShell({ children }: { children: React.ReactNode }) {
   const t = useT()
@@ -14,6 +16,8 @@ export function InboxShell({ children }: { children: React.ReactNode }) {
   const talents = useStore((s) => s.talents)
   const conversations = useStore((s) => s.conversations)
   const messages = useStore((s) => s.messages)
+  // Phones and tablets show one side at a time: the list, or the open conversation
+  const inThread = usePathname() !== "/inbox"
 
   const items = useMemo(() => {
     if (!user) return []
@@ -46,8 +50,9 @@ export function InboxShell({ children }: { children: React.ReactNode }) {
   if (!user) return null
 
   return (
-    <div className="grid h-[calc(100dvh-11rem)] grid-cols-[340px_1fr] overflow-hidden rounded-xl border bg-card">
+    <div className="grid grid-cols-1 h-[calc(100dvh-10rem)] overflow-hidden rounded-xl border bg-card lg:h-[calc(100dvh-11rem)] lg:grid-cols-[340px_1fr]">
       <ConversationList
+        className={cn(inThread && "hidden lg:flex")}
         items={items}
         emptyHint={
           user.role === "EMPLOYER"
@@ -55,7 +60,7 @@ export function InboxShell({ children }: { children: React.ReactNode }) {
             : t("inbox.seekerEmpty")
         }
       />
-      <div className="flex min-h-0 flex-col border-s">{children}</div>
+      <div className={cn("min-h-0 flex-col lg:flex lg:border-s", inThread ? "flex" : "hidden")}>{children}</div>
     </div>
   )
 }

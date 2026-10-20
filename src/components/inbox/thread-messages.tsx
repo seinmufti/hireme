@@ -19,7 +19,7 @@ export function ThreadMessages({ messages }: { messages: Msg[] }) {
   }, [lastId])
 
   return (
-    <div className="flex-1 space-y-4 overflow-y-auto bg-muted/30 px-6 py-6">
+    <div className="flex-1 space-y-4 overflow-y-auto bg-muted/30 px-4 py-4 lg:px-6 lg:py-6">
       {messages.map((m) => (
         <div key={m.id} className={cn("flex flex-col", m.mine ? "items-end" : "items-start")}>
           <div

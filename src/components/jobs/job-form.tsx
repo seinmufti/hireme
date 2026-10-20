@@ -143,7 +143,7 @@ export function JobForm({ job }: { job?: Job }) {
         <Field label={t("jobs.form.jobTitle")}>
           <Input className="h-9" value={value.title} onChange={(e) => set("title", e.target.value)} placeholder={t("jobs.form.jobTitlePlaceholder")} autoFocus={!job} />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label={t("jobs.form.category")}>
             <Choice label={t("jobs.form.category")} value={value.category} options={JOB_CATEGORIES.includes(value.category) || !value.category ? JOB_CATEGORIES : [value.category, ...JOB_CATEGORIES]} onChange={(v) => set("category", v)} />
           </Field>
@@ -206,7 +206,7 @@ export function JobForm({ job }: { job?: Job }) {
         />
       </section>
 
-      <div className="sticky bottom-0 flex justify-end gap-2 rounded-b-xl bg-card/95 p-4 backdrop-blur">
+      <div className="sticky bottom-16 flex lg:bottom-0 justify-end gap-2 rounded-b-xl bg-card/95 p-4 backdrop-blur">
         <Button type="button" variant="ghost" onClick={() => router.back()}>
           {t("common.cancel")}
         </Button>

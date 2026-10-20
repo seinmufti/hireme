@@ -182,15 +182,15 @@ export function LocationFields({
         <MapPinIcon className="size-4 text-primary" />
         <h3 className="text-sm font-medium">{t("seeker.location")}</h3>
       </div>
-      <Field label={t("form.country")} className="col-span-4">
+      <Field label={t("form.country")} className="col-span-12 sm:col-span-4">
         {/* A city in the old country does not fit the new one */}
         <CountrySelect value={value.country} onChange={(country) => onChange({ country, city: "" })} />
       </Field>
-      <Field label={t("form.city")} className="col-span-4">
+      <Field label={t("form.city")} className="col-span-12 sm:col-span-4">
         {/* Keyed so each country starts with its own list */}
         <CityPicker key={value.country} country={value.country || "IQ"} value={value.city} onChange={(city) => onChange({ city })} />
       </Field>
-      <Field label={t("form.addressOptional")} className="col-span-4">
+      <Field label={t("form.addressOptional")} className="col-span-12 sm:col-span-4">
         <Input className="h-9" value={value.address} onChange={(e) => onChange({ address: e.target.value })} placeholder={t("form.addressPlaceholder")} />
       </Field>
       <p className="col-span-12 flex items-center gap-1.5 border-t pt-3 text-xs text-muted-foreground">
@@ -306,22 +306,22 @@ export function ProjectFields({ value, onChange }: { value: Project[]; onChange:
               <Trash2Icon />
             </Button>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label={t("form.projectName")}>
               <Input className="h-9" value={p.name} onChange={(e) => update(p.id, { name: e.target.value })} placeholder={t("form.projectNamePlaceholder")} />
             </Field>
             <Field label={t("form.linkOptional")}>
               <Input className="h-9" value={p.link} onChange={(e) => update(p.id, { link: e.target.value })} placeholder="https://…" />
             </Field>
-            <Field label={t("form.periodOptional")} className="col-span-2">
+            <Field label={t("form.periodOptional")} className="sm:col-span-2">
               <PeriodPicker start={p.start} end={p.end} onChange={(patch) => update(p.id, patch)} endPlaceholder={t("form.endOngoing")} what={t("form.projectEndsBefore")} />
             </Field>
             {projectDuration(p) && (
-              <p className="col-span-2 text-end text-sm text-muted-foreground">
+              <p className="sm:col-span-2 text-end text-sm text-muted-foreground">
                 {t("form.duration")} <span className="font-medium text-foreground">{projectDuration(p)}</span>
               </p>
             )}
-            <Field label={t("form.descriptionOptional")} className="col-span-2">
+            <Field label={t("form.descriptionOptional")} className="sm:col-span-2">
               <Textarea
                 className="min-h-16 text-sm"
                 value={p.description}

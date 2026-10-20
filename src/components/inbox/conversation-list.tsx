@@ -17,12 +17,12 @@ type Item = {
   unread: number
 }
 
-export function ConversationList({ items, emptyHint }: { items: Item[]; emptyHint: string }) {
+export function ConversationList({ items, emptyHint, className }: { items: Item[]; emptyHint: string; className?: string }) {
   const t = useT()
   const { id: activeId } = useParams<{ id?: string }>()
 
   return (
-    <div className="flex min-h-0 flex-col">
+    <div className={cn("flex min-h-0 flex-col", className)}>
       <div className="border-b px-5 py-4">
         <h1 className="font-semibold">{t("inbox.title")}</h1>
         <p className="text-xs text-muted-foreground">{items.length === 1 ? t("inbox.conversation") : t("inbox.conversations", { count: items.length })}</p>
