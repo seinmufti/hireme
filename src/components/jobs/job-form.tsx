@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useT } from "@/i18n/provider"
 import { JOB_CITIES, WORKPLACES, workplaceOf, type WorkplaceKind } from "@/lib/jobs"
 import { CONTRACT_TYPES, JOB_CATEGORIES } from "@/lib/options"
 import { jobInputProblem, useStore } from "@/lib/store"
@@ -33,11 +34,12 @@ function Field({ label, children, className }: { label: string; children: React.
   )
 }
 
-function Choice({ label, value, options, onChange, placeholder = "Choose" }: { label: string; value: string; options: string[]; onChange: (v: string) => void; placeholder?: string }) {
+function Choice({ label, value, options, onChange, placeholder }: { label: string; value: string; options: string[]; onChange: (v: string) => void; placeholder?: string }) {
+  const t = useT()
   return (
     <Select value={value || null} onValueChange={(v) => onChange((v as string) ?? "")}>
       <SelectTrigger className="h-9 w-full" aria-label={label}>
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={placeholder ?? t("common.choose")} />
       </SelectTrigger>
       <SelectContent>
         {options.map((o) => (
@@ -50,6 +52,7 @@ function Choice({ label, value, options, onChange, placeholder = "Choose" }: { l
 
 /** Skills as chips: type one and press Enter (or comma). Suggestions come from other job posts. */
 function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChange: (v: string[]) => void; suggestions: string[] }) {
+  const t = useT()
   const [draft, setDraft] = useState("")
   const add = (raw: string) => {
     const skill = raw.trim().replace(/\s+/g, " ")
@@ -61,9 +64,9 @@ function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChan
     <div className="space-y-2">
       <div className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-lg border border-input px-2 py-1 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
         {value.map((s) => (
-          <span key={s} className="flex items-center gap-1 rounded-full bg-muted py-0.5 pr-1 pl-2 text-xs">
+          <span key={s} className="flex items-center gap-1 rounded-full bg-muted py-0.5 ps-2 pe-1 text-xs">
             {s}
-            <button type="button" aria-label={`Remove ${s}`} onClick={() => onChange(value.filter((x) => x !== s))} className="rounded-full p-0.5 hover:bg-background">
+            <button type="button" aria-label={t("jobs.form.removeSkill", { skill: s })} onClick={() => onChange(value.filter((x) => x !== s))} className="rounded-full p-0.5 hover:bg-background">
               <XIcon className="size-3" />
             </button>
           </span>
@@ -79,9 +82,9 @@ function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChan
             } else if (e.key === "Backspace" && !draft && value.length) onChange(value.slice(0, -1))
           }}
           onBlur={() => draft && add(draft)}
-          placeholder={value.length ? "Add another…" : "e.g. Sales, Microsoft Excel, Negotiation"}
+          placeholder={value.length ? t("jobs.form.addAnother") : t("jobs.form.skillsPlaceholder")}
           className="h-7 min-w-40 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          aria-label="Add a skill"
+          aria-label={t("jobs.form.addSkill")}
         />
         <datalist id="job-skill-suggestions">
           {left.map((s) => (
@@ -89,13 +92,14 @@ function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChan
           ))}
         </datalist>
       </div>
-      <p className="text-xs text-muted-foreground">Press Enter after each skill. Job seekers with these skills are notified about the job.</p>
+      <p className="text-xs text-muted-foreground">{t("jobs.form.skillsHint")}</p>
     </div>
   )
 }
 
 /** Post a new job, or edit one (`job`). */
 export function JobForm({ job }: { job?: Job }) {
+  const t = useT()
   const router = useRouter()
   const postJob = useStore((s) => s.postJob)
   const updateJob = useStore((s) => s.updateJob)
@@ -116,20 +120,18 @@ export function JobForm({ job }: { job?: Job }) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!workplace) return toast.error("Please choose where the job is.")
+    if (!workplace) return toast.error(t("jobs.form.chooseWhere"))
     const problem = jobInputProblem(value)
     if (problem) return toast.error(problem)
     if (job) {
       const r = updateJob(job.id, value)
       if (!r.ok) return toast.error(r.error)
-      toast.success("Job updated")
+      toast.success(t("jobs.form.updated"))
       router.push(`/jobs/${job.id}`)
     } else {
       const r = postJob(value)
       if (!r.ok) return toast.error(r.error)
-      toast.success(
-        r.notified ? `Job posted. ${r.notified} matching job seeker${r.notified === 1 ? " was" : "s were"} notified.` : "Job posted."
-      )
+      toast.success(r.notified ? t("jobs.form.postedNotified", { count: r.notified }) : t("jobs.form.posted"))
       router.push(`/jobs/${r.jobId}`)
     }
   }
@@ -137,23 +139,23 @@ export function JobForm({ job }: { job?: Job }) {
   return (
     <form onSubmit={submit} className="divide-y rounded-xl border bg-card">
       <section className="space-y-4 p-6">
-        <h2 className="font-medium">The job</h2>
-        <Field label="Job title">
-          <Input className="h-9" value={value.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Sales Representative" autoFocus={!job} />
+        <h2 className="font-medium">{t("jobs.form.theJob")}</h2>
+        <Field label={t("jobs.form.jobTitle")}>
+          <Input className="h-9" value={value.title} onChange={(e) => set("title", e.target.value)} placeholder={t("jobs.form.jobTitlePlaceholder")} autoFocus={!job} />
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Category">
-            <Choice label="Category" value={value.category} options={JOB_CATEGORIES.includes(value.category) || !value.category ? JOB_CATEGORIES : [value.category, ...JOB_CATEGORIES]} onChange={(v) => set("category", v)} />
+          <Field label={t("jobs.form.category")}>
+            <Choice label={t("jobs.form.category")} value={value.category} options={JOB_CATEGORIES.includes(value.category) || !value.category ? JOB_CATEGORIES : [value.category, ...JOB_CATEGORIES]} onChange={(v) => set("category", v)} />
           </Field>
-          <Field label="Contract type">
-            <Choice label="Contract type" value={value.contractType} options={CONTRACT_TYPES} onChange={(v) => set("contractType", v)} />
+          <Field label={t("jobs.form.contractType")}>
+            <Choice label={t("jobs.form.contractType")} value={value.contractType} options={CONTRACT_TYPES} onChange={(v) => set("contractType", v)} />
           </Field>
         </div>
       </section>
 
       <section className="space-y-4 p-6">
-        <h2 className="font-medium">Where</h2>
-        <div className="flex gap-1.5" role="radiogroup" aria-label="Where the job is">
+        <h2 className="font-medium">{t("jobs.form.where")}</h2>
+        <div className="flex gap-1.5" role="radiogroup" aria-label={t("jobs.form.whereLabel")}>
           {WORKPLACES.map((w) => (
             <button
               key={w.value}
@@ -166,41 +168,41 @@ export function JobForm({ job }: { job?: Job }) {
                 workplace === w.value ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted"
               )}
             >
-              {w.label}
+              {w.value === "city" ? t("jobs.form.onSite") : w.value === "remote" ? t("jobs.remote") : t("jobs.international")}
             </button>
           ))}
         </div>
         {workplace === "city" && (
-          <Field label="City" className="w-1/2">
-            <Choice label="City" value={value.location.iraqCity} options={JOB_CITIES} onChange={(iraqCity) => set("location", { ...value.location, iraqCity })} placeholder="Choose a city" />
+          <Field label={t("jobs.form.city")} className="w-1/2">
+            <Choice label={t("jobs.form.city")} value={value.location.iraqCity} options={JOB_CITIES} onChange={(iraqCity) => set("location", { ...value.location, iraqCity })} placeholder={t("jobs.form.chooseCity")} />
           </Field>
         )}
       </section>
 
       <section className="space-y-4 p-6">
-        <h2 className="font-medium">Skills</h2>
+        <h2 className="font-medium">{t("jobs.form.skills")}</h2>
         <SkillsInput value={value.skills} onChange={(v) => set("skills", v)} suggestions={suggestions} />
       </section>
 
       <section className="space-y-3 p-6">
-        <h2 className="font-medium">Description</h2>
+        <h2 className="font-medium">{t("jobs.form.description")}</h2>
         <p className="flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
           <LightbulbIcon className="mt-px size-3.5 shrink-0" />
-          Start lines with “-” to show them as bullet points, e.g. the main tasks and what you&apos;re looking for.
+          {t("jobs.form.descriptionTip")}
         </p>
         <Textarea
           value={value.description}
           onChange={(e) => set("description", e.target.value)}
           className="min-h-48"
-          placeholder={"What the job is about.\n- Main task\n- Another task\n- Experience or languages needed"}
+          placeholder={t("jobs.form.descriptionPlaceholder")}
         />
       </section>
 
       <div className="sticky bottom-0 flex justify-end gap-2 rounded-b-xl bg-card/95 p-4 backdrop-blur">
         <Button type="button" variant="ghost" onClick={() => router.back()}>
-          Cancel
+          {t("common.cancel")}
         </Button>
-        <Button type="submit">{job ? "Save changes" : "Post job"}</Button>
+        <Button type="submit">{job ? t("jobs.form.saveChanges") : t("jobs.form.post")}</Button>
       </div>
     </form>
   )

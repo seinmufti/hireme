@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { JobDetail } from "@/components/jobs/job-detail"
+import { useT } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
 import { useMyTalent } from "@/lib/use-my-talent"
 import { useRoleGuard } from "@/lib/use-role-guard"
@@ -16,11 +17,12 @@ export function JobView({ id }: { id: string }) {
 }
 
 export function JobNotFound() {
+  const t = useT()
   return (
     <div className="mx-auto max-w-md rounded-xl border border-dashed bg-card py-16 text-center">
-      <p className="font-medium">This job doesn&apos;t exist</p>
+      <p className="font-medium">{t("jobs.notFound")}</p>
       <Link href="/jobs" className="mt-2 inline-block text-sm text-primary hover:underline">
-        Browse all jobs
+        {t("jobs.browseAll")}
       </Link>
     </div>
   )

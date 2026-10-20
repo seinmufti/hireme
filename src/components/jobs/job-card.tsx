@@ -1,8 +1,11 @@
+"use client"
+
 import Link from "next/link"
 import { CheckIcon, SparklesIcon } from "lucide-react"
+import { useT } from "@/i18n/provider"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { jobFacts, SkillChips } from "./job-meta"
+import { SkillChips, useJobFacts } from "./job-meta"
 
 /** One job in a list. `match` marks jobs that suit the signed-in job seeker. */
 /** `applied` is the signed-in job seeker's application status, if they applied. */
@@ -19,7 +22,8 @@ export function JobCard({
   applied?: string
   className?: string
 }) {
-  const facts = jobFacts(job).filter((f) => f.label !== "Company" && f.label !== "Category")
+  const t = useT()
+  const facts = useJobFacts()(job).filter((f) => f.key !== "company" && f.key !== "category")
   return (
     <article
       className={cn(
@@ -42,19 +46,19 @@ export function JobCard({
         </div>
         {applied ? (
           <span className="flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
-            <CheckIcon className="size-3" /> Applied
+            <CheckIcon className="size-3" /> {t("jobs.applied")}
           </span>
         ) : match && (
           <span className="flex shrink-0 items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900">
-            <SparklesIcon className="size-3" /> Matches you
+            <SparklesIcon className="size-3" /> {t("jobs.matchesYou")}
           </span>
         )}
-        {!job.open && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Closed</span>}
+        {!job.open && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}
       </div>
 
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
         {facts.map((f) => (
-          <div key={f.label} className="flex items-center gap-1.5">
+          <div key={f.key} className="flex items-center gap-1.5">
             <f.icon className="size-3.5 shrink-0" />
             <dt className="sr-only">{f.label}</dt>
             <dd>{f.value}</dd>

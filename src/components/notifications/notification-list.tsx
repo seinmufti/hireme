@@ -4,8 +4,7 @@ import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { BellIcon, SparklesIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { timeAgo } from "@/lib/format"
-import { locationLabel } from "@/lib/jobs"
+import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
@@ -16,6 +15,9 @@ import { cn } from "@/lib/utils"
  */
 export function NotificationList({ onNavigate, className }: { onNavigate?: () => void; className?: string }) {
   const router = useRouter()
+  const t = useT()
+  const timeAgo = useTimeAgo()
+  const locationLabel = useLocationLabel()
   const userId = useStore((s) => s.currentUserId)
   const all = useStore((s) => s.notifications)
   const jobs = useStore((s) => s.jobs)
@@ -39,19 +41,19 @@ export function NotificationList({ onNavigate, className }: { onNavigate?: () =>
     <div className={cn("flex min-h-0 flex-col", className)}>
       <div className="flex items-center justify-between border-b px-3 py-2">
         <span className="text-sm font-medium">
-          Notifications
-          {unread > 0 && <span className="ml-1.5 text-xs font-normal text-muted-foreground">{unread} new</span>}
+          {t("notifications.title")}
+          {unread > 0 && <span className="ms-1.5 text-xs font-normal text-muted-foreground">{t("notifications.newCount", { count: unread })}</span>}
         </span>
         {unread > 0 && (
           <Button variant="link" size="xs" onClick={markAllRead}>
-            Mark all as read
+            {t("notifications.markAllRead")}
           </Button>
         )}
       </div>
       {items.length === 0 ? (
         <div className="flex flex-col items-center gap-2 px-4 py-10 text-center text-sm text-muted-foreground">
           <BellIcon className="size-5" />
-          <p>No notifications yet. We&apos;ll let you know when a new job matches your profile.</p>
+          <p>{t("notifications.empty")}</p>
         </div>
       ) : (
         <ul className="min-h-0 overflow-y-auto p-1">
@@ -64,19 +66,19 @@ export function NotificationList({ onNavigate, className }: { onNavigate?: () =>
                   onNavigate?.()
                   router.push(`/jobs/${n.job.id}`)
                 }}
-                className={cn("flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-left hover:bg-muted", !n.readAt && "bg-brand-soft/60")}
+                className={cn("flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-start hover:bg-muted", !n.readAt && "bg-brand-soft/60")}
               >
                 <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
                   <SparklesIcon className="size-3.5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-xs text-muted-foreground">New job matches your profile</span>
+                  <span className="block text-xs text-muted-foreground">{t("notifications.newJob")}</span>
                   <span className="block truncate text-sm font-medium">{n.job.title}</span>
                   <span className="block truncate text-xs text-muted-foreground">
                     {n.job.company} · {locationLabel(n.job.location)} · {timeAgo(n.createdAt)}
                   </span>
                 </span>
-                {!n.readAt && <span className="mt-2 size-2 shrink-0 rounded-full bg-primary" aria-label="Unread" />}
+                {!n.readAt && <span className="mt-2 size-2 shrink-0 rounded-full bg-primary" aria-label={t("notifications.unread")} />}
               </button>
             </li>
           ))}

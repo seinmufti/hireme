@@ -1,21 +1,28 @@
 import { BriefcaseIcon, Building2Icon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
-import { locationLabel } from "@/lib/jobs"
-import { timeAgo } from "@/lib/format"
+"use client"
+
+import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-/** Company, location, contract type, category and when it was posted. */
-export function jobFacts(job: Job) {
-  return [
-    { icon: Building2Icon, label: "Company", value: job.company },
+export type JobFact = "company" | "location" | "contract" | "category" | "posted"
+
+/** Company, location, contract type, category and when it was posted, in the current language. */
+export function useJobFacts() {
+  const t = useT()
+  const timeAgo = useTimeAgo()
+  const locationLabel = useLocationLabel()
+  return (job: Job) => [
+    { key: "company" as JobFact, icon: Building2Icon, label: t("jobs.factCompany"), value: job.company },
     {
+      key: "location" as JobFact,
       icon: job.location.remote ? LaptopIcon : job.location.international ? GlobeIcon : MapPinIcon,
-      label: "Location",
+      label: t("jobs.factLocation"),
       value: locationLabel(job.location),
     },
-    { icon: BriefcaseIcon, label: "Contract", value: job.contractType },
-    { icon: TagIcon, label: "Category", value: job.category },
-    { icon: ClockIcon, label: "Posted", value: `Posted ${timeAgo(job.createdAt)}` },
+    { key: "contract" as JobFact, icon: BriefcaseIcon, label: t("jobs.factContract"), value: job.contractType },
+    { key: "category" as JobFact, icon: TagIcon, label: t("jobs.factCategory"), value: job.category },
+    { key: "posted" as JobFact, icon: ClockIcon, label: t("jobs.factPosted"), value: t("jobs.posted", { time: timeAgo(job.createdAt) }) },
   ]
 }
 
@@ -63,7 +70,7 @@ export function JobDescription({ text }: { text: string }) {
         .filter((b) => b.lines.length)
         .map((b, i) =>
           b.bullets ? (
-            <ul key={i} className="list-disc space-y-1 pl-5">
+            <ul key={i} className="list-disc space-y-1 ps-5">
               {b.lines.map((l, j) => (
                 <li key={j}>{l}</li>
               ))}

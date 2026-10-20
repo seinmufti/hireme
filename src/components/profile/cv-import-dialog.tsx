@@ -6,9 +6,11 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useT } from "@/i18n/provider"
 import {
   CV_IMPORT_ACCEPT,
   CV_IMPORT_MAX_BYTES,
+  describePath,
   findConflicts,
   mergeCvImport,
   stillMissing,
@@ -46,6 +48,7 @@ export function CvImportButton<P extends object, T extends object>({
   portfolio: T
   onApply: (next: { profile: P; portfolio: T }, needsLook: string[]) => void
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>({ kind: "pick" })
   const [replace, setReplace] = useState<Set<string>>(new Set())
@@ -57,11 +60,11 @@ export function CvImportButton<P extends object, T extends object>({
     const needsLook = [...new Set([...cv.uncertain, ...stillMissing(next.profile as Record<string, unknown>, next.portfolio as Record<string, unknown>)])]
     onApply(next, needsLook)
     setOpen(false)
-    toast.success(needsLook.length ? "CV imported. Check the yellow sections." : "CV imported. Check everything, then press Ready.")
+    toast.success(needsLook.length ? t("cvImport.doneCheck") : t("cvImport.doneAll"))
   }
 
   const read = async (picked: File) => {
-    if (picked.size > CV_IMPORT_MAX_BYTES) return toast.error("That file is over 10 MB. Please upload a smaller one.")
+    if (picked.size > CV_IMPORT_MAX_BYTES) return toast.error(t("cvImport.tooBig"))
     setStep({ kind: "reading", fileName: picked.name })
     try {
       const file = await shrinkImage(picked)
@@ -69,7 +72,7 @@ export function CvImportButton<P extends object, T extends object>({
       body.append("file", file)
       const res = await fetch("/api/cv-import", { method: "POST", body })
       const data = await res.json().catch(() => null)
-      if (!res.ok || !data?.cv) throw new Error(data?.error ?? "We couldn't read that CV. Please try again.")
+      if (!res.ok || !data?.cv) throw new Error(data?.error ?? t("cvImport.failed"))
       const cv = data.cv as CvImport
       const conflicts = findConflicts(profile as Record<string, unknown>, portfolio as Record<string, unknown>, cv)
       if (conflicts.length) {
@@ -77,7 +80,7 @@ export function CvImportButton<P extends object, T extends object>({
         setStep({ kind: "conflicts", cv, conflicts })
       } else apply(cv, new Set())
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "We couldn't read that CV.")
+      toast.error(e instanceof Error ? e.message : t("cvImport.failed"))
       setStep({ kind: "pick" })
     }
   }
@@ -92,17 +95,17 @@ export function CvImportButton<P extends object, T extends object>({
           setOpen(true)
         }}
       >
-        <SparklesIcon /> Import from your CV
+        <SparklesIcon /> {t("cvImport.button")}
       </Button>
 
       <Dialog open={open} onOpenChange={(o) => step.kind !== "reading" && setOpen(o)}>
         <DialogContent className="sm:max-w-lg" showCloseButton={step.kind !== "reading"}>
           <DialogHeader>
-            <DialogTitle>Import from your CV</DialogTitle>
+            <DialogTitle>{t("cvImport.title")}</DialogTitle>
             <DialogDescription>
               {step.kind === "conflicts"
-                ? "Your CV has different details for some fields you already filled in. Tick the ones to replace."
-                : "Upload your CV and we'll fill in your profile. Anything missing or unclear turns yellow for you to check."}
+                ? t("cvImport.conflictsIntro")
+                : t("cvImport.intro")}
             </DialogDescription>
           </DialogHeader>
 
@@ -127,8 +130,8 @@ export function CvImportButton<P extends object, T extends object>({
               )}
             >
               <FileUpIcon className="size-8 text-muted-foreground" />
-              <span className="font-medium">Choose a file or drop it here</span>
-              <span className="text-xs text-muted-foreground">PDF, Word (.docx) or a photo of your CV · up to 10 MB</span>
+              <span className="font-medium">{t("cvImport.choose")}</span>
+              <span className="text-xs text-muted-foreground">{t("cvImport.types")}</span>
             </button>
           )}
           <input
@@ -146,8 +149,8 @@ export function CvImportButton<P extends object, T extends object>({
           {step.kind === "reading" && (
             <div className="flex flex-col items-center gap-3 py-8 text-center" role="status">
               <Loader2Icon className="size-8 animate-spin text-primary" />
-              <span className="font-medium">Reading your CV…</span>
-              <span className="max-w-full truncate text-xs text-muted-foreground">{step.fileName} · this can take up to a minute</span>
+              <span className="font-medium">{t("cvImport.reading")}</span>
+              <span className="max-w-full truncate text-xs text-muted-foreground">{t("cvImport.readingHint", { file: step.fileName })}</span>
             </div>
           )}
 
@@ -170,9 +173,9 @@ export function CvImportButton<P extends object, T extends object>({
                         }
                       />
                       <span className="min-w-0 space-y-0.5">
-                        <span className="block font-medium">{c.label}</span>
-                        <span className="block truncate text-muted-foreground">Now: {c.current}</span>
-                        <span className="block truncate">From your CV: {c.imported}</span>
+                        <span className="block font-medium">{describePath(c.path, t)}</span>
+                        <span className="block truncate text-muted-foreground">{t("cvImport.now", { value: c.current })}</span>
+                        <span className="block truncate">{t("cvImport.fromCv", { value: c.imported })}</span>
                       </span>
                     </label>
                   </li>
@@ -180,10 +183,10 @@ export function CvImportButton<P extends object, T extends object>({
               </ul>
               <DialogFooter>
                 <Button type="button" variant="ghost" onClick={() => apply(step.cv, new Set())}>
-                  Keep mine
+                  {t("cvImport.keepMine")}
                 </Button>
                 <Button type="button" onClick={() => apply(step.cv, replace)}>
-                  {replace.size ? `Replace ${replace.size} and import` : "Import"}
+                  {replace.size ? t("cvImport.replaceAndImport", { count: replace.size }) : t("cvImport.import")}
                 </Button>
               </DialogFooter>
             </>

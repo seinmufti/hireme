@@ -65,11 +65,3 @@ export function matchingJobs(talent: MatchableTalent, jobs: Job[]): JobMatch[] {
     .sort((a, b) => b.score - a.score || b.job.createdAt.localeCompare(a.job.createdAt))
 }
 
-/** Plain-language reasons a job matches, e.g. for the job page. */
-export function matchReasons(m: JobMatch) {
-  return [
-    m.category && `You've worked in ${m.job.category}`,
-    m.skills.length > 0 && `You have ${m.skills.length === 1 ? "the skill" : "the skills"} ${m.skills.join(", ")}`,
-    m.title && "You've held a similar job",
-  ].filter((r): r is string => !!r)
-}

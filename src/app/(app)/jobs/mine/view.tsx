@@ -4,9 +4,8 @@ import { useMemo } from "react"
 import Link from "next/link"
 import { BellIcon, PencilIcon, PlusIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
+import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { timeAgo } from "@/lib/format"
-import { locationLabel } from "@/lib/jobs"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { cn } from "@/lib/utils"
@@ -14,6 +13,9 @@ import { cn } from "@/lib/utils"
 // An employer's own job posts: open ones first, then closed ones, newest first.
 export function MyJobsView() {
   const viewer = useRoleGuard(["EMPLOYER"])
+  const t = useT()
+  const timeAgo = useTimeAgo()
+  const locationLabel = useLocationLabel()
   const allJobs = useStore((s) => s.jobs)
   const notifications = useStore((s) => s.notifications)
   const applications = useStore((s) => s.applications)
@@ -31,20 +33,20 @@ export function MyJobsView() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My job posts</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("jobs.myPosts")}</h1>
           <p className="text-sm text-muted-foreground">
-            {jobs.filter((j) => j.open).length} open · {jobs.filter((j) => !j.open).length} closed
+            {t("jobs.postsCount", { open: jobs.filter((j) => j.open).length, closed: jobs.filter((j) => !j.open).length })}
           </p>
         </div>
         <Link href="/jobs/new" className={buttonVariants()}>
-          <PlusIcon /> Post a job
+          <PlusIcon /> {t("jobs.postJob")}
         </Link>
       </div>
 
       {jobs.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
-          <p className="font-medium">You haven&apos;t posted any jobs yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Post one and matching job seekers are notified right away.</p>
+          <p className="font-medium">{t("jobs.noPosts")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("jobs.noPostsHint")}</p>
         </div>
       ) : (
         <ul className="divide-y rounded-xl border bg-card">
@@ -64,21 +66,21 @@ export function MyJobsView() {
                         j.open ? "bg-emerald-50 text-emerald-900" : "bg-muted text-muted-foreground"
                       )}
                     >
-                      {j.open ? "Open" : "Closed"}
+                      {j.open ? t("jobs.open") : t("jobs.closed")}
                     </span>
                   </div>
                   <p className="truncate text-sm text-muted-foreground">
-                    {[j.category, locationLabel(j.location), j.contractType, `posted ${timeAgo(j.createdAt)}`].join(" · ")}
+                    {[j.category, locationLabel(j.location), j.contractType, t("jobs.postedAgo", { time: timeAgo(j.createdAt) })].join(" · ")}
                   </p>
                 </div>
                 <Link href={`/jobs/${j.id}#applicants`} className="flex shrink-0 items-center gap-1.5 text-sm hover:underline">
-                  <UsersIcon className="size-3.5 text-muted-foreground" /> {applied} applicant{applied === 1 ? "" : "s"}
+                  <UsersIcon className="size-3.5 text-muted-foreground" /> {applied === 1 ? t("jobs.applicantsOne") : t("jobs.applicants", { count: applied })}
                 </Link>
-                <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground" title="Matching job seekers notified">
-                  <BellIcon className="size-3.5" /> {notified} notified
+                <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground" title={t("jobs.notifiedTitle")}>
+                  <BellIcon className="size-3.5" /> {t("jobs.notifiedShort", { count: notified })}
                 </span>
                 <Link href={`/jobs/${j.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
-                  <PencilIcon /> Edit
+                  <PencilIcon /> {t("common.edit")}
                 </Link>
                 <Button
                   variant="outline"
@@ -86,10 +88,10 @@ export function MyJobsView() {
                   className="w-20"
                   onClick={() => {
                     setJobOpen(j.id, !j.open)
-                    toast.success(j.open ? "Job closed" : "Job reopened")
+                    toast.success(j.open ? t("jobs.jobClosed") : t("jobs.jobReopened"))
                   }}
                 >
-                  {j.open ? "Close" : "Reopen"}
+                  {j.open ? t("jobs.close") : t("jobs.reopen")}
                 </Button>
               </li>
             )

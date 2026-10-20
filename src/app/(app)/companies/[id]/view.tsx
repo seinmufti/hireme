@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowLeftIcon } from "lucide-react"
 import { JobCard } from "@/components/jobs/job-card"
 import { CompanyCard } from "@/components/jobs/job-detail"
+import { useT } from "@/i18n/provider"
 import { matchingJobs } from "@/lib/matching"
 import { useStore } from "@/lib/store"
 import { useMyTalent } from "@/lib/use-my-talent"
@@ -13,6 +14,7 @@ import { useRoleGuard } from "@/lib/use-role-guard"
 // One company: its contact details and the jobs it has open.
 export function CompanyView({ id }: { id: string }) {
   const viewer = useRoleGuard()
+  const t = useT()
   const company = useStore((s) => s.users.find((u) => u.id === id && u.role === "EMPLOYER")) ?? null
   const allJobs = useStore((s) => s.jobs)
   const talent = useMyTalent()
@@ -27,9 +29,9 @@ export function CompanyView({ id }: { id: string }) {
   if (!company) {
     return (
       <div className="mx-auto max-w-md rounded-xl border border-dashed bg-card py-16 text-center">
-        <p className="font-medium">This company isn&apos;t on HireMe</p>
+        <p className="font-medium">{t("companies.notFound")}</p>
         <Link href="/companies" className="mt-2 inline-block text-sm text-primary hover:underline">
-          Browse all companies
+          {t("companies.browseAll")}
         </Link>
       </div>
     )
@@ -38,14 +40,14 @@ export function CompanyView({ id }: { id: string }) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <Link href="/companies" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeftIcon className="size-4" /> All companies
+        <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {t("companies.allCompanies")}
       </Link>
       <div className="grid grid-cols-[1fr_20rem] items-start gap-6">
         <section className="space-y-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{company.company || company.name}</h1>
             <p className="text-sm text-muted-foreground">
-              {jobs.length ? `${jobs.length} open job${jobs.length === 1 ? "" : "s"}` : "No open jobs right now"}
+              {jobs.length ? (jobs.length === 1 ? t("companies.openJobsOne") : t("companies.openJobs", { count: jobs.length })) : t("companies.noOpenJobs")}
             </p>
           </div>
           {jobs.length > 0 && (

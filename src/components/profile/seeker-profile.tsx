@@ -33,6 +33,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { deleteFile } from "@/lib/files"
 import { ageFrom, formatDuration, formatMonthYear, projectDuration, totalMonths } from "@/lib/format"
 import { countryName, HARD_SKILLS, SOFT_SKILLS } from "@/lib/options"
+import { useT } from "@/i18n/provider"
+import type { Translate } from "@/i18n/translate"
 import { listingSectionsMissing, portfolioEntryProblem, useStore, type ListingSection } from "@/lib/store"
 import type { Talent, TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -50,24 +52,15 @@ import {
 
 type SectionId = ListingSection | "preference"
 
-// Sections in CV order, as they appear on the profile, in the form and on the CV
-const SECTION_TITLES: Record<SectionId, string> = {
-  personal: "Personal details & contact",
-  about: "About me",
-  work: "Work experience",
-  education: "Education",
-  skills: "Core competencies",
-  languages: "Languages",
-  certifications: "Licenses & certifications",
-  projects: "Projects & activities",
-  preference: "Work I'm looking for",
-}
+// Sections in CV order, as they appear on the profile and in the form
+const sectionTitle = (t: Translate, id: SectionId) => t(`seeker.sections.${id}`)
 
 // Job seeker profile = their CV: personal and contact details, about me, work experience, education,
 // skills, languages, licenses, projects, and the kind of work they want (for matching only).
 export function SeekerProfile({ user }: { user: User }) {
-  const talent = useStore((s) => s.talents.find((t) => t.userId === user.id)) ?? null
+  const talent = useStore((s) => s.talents.find((x) => x.userId === user.id)) ?? null
   const router = useRouter()
+  const t = useT()
   // "?edit=1" (right after creating an account, or from the CV preview's Edit button) opens the form straight away
   const params = useSearchParams()
   const startEditing = params.has("edit")
@@ -93,7 +86,7 @@ export function SeekerProfile({ user }: { user: User }) {
           {user.title ? (
             <p className="truncate text-muted-foreground">{user.title}</p>
           ) : (
-            <p className="truncate text-sm text-muted-foreground italic">Add your profession under your name</p>
+            <p className="truncate text-sm text-muted-foreground italic">{t("seeker.addProfession")}</p>
           )}
           {location && (
             <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -103,7 +96,7 @@ export function SeekerProfile({ user }: { user: User }) {
         </div>
         {!editing && (
           <Link href="/profile/cv" className={buttonVariants({ variant: "default" })}>
-            <EyeIcon /> Preview CV
+            <EyeIcon /> {t("seeker.previewCv")}
           </Link>
         )}
       </div>
@@ -121,6 +114,7 @@ export function SeekerProfile({ user }: { user: User }) {
 
 /** The only place the Pool status and the visibility switch appear. */
 function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
+  const t = useT()
   const setPortfolioVisible = useStore((s) => s.setPortfolioVisible)
   const sections = listingSectionsMissing(user, talent)
   // Visible only when switched on and complete: the switch can't be turned on while required details are missing
@@ -128,10 +122,10 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   // Required details missing, one bullet per section
   const missing = (
     <>
-      Required details missing in:
-      <ul className="mt-1 list-disc space-y-0.5 pl-4">
+      {t("seeker.missingIn")}
+      <ul className="mt-1 list-disc space-y-0.5 ps-4">
         {sections.map((s) => (
-          <li key={s}>{SECTION_TITLES[s]}</li>
+          <li key={s}>{sectionTitle(t, s)}</li>
         ))}
       </ul>
     </>
@@ -140,7 +134,7 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   const status = (
     <span className={cn("flex items-center gap-1.5 text-sm font-medium", inPool ? "text-emerald-900" : "text-amber-900")}>
       {inPool ? <CircleCheckIcon className="size-4" /> : <CircleAlertIcon className="size-4" />}
-      {inPool ? "Your profile is visible to employers" : "Your profile is hidden from employers"}
+      {inPool ? t("seeker.visible") : t("seeker.hidden")}
     </span>
   )
 
@@ -154,7 +148,7 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
       <div>
         {status}
         {/* What's still needed, under the status */}
-        {sections.length > 0 && <div className="mt-1.5 pl-5.5 text-sm text-amber-900">{missing}</div>}
+        {sections.length > 0 && <div className="mt-1.5 ps-5.5 text-sm text-amber-900">{missing}</div>}
       </div>
       {/* On = visible to employers, off = hidden */}
       <SwitchPrimitive.Root
@@ -162,22 +156,22 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
         onCheckedChange={(v) => {
           if (v && sections.length) {
             // Not allowed until every required detail is in
-            toast.warning("Your profile can't be visible to employers yet", {
+            toast.warning(t("seeker.cantShow"), {
               description: missing,
             })
             return
           }
           setPortfolioVisible(v)
-          toast.success(v ? "Your profile is visible to employers" : "Your profile is hidden from employers")
+          toast.success(v ? t("seeker.visible") : t("seeker.hidden"))
         }}
-        aria-label="Your profile is visible to employers"
+        aria-label={t("seeker.visible")}
         className="group relative inline-flex h-7 w-16 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-input transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:bg-primary"
       >
         <span className="absolute left-2 text-[10px] font-semibold text-primary-foreground opacity-0 transition-opacity group-data-checked:opacity-100">
-          ON
+          {t("seeker.on")}
         </span>
         <span className="absolute right-1.5 text-[10px] font-semibold text-muted-foreground transition-opacity group-data-checked:opacity-0">
-          OFF
+          {t("seeker.off")}
         </span>
         <SwitchPrimitive.Thumb className="block size-5 translate-x-1 rounded-full bg-background shadow-sm transition-transform data-checked:translate-x-[2.4rem]" />
       </SwitchPrimitive.Root>
@@ -201,17 +195,18 @@ function Card({
   note?: React.ReactNode
   children: React.ReactNode
 }) {
-  const title = SECTION_TITLES[id]
+  const t = useT()
+  const title = sectionTitle(t, id)
   return (
     <section className={cn("rounded-xl border p-6", needsDetails ? NEEDS_DETAILS : "bg-card")}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className={cn("text-sm font-medium", needsDetails ? "text-amber-900" : "text-muted-foreground")}>
           {title}
-          {needsDetails && <span className="ml-2 text-xs font-normal">Required details missing</span>}
-          {note && <span className="ml-2 text-xs font-normal">{note}</span>}
+          {needsDetails && <span className="ms-2 text-xs font-normal">{t("seeker.requiredMissing")}</span>}
+          {note && <span className="ms-2 text-xs font-normal">{note}</span>}
         </h2>
-        <Button variant="ghost" size="sm" onClick={() => onEdit(id)} aria-label={`Edit ${title.toLowerCase()}`}>
-          <PencilIcon /> Edit
+        <Button variant="ghost" size="sm" onClick={() => onEdit(id)} aria-label={t("seeker.editSection", { section: title })}>
+          <PencilIcon /> {t("common.edit")}
         </Button>
       </div>
       {children}
@@ -233,28 +228,29 @@ function Attachments({ ids }: { ids: string[] }) {
 }
 
 function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | null; onEdit: (section: SectionId) => void }) {
+  const t = useT()
   const needs = new Set(listingSectionsMissing(user, talent))
   const p = talent ?? EMPTY_PORTFOLIO
   const age = ageFrom(p.dateOfBirth)
   const months = totalMonths(p.experiences)
   const location = [user.city, countryName(user.country)].filter(Boolean).join(", ")
   const details = [
-    { icon: UserIcon, label: "Gender", value: p.gender },
+    { icon: UserIcon, label: t("seeker.gender"), value: p.gender },
     {
       icon: CakeIcon,
-      label: "Date of birth",
+      label: t("seeker.dateOfBirth"),
       value: p.dateOfBirth
-        ? `${new Date(p.dateOfBirth).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} (${age} years old)`
+        ? `${new Date(p.dateOfBirth).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} (${t("seeker.yearsOld", { age: age ?? "" })})`
         : "",
     },
-    { icon: PhoneIcon, label: "Phone", value: user.phone, href: user.phone ? `tel:${user.phone.replace(/\s/g, "")}` : "" },
-    { icon: MailIcon, label: "Email", value: user.email, href: user.email ? `mailto:${user.email}` : "" },
-    { icon: MapPinIcon, label: "Location", value: location, flag: user.country },
-    { icon: HomeIcon, label: "Address", value: user.address, private: true },
-    { icon: LinkIcon, label: "LinkedIn", value: user.linkedin.replace(/^https?:\/\/(www\.)?/, ""), href: user.linkedin },
+    { icon: PhoneIcon, label: t("seeker.phone"), value: user.phone, href: user.phone ? `tel:${user.phone.replace(/\s/g, "")}` : "" },
+    { icon: MailIcon, label: t("seeker.email"), value: user.email, href: user.email ? `mailto:${user.email}` : "" },
+    { icon: MapPinIcon, label: t("seeker.location"), value: location, flag: user.country },
+    { icon: HomeIcon, label: t("seeker.address"), value: user.address, private: true },
+    { icon: LinkIcon, label: t("seeker.linkedin"), value: user.linkedin.replace(/^https?:\/\/(www\.)?/, ""), href: user.linkedin, external: true },
   ]
   const pref = p.workPreference
-  const prefs = [pref.remote && "Remote", pref.international && "International", ...pref.iraqCities].filter(Boolean)
+  const prefs = [pref.remote && t("seeker.remote"), pref.international && t("seeker.international"), ...pref.iraqCities].filter(Boolean)
 
   return (
     <div className="space-y-4">
@@ -266,18 +262,18 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
               <dt className="sr-only">{d.label}</dt>
               <dd className="flex min-w-0 items-center gap-1.5">
                 {!d.value ? (
-                  <span className="text-muted-foreground">No {d.label.toLowerCase()} added</span>
+                  <span className="text-muted-foreground">{d.label}: {t("seeker.notAdded")}</span>
                 ) : (
                   <>
                     {d.flag && <Flag code={d.flag} />}
                     {d.href ? (
-                      <a href={d.href} target={d.label === "LinkedIn" ? "_blank" : undefined} rel="noreferrer" className="truncate hover:underline">
+                      <a href={d.href} target={d.external ? "_blank" : undefined} rel="noreferrer" className="truncate hover:underline">
                         {d.value}
                       </a>
                     ) : (
                       <span className="truncate">{d.value}</span>
                     )}
-                    {d.private && <LockIcon className="size-3 shrink-0 text-muted-foreground" aria-label="Only on your own CV" />}
+                    {d.private && <LockIcon className="size-3 shrink-0 text-muted-foreground" aria-label={t("seeker.onlyOnYourCv")} />}
                   </>
                 )}
               </dd>
@@ -287,19 +283,19 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
       </Card>
 
       <Card id="about" onEdit={onEdit}>
-        {p.summary ? <p className="text-sm whitespace-pre-line">{p.summary}</p> : <Empty>A few sentences about you, your experience and what you&apos;re looking for.</Empty>}
+        {p.summary ? <p className="text-sm whitespace-pre-line">{p.summary}</p> : <Empty>{t("seeker.aboutEmpty")}</Empty>}
       </Card>
 
-      <Card id="work" onEdit={onEdit} needsDetails={needs.has("work")} note={months > 0 && `${formatDuration(months)} in total`}>
+      <Card id="work" onEdit={onEdit} needsDetails={needs.has("work")} note={months > 0 && t("seeker.inTotal", { duration: formatDuration(months) })}>
         {p.experiences.length === 0 ? (
-          <Empty>No previous jobs listed.</Empty>
+          <Empty>{t("seeker.noJobs")}</Empty>
         ) : (
           <ol className="space-y-4">
             {p.experiences.map((e) => (
               <li key={e.id}>
                 <ExperienceList experiences={[e]} />
                 {e.description && (
-                  <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-sm marker:text-primary">
+                  <ul className="mt-1.5 list-disc space-y-0.5 ps-5 text-sm marker:text-primary">
                     {e.description.split("\n").map((b, i) => (
                       <li key={i}>{b}</li>
                     ))}
@@ -307,8 +303,8 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
                 )}
                 {e.reference && (
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <UserRoundCheckIcon className="size-3.5" /> Reference: {e.reference.name}
-                    {e.reference.position && `, ${e.reference.position}`} (shown as &ldquo;available on request&rdquo;)
+                    <UserRoundCheckIcon className="size-3.5" /> {t("seeker.reference", { name: e.reference.name })}
+                    {e.reference.position && `, ${e.reference.position}`} {t("seeker.referenceNote")}
                   </p>
                 )}
               </li>
@@ -331,23 +327,23 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
 
       <Card id="skills" onEdit={onEdit}>
         {p.hardSkills.length + p.softSkills.length === 0 ? (
-          <Empty>Add your hard skills (e.g. Excel, AutoCAD) and soft skills (e.g. Teamwork).</Empty>
+          <Empty>{t("seeker.skillsEmpty")}</Empty>
         ) : (
           <div className="grid grid-cols-2 gap-6 text-sm">
             {[
-              ["Hard skills", p.hardSkills],
-              ["Soft skills", p.softSkills],
+              [t("seeker.hardSkills"), p.hardSkills],
+              [t("seeker.softSkills"), p.softSkills],
             ].map(([title, list]) => (
               <div key={title as string}>
                 <h3 className="mb-1 text-xs font-medium text-muted-foreground">{title}</h3>
                 {(list as string[]).length ? (
-                  <ul className="list-disc space-y-0.5 pl-5 marker:text-primary">
+                  <ul className="list-disc space-y-0.5 ps-5 marker:text-primary">
                     {(list as string[]).map((s) => (
                       <li key={s}>{s}</li>
                     ))}
                   </ul>
                 ) : (
-                  <Empty>None added</Empty>
+                  <Empty>{t("seeker.noneAdded")}</Empty>
                 )}
               </div>
             ))}
@@ -363,7 +359,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
               .filter((l) => l.attachmentIds.length)
               .map((l) => (
                 <div key={l.language} className="text-sm">
-                  <span className="text-xs text-muted-foreground">{l.language} certificate</span>
+                  <span className="text-xs text-muted-foreground">{t("seeker.languageCertificate", { language: l.language })}</span>
                   <Attachments ids={l.attachmentIds} />
                 </div>
               ))}
@@ -385,17 +381,17 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
 
       <Card id="projects" onEdit={onEdit} needsDetails={needs.has("projects")}>
         {p.projects.length === 0 ? (
-          <Empty>No projects or activities added. They&apos;re optional.</Empty>
+          <Empty>{t("seeker.projectsEmpty")}</Empty>
         ) : (
           <ol className="space-y-3 text-sm">
             {p.projects.map((x) => (
               <li key={x.id}>
-                <div className="font-medium">{x.name || <span className="text-muted-foreground italic">Name not added</span>}</div>
+                <div className="font-medium">{x.name || <span className="text-muted-foreground italic">{t("seeker.nameNotAdded")}</span>}</div>
                 <div className="text-xs text-muted-foreground">
-                  {[x.start && formatMonthYear(x.start), x.start && (x.end ? formatMonthYear(x.end) : "Ongoing")].filter(Boolean).join(" – ")}
+                  {[x.start && formatMonthYear(x.start), x.start && (x.end ? formatMonthYear(x.end) : t("seeker.ongoing"))].filter(Boolean).join(" – ")}
                   {projectDuration(x) && ` · ${projectDuration(x)}`}
                   {x.link && (
-                    <a href={x.link} target="_blank" rel="noreferrer" className="ml-2 inline-flex items-center gap-1 text-primary hover:underline">
+                    <a href={x.link} target="_blank" rel="noreferrer" className="ms-2 inline-flex items-center gap-1 text-primary hover:underline">
                       <GlobeIcon className="size-3" /> {x.link.replace(/^https?:\/\/(www\.)?/, "")}
                     </a>
                   )}
@@ -407,7 +403,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         )}
       </Card>
 
-      <Card id="preference" onEdit={onEdit} note={<>· <LockIcon className="inline size-3" /> for job matching, not on your CV</>}>
+      <Card id="preference" onEdit={onEdit} note={<>· <LockIcon className="inline size-3" /> {t("seeker.preferenceNote")}</>}>
         {prefs.length ? (
           <div className="flex flex-wrap gap-1.5">
             {prefs.map((x) => (
@@ -417,7 +413,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
             ))}
           </div>
         ) : (
-          <Empty>Choose remote, international, or cities in Iraq, so we can show you matching jobs.</Empty>
+          <Empty>{t("seeker.preferenceEmpty")}</Empty>
         )}
       </Card>
     </div>
@@ -444,6 +440,7 @@ function PortfolioForm({
   onCancel: () => void
 }) {
   const router = useRouter()
+  const t = useT()
   // Opened from a section's Edit button: scroll that section into view
   useEffect(() => {
     if (jumpTo) document.getElementById(`edit-${jumpTo}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -497,7 +494,7 @@ function PortfolioForm({
     cleanUpFiles(fileIds(portfolio, contact.photoId))
 
     // What's still missing for The Pool shows in the status at the top of the profile
-    toast.success("Your CV is ready")
+    toast.success(t("seeker.cvReady"))
     router.push("/profile/cv")
   }
 
@@ -508,7 +505,7 @@ function PortfolioForm({
 
   const heading = (id: SectionId, hint?: string) => (
     <div>
-      <h2 className="font-medium">{SECTION_TITLES[id]}</h2>
+      <h2 className="font-medium">{sectionTitle(t, id)}</h2>
       {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
     </div>
   )
@@ -516,7 +513,7 @@ function PortfolioForm({
   return (
     <form onSubmit={save} className="space-y-4">
       <div className="flex items-center justify-between gap-3 rounded-xl border bg-card p-6">
-        <p className="text-sm text-muted-foreground">Have a CV already? Import it to fill in your profile.</p>
+        <p className="text-sm text-muted-foreground">{t("cvImport.prompt")}</p>
         <CvImportButton
           profile={contact}
           portfolio={portfolio}
@@ -537,22 +534,22 @@ function PortfolioForm({
           onChange={(photoId) => setContact((c) => ({ ...c, photoId }))}
         />
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Full name">
+          <Field label={t("seeker.fullName")}>
             <Input className="h-9" value={contact.name} onChange={setField("name")} />
           </Field>
-          <Field label="Profession (shown under your name)">
-            <Input className="h-9" value={contact.title} onChange={setField("title")} placeholder="e.g. Accountant, Civil Engineer" />
+          <Field label={t("seeker.profession")}>
+            <Input className="h-9" value={contact.title} onChange={setField("title")} placeholder={t("seeker.professionPlaceholder")} />
           </Field>
         </div>
         <PersonalFields value={portfolio} onChange={setPortfolio} />
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Phone number">
+          <Field label={t("seeker.phoneNumber")}>
             <PhoneInput value={contact.phone} onChange={(phone) => setContact((c) => ({ ...c, phone }))} />
           </Field>
-          <Field label="Email">
+          <Field label={t("seeker.email")}>
             <Input className="h-9" type="email" value={contact.email} onChange={setField("email")} placeholder="name@example.com" />
           </Field>
-          <Field label="LinkedIn (optional)" className="col-span-2">
+          <Field label={t("seeker.linkedinOptional")} className="col-span-2">
             <Input className="h-9" value={contact.linkedin} onChange={setField("linkedin")} placeholder="https://linkedin.com/in/…" />
           </Field>
         </div>
@@ -561,22 +558,22 @@ function PortfolioForm({
           onChange={(patch) => setContact((c) => ({ ...c, ...patch }))}
         />
         <p className="text-xs text-muted-foreground">
-          Employers never see your phone, email, LinkedIn or address. They contact you through HireMe messages.
+          {t("seeker.contactPrivate")}
         </p>
       </section>
 
       <section id="edit-about" className={sectionClass("about")}>
-        {heading("about", "Optional. 2–4 sentences: who you are, your experience, and what you're looking for.")}
+        {heading("about", t("seeker.aboutHint"))}
         <Textarea
           className="min-h-24 text-sm"
           value={portfolio.summary}
           onChange={(e) => setPortfolio((p) => ({ ...p, summary: e.target.value }))}
-          placeholder="e.g. Accountant with 5 years of experience in construction companies in Erbil…"
+          placeholder={t("seeker.aboutPlaceholder")}
         />
       </section>
 
       <section id="edit-work" className={sectionClass("work")}>
-        {heading("work", "List your previous jobs, most recent first.")}
+        {heading("work", t("seeker.workHint"))}
         <ExperienceFields value={portfolio.experiences} onChange={list("experiences")} />
       </section>
 
@@ -586,21 +583,21 @@ function PortfolioForm({
       </section>
 
       <section id="edit-skills" className={sectionClass("skills")}>
-        {heading("skills", "Pick from the suggestions or write your own. They show as bullet points on your CV.")}
-        <Field label="Hard skills (tools, methods, technical knowledge)">
+        {heading("skills", t("seeker.skillsHint"))}
+        <Field label={t("seeker.hardSkillsLabel")}>
           <TagPicker
             value={portfolio.hardSkills}
             onChange={(hardSkills) => setPortfolio((p) => ({ ...p, hardSkills }))}
             suggestions={HARD_SKILLS}
-            placeholder="Search or write a skill, e.g. Excel"
+            placeholder={t("seeker.hardSkillsPlaceholder")}
           />
         </Field>
-        <Field label="Soft skills (how you work with people)">
+        <Field label={t("seeker.softSkillsLabel")}>
           <TagPicker
             value={portfolio.softSkills}
             onChange={(softSkills) => setPortfolio((p) => ({ ...p, softSkills }))}
             suggestions={SOFT_SKILLS}
-            placeholder="Search or write a skill, e.g. Teamwork"
+            placeholder={t("seeker.softSkillsPlaceholder")}
           />
         </Field>
       </section>
@@ -611,17 +608,17 @@ function PortfolioForm({
       </section>
 
       <section id="edit-certifications" className={sectionClass("certifications")}>
-        {heading("certifications", "Optional. Upload a scan of each one if you have it.")}
+        {heading("certifications", t("seeker.certificationsHint"))}
         <CertificationFields value={portfolio.certifications} onChange={list("certifications")} />
       </section>
 
       <section id="edit-projects" className={sectionClass("projects")}>
-        {heading("projects", "Optional. Personal projects, volunteering, clubs and other activities.")}
+        {heading("projects", t("seeker.projectsHint"))}
         <ProjectFields value={portfolio.projects} onChange={list("projects")} />
       </section>
 
       <section id="edit-preference" className={sectionClass("preference")}>
-        {heading("preference", "Used to match you with jobs. It isn't shown on your CV.")}
+        {heading("preference", t("seeker.preferenceHint"))}
         <WorkPreferenceFields
           value={portfolio.workPreference}
           onChange={(workPreference) => setPortfolio((p) => ({ ...p, workPreference }))}
@@ -629,12 +626,12 @@ function PortfolioForm({
       </section>
 
       <div className="sticky bottom-4 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
-        <span className="mr-auto text-xs text-muted-foreground">Ready saves your details and shows your CV.</span>
+        <span className="me-auto text-xs text-muted-foreground">{t("seeker.readyHint")}</span>
         <Button type="button" variant="ghost" onClick={cancel}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button type="submit">
-          <CircleCheckIcon /> Ready
+          <CircleCheckIcon /> {t("seeker.ready")}
         </Button>
       </div>
     </form>

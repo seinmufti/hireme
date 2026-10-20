@@ -2,6 +2,8 @@
 // The server route (src/app/api/cv-import/route.ts) returns a CvImport; the profile form merges it
 // into what's already typed with mergeCvImport, which never overwrites anything without asking.
 
+import type { Translate } from "@/i18n/translate"
+
 /** Contact and header details, which live on User. */
 export type ImportedUser = {
   name: string
@@ -112,23 +114,33 @@ const FIELD_LABELS: Record<string, string> = {
   "talent.dateOfBirth": "Date of birth",
 }
 
-/** "talent.experiences.1.start" -> "Job 2: start"; "user.phone" -> "Phone number". */
-export function describePath(path: string) {
-  if (FIELD_LABELS[path]) return FIELD_LABELS[path]
+/**
+ * "talent.experiences.1.start" -> "Job 2: start"; "user.phone" -> "Phone number".
+ * Pass the page's t() to get it in the current language.
+ */
+export function describePath(path: string, t?: Translate) {
   const [, list, index, field] = path.split(".")
-  const names: Record<string, string> = {
-    experiences: "Job",
-    degrees: "Degree",
-    certifications: "Certification",
-    languages: "Language",
-    projects: "Project",
+  const say = (key: string, english: string, vars?: Record<string, string | number>) =>
+    t ? t.dynamic(`cvImport.fields.${key}`, english, vars) : english.replace(/{(w+)}/g, (_, k) => String(vars?.[k] ?? ""))
+  const key = list
+  if (FIELD_LABELS[path]) return say(key, FIELD_LABELS[path])
+  const names: Record<string, [string, string]> = {
+    experiences: ["job", "Job {n}"],
+    degrees: ["degree", "Degree {n}"],
+    certifications: ["certification", "Certification {n}"],
+    languages: ["language", "Language {n}"],
+    projects: ["project", "Project {n}"],
   }
-  if (list === "hardSkills") return "Hard skills"
-  if (list === "softSkills") return "Soft skills"
+  if (list === "hardSkills") return say("hardSkills", "Hard skills")
+  if (list === "softSkills") return say("softSkills", "Soft skills")
   if (!names[list]) return path
-  if (index === undefined) return { experiences: "Work experience", degrees: "Education", certifications: "Certifications", languages: "Languages", projects: "Projects" }[list]!
+  if (index === undefined) {
+    const whole: Record<string, string> = { experiences: "Work experience", degrees: "Education", certifications: "Certifications", languages: "Languages", projects: "Projects" }
+    return say(list, whole[list])
+  }
   const n = Number(index)
-  const item = Number.isNaN(n) ? names[list] : `${names[list]} ${n + 1}`
+  const [itemKey, itemText] = names[list]
+  const item = Number.isNaN(n) ? say(list, itemText.replace(" {n}", "")) : say(itemKey, itemText, { n: n + 1 })
   return field ? `${item}: ${field.replace(/([A-Z])/g, " $1").toLowerCase()}` : item
 }
 

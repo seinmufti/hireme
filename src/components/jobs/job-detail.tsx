@@ -5,15 +5,18 @@ import { ArrowLeftIcon, BellIcon, MailIcon, PencilIcon, PhoneIcon, SparklesIcon,
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { matchJob, matchReasons, type MatchableTalent } from "@/lib/matching"
+import { useT } from "@/i18n/provider"
+import { matchJob, type MatchableTalent } from "@/lib/matching"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { ApplicantsList, ApplyPanel } from "./applications"
-import { JobDescription, jobFacts, SkillChips } from "./job-meta"
+import { JobDescription, SkillChips, useJobFacts } from "./job-meta"
 
 /** One job: what it is, why it suits the job seeker, and the company behind it. */
 export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; talent: MatchableTalent | null }) {
+  const t = useT()
+  const jobFacts = useJobFacts()
   const employer = useStore((s) => s.users.find((u) => u.id === job.employerId)) ?? null
   const notified = useStore((s) => s.notifications.filter((n) => n.jobId === job.id).length)
   const applicants = useStore((s) => s.applications.filter((a) => a.jobId === job.id).length)
@@ -27,12 +30,12 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <Link href={isOwner ? "/jobs/mine" : "/jobs"} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeftIcon className="size-4" /> {isOwner ? "My job posts" : "All jobs"}
+        <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {isOwner ? t("jobs.myPosts") : t("jobs.allJobs")}
       </Link>
 
       {!job.open && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          {isOwner ? "This job is closed. Job seekers can't find it until you reopen it." : "This job is no longer taking applications."}
+          {isOwner ? t("jobs.closedOwner") : t("jobs.closedSeeker")}
         </div>
       )}
 
@@ -47,9 +50,9 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
             </div>
             <dl className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               {jobFacts(job)
-                .filter((f) => f.label !== "Company")
+                .filter((f) => f.key !== "company")
                 .map((f) => (
-                  <div key={f.label} className="flex items-center gap-1.5">
+                  <div key={f.key} className="flex items-center gap-1.5">
                     <f.icon className="size-4 shrink-0" />
                     <dt className="sr-only">{f.label}</dt>
                     <dd>{f.value}</dd>
@@ -60,13 +63,13 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
 
           {job.skills.length > 0 && (
             <section>
-              <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Skills</h2>
+              <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.skills")}</h2>
               <SkillChips skills={job.skills} have={have} />
             </section>
           )}
 
           <section>
-            <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">About the job</h2>
+            <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.about")}</h2>
             <JobDescription text={job.description} />
           </section>
         </article>
@@ -76,25 +79,25 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
             <div className="space-y-3 rounded-xl border bg-card p-5">
               <p className="flex items-center gap-2 text-sm">
                 <BellIcon className="size-4 text-muted-foreground" />
-                {notified} matching job seeker{notified === 1 ? " was" : "s were"} notified
+                {notified === 1 ? t("jobs.notifiedOne") : t("jobs.notified", { count: notified })}
               </p>
               <a href="#applicants" className="flex items-center gap-2 text-sm hover:underline">
                 <UsersIcon className="size-4 text-muted-foreground" />
-                {applicants} applicant{applicants === 1 ? "" : "s"}
+                {applicants === 1 ? t("jobs.applicantsOne") : t("jobs.applicants", { count: applicants })}
               </a>
               <div className="flex gap-2">
                 <Link href={`/jobs/${job.id}/edit`} className={cn(buttonVariants({ variant: "outline" }), "flex-1")}>
-                  <PencilIcon /> Edit
+                  <PencilIcon /> {t("common.edit")}
                 </Link>
                 <Button
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
                     setJobOpen(job.id, !job.open)
-                    toast.success(job.open ? "Job closed" : "Job reopened")
+                    toast.success(job.open ? t("jobs.jobClosed") : t("jobs.jobReopened"))
                   }}
                 >
-                  {job.open ? "Close job" : "Reopen job"}
+                  {job.open ? t("jobs.closeJob") : t("jobs.reopenJob")}
                 </Button>
               </div>
             </div>
@@ -108,18 +111,18 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                   )}
                 >
                   <p className="mb-1 flex items-center gap-1.5 font-medium">
-                    <SparklesIcon className="size-4" /> {match ? "This job matches your profile" : "Not a match for your profile yet"}
+                    <SparklesIcon className="size-4" /> {match ? t("jobs.isMatch") : t("jobs.notMatch")}
                   </p>
                   {match ? (
-                    <ul className="list-disc space-y-0.5 pl-5 text-xs">
-                      {matchReasons(match).map((r) => (
-                        <li key={r}>{r}</li>
-                      ))}
+                    <ul className="list-disc space-y-0.5 ps-5 text-xs">
+                      {match.category && <li>{t("jobs.reasonCategory", { category: job.category })}</li>}
+                      {match.skills.length > 0 && <li>{t("jobs.reasonSkills", { skills: match.skills.join(", ") })}</li>}
+                      {match.title && <li>{t("jobs.reasonTitle")}</li>}
                     </ul>
                   ) : (
                     <p className="text-xs">
-                      Add your skills, work experience and where you want to work on your{" "}
-                      <Link href="/profile" className="underline">profile</Link> to get matched with jobs like this.
+                      {t("jobs.notMatchHint")}{" "}
+                      <Link href="/profile" className="underline">{t("jobs.editProfile")}</Link>
                     </p>
                   )}
                 </div>
@@ -139,6 +142,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
 
 /** The company behind a job, with its contact details. */
 export function CompanyCard({ employer }: { employer: User }) {
+  const t = useT()
   return (
     <div className="space-y-3 rounded-xl border bg-card p-5 text-sm">
       <div className="flex items-center gap-3">
@@ -159,7 +163,7 @@ export function CompanyCard({ employer }: { employer: User }) {
         {employer.email && (
           <div className="flex items-center gap-2">
             <MailIcon className="size-3.5 shrink-0 text-muted-foreground" />
-            <dt className="sr-only">Email</dt>
+            <dt className="sr-only">{t("companies.email")}</dt>
             <dd className="truncate">
               <a href={`mailto:${employer.email}`} className="hover:underline">{employer.email}</a>
             </dd>
@@ -168,7 +172,7 @@ export function CompanyCard({ employer }: { employer: User }) {
         {employer.phone && (
           <div className="flex items-center gap-2">
             <PhoneIcon className="size-3.5 shrink-0 text-muted-foreground" />
-            <dt className="sr-only">Phone</dt>
+            <dt className="sr-only">{t("companies.phone")}</dt>
             <dd>
               <a href={`tel:${employer.phone.replace(/\s/g, "")}`} className="hover:underline">{employer.phone}</a>
             </dd>

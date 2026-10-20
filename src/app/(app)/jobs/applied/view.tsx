@@ -6,8 +6,7 @@ import { ArrowLeftIcon } from "lucide-react"
 import { toast } from "sonner"
 import { ApplicationStatus } from "@/components/jobs/applications"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { timeAgo } from "@/lib/format"
-import { locationLabel } from "@/lib/jobs"
+import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { cn } from "@/lib/utils"
@@ -15,6 +14,9 @@ import { cn } from "@/lib/utils"
 // A job seeker's applications, newest first, with where each one stands.
 export function MyApplicationsView() {
   const viewer = useRoleGuard(["SEEKER"])
+  const t = useT()
+  const timeAgo = useTimeAgo()
+  const locationLabel = useLocationLabel()
   const all = useStore((s) => s.applications)
   const jobs = useStore((s) => s.jobs)
   const withdraw = useStore((s) => s.withdrawApplication)
@@ -34,21 +36,21 @@ export function MyApplicationsView() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <Link href="/jobs" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeftIcon className="size-4" /> All jobs
+        <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {t("jobs.allJobs")}
       </Link>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My applications</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("applications.myTitle")}</h1>
         <p className="text-sm text-muted-foreground">
-          {applications.length} application{applications.length === 1 ? "" : "s"}
+          {applications.length === 1 ? t("applications.countOne") : t("applications.count", { count: applications.length })}
         </p>
       </div>
 
       {applications.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
-          <p className="font-medium">You haven&apos;t applied to any jobs yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Find a job you like and press Apply. The employer sees your CV.</p>
+          <p className="font-medium">{t("applications.none")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("applications.noneHint")}</p>
           <Link href="/jobs" className={cn(buttonVariants(), "mt-4")}>
-            Find jobs
+            {t("applications.findJobs")}
           </Link>
         </div>
       ) : (
@@ -60,7 +62,7 @@ export function MyApplicationsView() {
                   {job.title}
                 </Link>
                 <p className="truncate text-sm text-muted-foreground">
-                  {[job.company, locationLabel(job.location), `applied ${timeAgo(application.createdAt)}`, !job.open && "job closed"]
+                  {[job.company, locationLabel(job.location), t("applications.appliedAgo", { time: timeAgo(application.createdAt) }), !job.open && t("applications.jobClosed")]
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
@@ -73,10 +75,10 @@ export function MyApplicationsView() {
                   className="text-muted-foreground"
                   onClick={() => {
                     withdraw(application.id)
-                    toast.success("Application withdrawn")
+                    toast.success(t("applications.withdrawn"))
                   }}
                 >
-                  Withdraw
+                  {t("applications.withdrawShort")}
                 </Button>
               )}
             </li>

@@ -11,7 +11,8 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { formatDuration, timeAgo } from "@/lib/format"
+import { useT, useTimeAgo } from "@/i18n/provider"
+import { formatDuration } from "@/lib/format"
 import { APPLICATION_STATUSES } from "@/lib/options"
 import { toPoolTalent } from "@/lib/pool-talent"
 import { listingMissing, useStore } from "@/lib/store"
@@ -24,10 +25,18 @@ const STATUS_STYLE: Record<string, string> = {
   "Not selected": "bg-muted text-muted-foreground border-transparent",
 }
 
+/** A status in the current language (statuses are stored in English). */
+export function useStatusLabel() {
+  const t = useT()
+  return (status: string) =>
+    status === "Shortlisted" ? t("applications.statusShortlisted") : status === "Not selected" ? t("applications.statusNotSelected") : t("applications.statusApplied")
+}
+
 export function ApplicationStatus({ status, className }: { status: string; className?: string }) {
+  const label = useStatusLabel()
   return (
     <span className={cn("inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-xs font-medium", STATUS_STYLE[status], className)}>
-      {status}
+      {label(status)}
     </span>
   )
 }
@@ -38,6 +47,8 @@ export const useMyApplication = (jobId: string, seekerId: string) =>
 
 /** For job seekers on a job's page: apply, or see where their application stands. */
 export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
+  const t = useT()
+  const timeAgo = useTimeAgo()
   const application = useMyApplication(job.id, viewer.id)
   const talent = useStore((s) => s.talents.find((t) => t.userId === viewer.id)) ?? null
   const withdraw = useStore((s) => s.withdrawApplication)
@@ -48,22 +59,22 @@ export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
     return (
       <div className="space-y-2 rounded-lg border bg-muted/30 p-3 text-sm">
         <p className="flex items-center gap-1.5 font-medium">
-          <CheckCircle2Icon className="size-4 text-emerald-600" /> You applied {timeAgo(application.createdAt)}
+          <CheckCircle2Icon className="size-4 text-emerald-600" /> {t("applications.youApplied", { time: timeAgo(application.createdAt) })}
         </p>
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          Status: <ApplicationStatus status={application.status} />
+          {t("applications.status")} <ApplicationStatus status={application.status} />
         </p>
         {application.status === "Applied" && (
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 text-muted-foreground"
+            className="-ms-2 text-muted-foreground"
             onClick={() => {
               withdraw(application.id)
-              toast.success("Application withdrawn")
+              toast.success(t("applications.withdrawn"))
             }}
           >
-            Withdraw application
+            {t("applications.withdraw")}
           </Button>
         )}
       </div>
@@ -76,10 +87,11 @@ export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
     return (
       <div className="space-y-2">
         <Button className="w-full" disabled>
-          <SendIcon /> Apply
+          <SendIcon /> {t("applications.apply")}
         </Button>
         <p className="text-xs text-muted-foreground">
-          Finish your <Link href="/profile" className="underline">CV</Link> first. The yellow sections still need details.
+          {t("applications.finishCvFirst")}{" "}
+          <Link href="/profile" className="underline">{t("applications.finishCv")}</Link>
         </p>
       </div>
     )
@@ -88,7 +100,7 @@ export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
   return (
     <>
       <Button className="w-full" onClick={() => setOpen(true)}>
-        <SendIcon /> Apply
+        <SendIcon /> {t("applications.apply")}
       </Button>
       <ApplyDialog job={job} open={open} onOpenChange={setOpen} />
     </>
@@ -96,6 +108,7 @@ export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
 }
 
 function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const t = useT()
   const applyToJob = useStore((s) => s.applyToJob)
   const [note, setNote] = useState("")
 
@@ -103,7 +116,7 @@ function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onO
     e.preventDefault()
     const res = applyToJob(job.id, note)
     if (!res.ok) return toast.error(res.error)
-    toast.success(`Applied to ${job.title}`)
+    toast.success(t("applications.sent", { job: job.title }))
     setNote("")
     onOpenChange(false)
   }
@@ -113,14 +126,12 @@ function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onO
       <DialogContent className="sm:max-w-md">
         <form onSubmit={submit} className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>Apply to {job.title}</DialogTitle>
-            <DialogDescription>
-              {job.company} will see your CV, without your contact details. They can reply through HireMe messages.
-            </DialogDescription>
+            <DialogTitle>{t("applications.dialogTitle", { job: job.title })}</DialogTitle>
+            <DialogDescription>{t("applications.dialogBody", { company: job.company })}</DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
             <label htmlFor="apply-note" className="text-sm font-medium">
-              Note to the employer <span className="font-normal text-muted-foreground">(optional)</span>
+              {t("applications.note")} <span className="font-normal text-muted-foreground">{t("applications.optional")}</span>
             </label>
             <Textarea
               id="apply-note"
@@ -128,15 +139,15 @@ function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onO
               onChange={(e) => setNote(e.target.value)}
               rows={4}
               maxLength={600}
-              placeholder="Why you're a good fit for this job"
+              placeholder={t("applications.notePlaceholder")}
             />
           </div>
           <DialogFooter>
             <Link href="/profile/cv" className={buttonVariants({ variant: "ghost" })}>
-              <FileUserIcon /> Check my CV
+              <FileUserIcon /> {t("applications.checkCv")}
             </Link>
             <Button type="submit">
-              <SendIcon /> Send application
+              <SendIcon /> {t("applications.send")}
             </Button>
           </DialogFooter>
         </form>
@@ -147,6 +158,8 @@ function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onO
 
 /** For the employer on their job's page: everyone who applied, newest first. */
 export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
+  const t = useT()
+  const statusLabel = useStatusLabel()
   const all = useStore((s) => s.applications)
   const users = useStore((s) => s.users)
   const talents = useStore((s) => s.talents)
@@ -175,12 +188,12 @@ export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
     <section id="applicants" className="scroll-mt-20 rounded-xl border bg-card">
       <header className="flex items-center justify-between gap-3 border-b px-5 py-3">
         <h2 className="flex items-center gap-2 font-semibold">
-          <UsersIcon className="size-4 text-muted-foreground" /> Applicants
+          <UsersIcon className="size-4 text-muted-foreground" /> {t("applications.applicants")}
           <span className="text-sm font-normal text-muted-foreground">{applicants.length}</span>
         </h2>
       </header>
       {applicants.length === 0 ? (
-        <p className="px-5 py-8 text-center text-sm text-muted-foreground">No one has applied yet.</p>
+        <p className="px-5 py-8 text-center text-sm text-muted-foreground">{t("applications.noApplicants")}</p>
       ) : (
         <ul className="divide-y">
           {applicants.map(({ application, talent }) => (
@@ -192,7 +205,7 @@ export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
               onMessage={() => setMessaging(application.id)}
               onStatus={(status) => {
                 setStatus(application.id, status)
-                toast.success(`${talent.firstName}: ${status}`)
+                toast.success(`${talent.firstName}: ${statusLabel(status)}`)
               }}
             />
           ))}
@@ -232,9 +245,12 @@ function ApplicantRow({
   onMessage: () => void
   onStatus: (status: string) => void
 }) {
+  const t = useT()
+  const timeAgo = useTimeAgo()
+  const statusLabel = useStatusLabel()
   return (
     <li className="flex items-start gap-4 px-5 py-4">
-      <button type="button" onClick={onView} className="shrink-0" aria-label={`View ${talent.firstName}'s CV`}>
+      <button type="button" onClick={onView} className="shrink-0" aria-label={t("applications.viewCv", { name: talent.firstName })}>
         <ProfilePhoto photoId={talent.photoId} name={talent.firstName} color={talent.avatarColor} size={40} />
       </button>
       <div className="min-w-0 flex-1 space-y-1">
@@ -245,7 +261,11 @@ function ApplicantRow({
           <span className="truncate text-sm text-muted-foreground">{talent.title}</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          {[talent.totalMonths ? `${formatDuration(talent.totalMonths)} experience` : "No experience yet", talent.city, `applied ${timeAgo(application.createdAt)}`]
+          {[
+            talent.totalMonths ? t("applications.experience", { duration: formatDuration(talent.totalMonths) }) : t("applications.noExperience"),
+            talent.city,
+            t("applications.appliedAgo", { time: timeAgo(application.createdAt) }),
+          ]
             .filter(Boolean)
             .join(" · ")}
         </p>
@@ -253,24 +273,24 @@ function ApplicantRow({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <Select value={application.status} onValueChange={(v) => v && onStatus(v as string)}>
-          <SelectTrigger size="sm" className="w-36" aria-label={`Status of ${talent.firstName}'s application`}>
-            <SelectValue />
+          <SelectTrigger size="sm" className="w-36" aria-label={t("applications.statusOf", { name: talent.firstName })}>
+            <SelectValue>{(v: string) => statusLabel(v)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {APPLICATION_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
+              <SelectItem key={s} value={s}>{statusLabel(s)}</SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Button variant="outline" size="sm" onClick={onView}>
-          <FileUserIcon /> CV
+          <FileUserIcon /> {t("applications.cv")}
         </Button>
         {talent.conversationId ? (
-          <Link href={`/inbox/${talent.conversationId}`} className={buttonVariants({ variant: "ghost", size: "sm" })} aria-label="Open conversation">
+          <Link href={`/inbox/${talent.conversationId}`} className={buttonVariants({ variant: "ghost", size: "sm" })} aria-label={t("applications.openConversation")}>
             <MessageSquareTextIcon />
           </Link>
         ) : (
-          <Button variant="ghost" size="sm" onClick={onMessage} aria-label={`Message ${talent.firstName}`}>
+          <Button variant="ghost" size="sm" onClick={onMessage} aria-label={t("applications.message", { name: talent.firstName })}>
             <MessageSquareTextIcon />
           </Button>
         )}
