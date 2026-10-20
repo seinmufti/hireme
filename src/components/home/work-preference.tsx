@@ -49,7 +49,8 @@ export function WorkPreferenceCard({ user, talent }: { user: HomeUser; talent: H
               value={pref.iraqCities}
               defaultOpen={iraqOpen && pref.iraqCities.length === 0}
               onChange={(iraqCities) => {
-                if (!iraqCities.length) setIraqOpen(false)
+                // Local stays open while cities are being changed, even with none left (untick Local to close it)
+                setIraqOpen(true)
                 save({ ...pref, iraqCities })
               }}
             />
@@ -119,6 +120,8 @@ function CityPicker({ value, defaultOpen, onChange }: { value: string[]; default
   const q = query.trim().toLowerCase()
   const cities = IRAQI_CITIES.filter((c) => !q || c.toLowerCase().includes(q))
   const toggle = (city: string) => onChange(value.includes(city) ? value.filter((c) => c !== city) : [...value, city])
+  // All cities: ticks every city; unticking clears them. Removing one city unticks it (it's derived).
+  const all = IRAQI_CITIES.every((c) => value.includes(c))
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -130,7 +133,7 @@ function CityPicker({ value, defaultOpen, onChange }: { value: string[]; default
           />
         }
       >
-        <span className="truncate">{value.length ? value.join(", ") : t("home.pickCities")}</span>
+        <span className="truncate">{all ? t("form.allCities") : value.length ? value.join(", ") : t("home.pickCities")}</span>
         <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-60 gap-0 p-0">
@@ -145,6 +148,18 @@ function CityPicker({ value, defaultOpen, onChange }: { value: string[]; default
           />
         </div>
         <ul className="max-h-60 overflow-y-auto p-1">
+          {!q && (
+            <li className="mb-1 border-b pb-1">
+              <button
+                type="button"
+                onClick={() => onChange(all ? [] : [...IRAQI_CITIES])}
+                className={cn("flex w-full items-center justify-between rounded-md px-2 py-1.5 text-start text-sm hover:bg-muted", all && "font-medium")}
+              >
+                {t("form.allCities")}
+                {all && <CheckIcon className="size-4 text-primary" />}
+              </button>
+            </li>
+          )}
           {cities.map((city) => {
             const on = value.includes(city)
             return (

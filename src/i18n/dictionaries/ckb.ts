@@ -549,6 +549,7 @@ const ckb: DeepPartial<Messages> = {
     international: "دەرەوەی عێراق",
     internationalHint: "کار لە دەرەوەی عێراق",
     citiesInIraq: "ئەو شارانەی عێراق کە کاریان تێدا دەکەیت",
+    allCities: "هەموو شارەکان",
     searchCitiesPlaceholder: "گەڕان بۆ شار، وەک سلێمانی",
     chooseCity: "شارێک هەڵبژێرە",
     searchCities: "گەڕان بۆ شار",

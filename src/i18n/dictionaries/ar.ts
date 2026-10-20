@@ -549,6 +549,7 @@ const ar: DeepPartial<Messages> = {
     international: "خارج العراق",
     internationalHint: "وظائف خارج العراق",
     citiesInIraq: "مدن في العراق تقبل العمل فيها",
+    allCities: "كل المدن",
     searchCitiesPlaceholder: "ابحث عن مدينة، مثل السليمانية",
     chooseCity: "اختر مدينة",
     searchCities: "ابحث عن مدينة",

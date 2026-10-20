@@ -386,9 +386,26 @@ export function WorkPreferenceFields({ value, onChange }: { value: WorkPreferenc
       </div>
       {local && (
         <Field label={t("form.citiesInIraq")}>
+          {/* All cities: ticks every city; unticking clears them. Removing one city unticks it (it's derived). */}
+          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
+              checked={IRAQ_CITIES.every((c) => value.iraqCities.includes(c))}
+              onChange={(e) => {
+                setLocalTicked(true)
+                onChange({ ...value, iraqCities: e.target.checked ? [...IRAQ_CITIES] : [] })
+              }}
+            />
+            {t("form.allCities")}
+          </label>
           <TagPicker
             value={value.iraqCities}
-            onChange={(iraqCities) => onChange({ ...value, iraqCities })}
+            onChange={(iraqCities) => {
+              // Local stays open while cities are being changed, even with none left
+              setLocalTicked(true)
+              onChange({ ...value, iraqCities })
+            }}
             suggestions={IRAQ_CITIES}
             allowCustom={false}
             placeholder={t("form.searchCitiesPlaceholder")}

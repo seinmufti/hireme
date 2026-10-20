@@ -550,6 +550,7 @@ const en = {
     international: "International",
     internationalHint: "Jobs outside Iraq",
     citiesInIraq: "Cities in Iraq where you'd work",
+    allCities: "All cities",
     searchCitiesPlaceholder: "Search cities, e.g. Sulaymaniyah",
     chooseCity: "Choose a city",
     searchCities: "Search cities",
