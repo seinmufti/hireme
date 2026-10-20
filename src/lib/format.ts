@@ -77,3 +77,16 @@ export function formatMonthYear(value: string) {
   if (!y || !m) return ""
   return new Date(y, m - 1, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
 }
+
+/** "4 years" from a degree's start and end year (or expected end year); "" until both are known. */
+export function degreeDuration(d: Pick<Degree, "startYear" | "endYear">) {
+  const years = Number(d.endYear) - Number(d.startYear)
+  if (!d.startYear || !d.endYear || !Number.isFinite(years) || years < 0) return ""
+  return years === 0 ? "Less than a year" : `${years} year${years === 1 ? "" : "s"}`
+}
+
+/** "1 yr 6 mo" for a project; ongoing projects (a start but no end) run until today. "" when unknown. */
+export function projectDuration(p: { start: string; end: string }) {
+  const months = jobMonths({ start: p.start, end: p.end, current: !!p.start && !p.end })
+  return months > 0 ? formatDuration(months) : ""
+}

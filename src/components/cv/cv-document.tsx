@@ -3,6 +3,7 @@
 import { GlobeIcon, LinkIcon, MailIcon, MapPinIcon, PaperclipIcon, PhoneIcon } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { useStoredFile } from "@/lib/files"
+import { degreeDuration, formatDuration, jobMonths, projectDuration, totalMonths } from "@/lib/format"
 import { countryName, LANGUAGE_LEVELS } from "@/lib/options"
 import type { TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -112,7 +113,7 @@ export function CvDocument({
         )}
 
         {jobs.length > 0 && (
-          <Section title="Work experience">
+          <Section title="Work experience" note={totalMonths(jobs) > 0 ? `${formatDuration(totalMonths(jobs))} in total` : ""}>
             <div className="space-y-[3.5mm]">
               {jobs.map((e) => (
                 <article key={e.id} className="break-inside-avoid">
@@ -121,7 +122,9 @@ export function CvDocument({
                       {e.title}
                       {e.employer && <span className="font-normal text-neutral-600"> · {e.employer}</span>}
                     </h3>
-                    <span className="shrink-0 text-[8.5pt] text-neutral-500">{period(e.start, e.end, e.current)}</span>
+                    <span className="shrink-0 text-[8.5pt] text-neutral-500">
+                      {[period(e.start, e.end, e.current), jobMonths(e) > 0 && formatDuration(jobMonths(e))].filter(Boolean).join(" · ")}
+                    </span>
                   </div>
                   <p className="text-[8.5pt] text-neutral-500">{[e.category, e.contractType].filter(Boolean).join(" · ")}</p>
                   {e.description && (
@@ -146,7 +149,7 @@ export function CvDocument({
                   <div className="flex items-baseline justify-between gap-4">
                     <h3 className="font-semibold text-neutral-900">{d.name || d.level}</h3>
                     <span className="shrink-0 text-[8.5pt] text-neutral-500">
-                      {[d.startYear, d.endYear && (d.status === "Studying" ? `expected ${d.endYear}` : d.endYear)].filter(Boolean).join(" – ")}
+                      {[[d.startYear, d.endYear && (d.status === "Studying" ? `expected ${d.endYear}` : d.endYear)].filter(Boolean).join(" – "), degreeDuration(d)].filter(Boolean).join(" · ")}
                     </span>
                   </div>
                   <p className="text-neutral-600">{[d.institution, d.field && d.field !== d.name ? d.field : ""].filter(Boolean).join(" · ")}</p>
@@ -222,7 +225,9 @@ export function CvDocument({
                 <article key={p.id} className="break-inside-avoid">
                   <div className="flex items-baseline justify-between gap-4">
                     <h3 className="font-semibold text-neutral-900">{p.name}</h3>
-                    <span className="shrink-0 text-[8.5pt] text-neutral-500">{period(p.start, p.end, !!p.start && !p.end)}</span>
+                    <span className="shrink-0 text-[8.5pt] text-neutral-500">
+                      {[period(p.start, p.end, !!p.start && !p.end), projectDuration(p)].filter(Boolean).join(" · ")}
+                    </span>
                   </div>
                   {p.link && (
                     <p className="flex items-center gap-1 text-[8.5pt] text-primary">
@@ -255,11 +260,12 @@ export function CvDocument({
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
   return (
     <section>
       <h2 className="mb-[2mm] border-b border-neutral-200 pb-[1mm] text-[9pt] font-bold tracking-[0.12em] text-primary uppercase break-after-avoid">
         {title}
+        {note && <span className="ml-2 font-normal tracking-normal text-neutral-500 normal-case">· {note}</span>}
       </h2>
       {children}
     </section>

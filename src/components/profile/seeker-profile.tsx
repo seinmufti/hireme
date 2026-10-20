@@ -29,7 +29,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { deleteFile } from "@/lib/files"
-import { ageFrom, formatDuration, formatMonthYear, totalMonths } from "@/lib/format"
+import { ageFrom, formatDuration, formatMonthYear, projectDuration, totalMonths } from "@/lib/format"
 import { countryName, HARD_SKILLS, SOFT_SKILLS } from "@/lib/options"
 import { listingSectionsMissing, portfolioEntryProblem, useStore, type ListingSection } from "@/lib/store"
 import type { Talent, TalentInput, User } from "@/lib/types"
@@ -391,6 +391,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
                 <div className="font-medium">{x.name || <span className="text-muted-foreground italic">Name not added</span>}</div>
                 <div className="text-xs text-muted-foreground">
                   {[x.start && formatMonthYear(x.start), x.start && (x.end ? formatMonthYear(x.end) : "Ongoing")].filter(Boolean).join(" – ")}
+                  {projectDuration(x) && ` · ${projectDuration(x)}`}
                   {x.link && (
                     <a href={x.link} target="_blank" rel="noreferrer" className="ml-2 inline-flex items-center gap-1 text-primary hover:underline">
                       <GlobeIcon className="size-3" /> {x.link.replace(/^https?:\/\/(www\.)?/, "")}

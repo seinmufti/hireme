@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { saveUpload, UPLOAD_ACCEPT, useStoredFile } from "@/lib/files"
+import { projectDuration } from "@/lib/format"
 import { IRAQ_CITIES } from "@/lib/options"
 import type { Project, WorkPreference } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -313,6 +314,11 @@ export function ProjectFields({ value, onChange }: { value: Project[]; onChange:
             <Field label="End (optional, empty if ongoing)">
               <MonthYearPicker value={p.end} onChange={(end) => update(p.id, { end })} />
             </Field>
+            {projectDuration(p) && (
+              <p className="col-span-2 text-right text-sm text-muted-foreground">
+                Duration: <span className="font-medium text-foreground">{projectDuration(p)}</span>
+              </p>
+            )}
             <Field label="Description (optional)" className="col-span-2">
               <Textarea
                 className="min-h-16 text-sm"

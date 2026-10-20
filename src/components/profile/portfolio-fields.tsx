@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { formatDuration, jobMonths } from "@/lib/format"
+import { degreeDuration, formatDuration, jobMonths } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE } from "@/lib/normalize"
 import { CONTRACT_TYPES, DEGREE_STATUSES, EDUCATION, GENDERS, JOB_CATEGORIES, LANGUAGE_LEVELS, LANGUAGES } from "@/lib/options"
 import type { Certification, Degree, Experience, LanguageSkill, Talent, TalentInput } from "@/lib/types"
@@ -579,6 +579,11 @@ export function DegreeFields({
                   />
                 </Field>
               </>
+            )}
+            {degreeDuration(d) && (
+              <p className="col-span-2 text-right text-sm text-muted-foreground">
+                Duration: <span className="font-medium text-foreground">{degreeDuration(d)}</span>
+              </p>
             )}
             <div className="col-span-2">
               <AttachmentField label="Degree certificate (optional)" value={d.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />

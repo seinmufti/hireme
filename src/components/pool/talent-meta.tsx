@@ -1,5 +1,5 @@
 import { BriefcaseIcon, CakeIcon, GraduationCapIcon, LanguagesIcon, UserIcon } from "lucide-react"
-import { formatDuration, formatJobPeriod, formatMonthYear } from "@/lib/format"
+import { degreeDuration, formatDuration, formatJobPeriod, formatMonthYear, jobMonths } from "@/lib/format"
 import { LANGUAGE_LEVELS } from "@/lib/options"
 import { cn } from "@/lib/utils"
 import type { Certification, Degree, Experience, LanguageSkill } from "@/lib/types"
@@ -65,7 +65,7 @@ export function ExperienceList({ experiences, limit }: { experiences: Experience
             <span className="text-muted-foreground"> · {e.employer}</span>
           </div>
           <div className="truncate text-xs text-muted-foreground">
-            {[e.category, e.contractType, formatJobPeriod(e)].filter(Boolean).join(" · ")}
+            {[e.category, e.contractType, formatJobPeriod(e), jobMonths(e) > 0 && formatDuration(jobMonths(e))].filter(Boolean).join(" · ")}
           </div>
         </li>
       ))}
@@ -80,7 +80,8 @@ export function ExperienceList({ experiences, limit }: { experiences: Experience
 function degreePeriod(d: Degree) {
   if (!d.status) return ""
   const years = [d.startYear, d.endYear && (d.status === "Studying" ? `expected ${d.endYear}` : d.endYear)].filter(Boolean).join(" – ")
-  return years ? `Period: ${years}` : ""
+  const length = degreeDuration(d)
+  return years ? `Period: ${years}${length ? ` (${length})` : ""}` : ""
 }
 
 export function DegreeList({ degrees }: { degrees: Degree[] }) {
