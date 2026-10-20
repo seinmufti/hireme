@@ -166,7 +166,6 @@ const ckb: DeepPartial<Messages> = {
   },
   home: {
     greeting: "بەخێربێیتەوە، {name}",
-    subtitle: "CV ـەکەت، کارە گونجاوەکان و هەنگاوی داهاتووت، هەمووی لە یەک شوێن.",
     overall: "گشتی",
     totalExperience: "کۆی ئەزموونی کار",
     noExperience: "هێشتا ئەزموون نییە",
@@ -198,10 +197,7 @@ const ckb: DeepPartial<Messages> = {
     actions: "کردارەکان",
     notifications: "ئاگادارکردنەوەکان",
     noNotifications: "هێشتا هیچ ئاگادارکردنەوەیەک نییە. ئاگادارت دەکەینەوە کاتێک خاوەنکارێک کارێکی گونجاو بۆ تۆ بڵاو دەکاتەوە.",
-    quickActions: "کردارە خێراکان",
     findJobs: "دۆزینەوەی کار",
-    openInbox: "کردنەوەی نامەکان",
-    browseCompanies: "بینینی کۆمپانیاکان",
     unread: "{count} نەخوێندراوە",
     workType: "جۆری ئەو کارەی دەتەوێت",
     workTypeHint: "خاوەنکاران و ئاگادارکردنەوەکانی کار ئەمە بۆ گونجاندنت بەکاردەهێنن.",

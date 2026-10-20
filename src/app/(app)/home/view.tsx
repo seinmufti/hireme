@@ -19,10 +19,7 @@ export function HomeView() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("home.greeting", { name: firstName(user.name) })}</h1>
-        <p className="text-sm text-muted-foreground">{t("home.subtitle")}</p>
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight">{t("home.greeting", { name: firstName(user.name) })}</h1>
 
       {/* The panels keep their physical sides in every language (stats left, actions right); text inside follows the language */}
       <div dir="ltr" className="grid grid-cols-[13rem_minmax(0,1fr)_16rem] items-start gap-6 xl:grid-cols-[15rem_minmax(0,1fr)_18rem]">

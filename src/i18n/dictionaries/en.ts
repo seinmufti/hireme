@@ -167,7 +167,6 @@ const en = {
   },
   home: {
     greeting: "Welcome back, {name}",
-    subtitle: "Your CV, your matches and what to do next, all in one place.",
     overall: "Overall",
     totalExperience: "Total work experience",
     noExperience: "No experience yet",
@@ -199,10 +198,7 @@ const en = {
     actions: "Actions",
     notifications: "Notifications",
     noNotifications: "No notifications yet. We'll tell you when an employer posts a job that matches you.",
-    quickActions: "Quick actions",
     findJobs: "Find jobs",
-    openInbox: "Open inbox",
-    browseCompanies: "Browse companies",
     unread: "{count} unread",
     workType: "Type of work you want",
     workTypeHint: "Employers and job alerts use this to match you.",

@@ -166,7 +166,6 @@ const ar: DeepPartial<Messages> = {
   },
   home: {
     greeting: "أهلًا بعودتك، {name}",
-    subtitle: "سيرتك الذاتية والوظائف المطابقة وخطوتك التالية، في مكان واحد.",
     overall: "نظرة عامة",
     totalExperience: "إجمالي الخبرة العملية",
     noExperience: "لا توجد خبرة بعد",
@@ -198,10 +197,7 @@ const ar: DeepPartial<Messages> = {
     actions: "الإجراءات",
     notifications: "الإشعارات",
     noNotifications: "لا توجد إشعارات بعد. سنخبرك عندما ينشر صاحب عمل وظيفة تناسبك.",
-    quickActions: "إجراءات سريعة",
     findJobs: "البحث عن وظائف",
-    openInbox: "فتح الرسائل",
-    browseCompanies: "تصفح الشركات",
     unread: "{count} غير مقروءة",
     workType: "نوع العمل الذي تريده",
     workTypeHint: "يستخدم أصحاب العمل وتنبيهات الوظائف هذا لمطابقتك.",
