@@ -545,6 +545,8 @@ const en = {
     addProject: "Add a project or activity",
     remote: "Remote",
     remoteHint: "Work from home for a company anywhere",
+    local: "Local",
+    localHint: "Cities in Iraq",
     international: "International",
     internationalHint: "Jobs outside Iraq",
     citiesInIraq: "Cities in Iraq where you'd work",

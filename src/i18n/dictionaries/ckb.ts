@@ -544,6 +544,8 @@ const ckb: DeepPartial<Messages> = {
     addProject: "پرۆژە یان چالاکییەک زیاد بکە",
     remote: "لە دوورەوە",
     remoteHint: "کارکردن لە ماڵەوە بۆ کۆمپانیایەک لە هەر شوێنێک",
+    local: "ناوخۆیی",
+    localHint: "شارەکانی عێراق",
     international: "دەرەوەی عێراق",
     internationalHint: "کار لە دەرەوەی عێراق",
     citiesInIraq: "ئەو شارانەی عێراق کە کاریان تێدا دەکەیت",

@@ -351,14 +351,17 @@ export function ProjectFields({ value, onChange }: { value: Project[]; onChange:
 /** Where the job seeker wants to work. Used for job matching and employers' filters; not shown on the CV. */
 export function WorkPreferenceFields({ value, onChange }: { value: WorkPreference; onChange: (v: WorkPreference) => void }) {
   const t = useT()
-  const toggle = (key: "remote" | "international", label: string, hint: string) => (
+  // "Local" (cities in Iraq) is on while cities are picked, or once ticked while picking the first one
+  const [localTicked, setLocalTicked] = useState(false)
+  const local = value.iraqCities.length > 0 || localTicked
+  const toggle = (checked: boolean, onToggle: (on: boolean) => void, label: string, hint: string) => (
     <label
       className={cn(
         "flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 text-sm transition-colors",
-        value[key] ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+        checked ? "border-primary bg-primary/5" : "hover:bg-muted/50"
       )}
     >
-      <input type="checkbox" className="mt-0.5 size-4 accent-primary" checked={value[key]} onChange={(e) => onChange({ ...value, [key]: e.target.checked })} />
+      <input type="checkbox" className="mt-0.5 size-4 accent-primary" checked={checked} onChange={(e) => onToggle(e.target.checked)} />
       <span>
         <span className="font-medium">{label}</span>
         <span className="block text-xs text-muted-foreground">{hint}</span>
@@ -367,19 +370,31 @@ export function WorkPreferenceFields({ value, onChange }: { value: WorkPreferenc
   )
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        {toggle("remote", t("form.remote"), t("form.remoteHint"))}
-        {toggle("international", t("form.international"), t("form.internationalHint"))}
+      <div className="grid grid-cols-3 gap-3">
+        {toggle(value.remote, (remote) => onChange({ ...value, remote }), t("form.remote"), t("form.remoteHint"))}
+        {toggle(
+          local,
+          (on) => {
+            setLocalTicked(on)
+            // Unticking Local clears the cities
+            if (!on && value.iraqCities.length) onChange({ ...value, iraqCities: [] })
+          },
+          t("form.local"),
+          t("form.localHint")
+        )}
+        {toggle(value.international, (international) => onChange({ ...value, international }), t("form.international"), t("form.internationalHint"))}
       </div>
-      <Field label={t("form.citiesInIraq")}>
-        <TagPicker
-          value={value.iraqCities}
-          onChange={(iraqCities) => onChange({ ...value, iraqCities })}
-          suggestions={IRAQ_CITIES}
-          allowCustom={false}
-          placeholder={t("form.searchCitiesPlaceholder")}
-        />
-      </Field>
+      {local && (
+        <Field label={t("form.citiesInIraq")}>
+          <TagPicker
+            value={value.iraqCities}
+            onChange={(iraqCities) => onChange({ ...value, iraqCities })}
+            suggestions={IRAQ_CITIES}
+            allowCustom={false}
+            placeholder={t("form.searchCitiesPlaceholder")}
+          />
+        </Field>
+      )}
     </div>
   )
 }

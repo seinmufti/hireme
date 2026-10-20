@@ -544,6 +544,8 @@ const ar: DeepPartial<Messages> = {
     addProject: "أضف مشروعًا أو نشاطًا",
     remote: "عن بُعد",
     remoteHint: "العمل من المنزل لشركة في أي مكان",
+    local: "محلي",
+    localHint: "مدن في العراق",
     international: "خارج العراق",
     internationalHint: "وظائف خارج العراق",
     citiesInIraq: "مدن في العراق تقبل العمل فيها",
