@@ -17,7 +17,7 @@ export type Sender = { name: string; title: string; company: string }
 
 export function messageTemplate(talent: PoolTalent, from: Sender) {
   const role = [from.title, from.company].filter(Boolean).join(" at ")
-  const background = talent.experiences[0] ? `your background as a ${talent.experiences[0].title}` : "your profile"
+  const background = talent.experiences[0] ? `your background as a ${talent.experiences[0].title}` : "your CV"
   return `Hi ${talent.firstName},
 
 I'm ${from.name}${role ? `, ${role}` : ""}. I came across your profile on HireMe and was impressed by ${background}.

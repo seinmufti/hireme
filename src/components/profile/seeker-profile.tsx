@@ -64,6 +64,10 @@ export function SeekerProfile({ user }: { user: User }) {
   const talent = useStore((s) => s.talents.find((x) => x.userId === user.id)) ?? null
   const router = useRouter()
   const t = useT()
+  // For job seekers this page is their CV (the same route is "Profile" for employers and recruiters)
+  useEffect(() => {
+    document.title = `${t("nav.cvPreview")} · HireMe`
+  }, [t])
   // "?edit=1" (right after creating an account, or from the CV preview's Edit button) opens the form straight away
   const params = useSearchParams()
   const startEditing = params.has("edit")

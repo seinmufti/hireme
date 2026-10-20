@@ -213,7 +213,7 @@ export const useStore = create<Data & Actions>()(
 
         saveTalent: (input) => {
           const user = me()
-          if (user?.role !== "SEEKER") return fail("Only job seekers have a portfolio.")
+          if (user?.role !== "SEEKER") return fail("Only job seekers have a CV.")
           // Drafts save as they are; only mistakes in what was entered block saving.
           // Whether the portfolio is complete enough for The Pool is checked separately (listingProblem).
           const problem = portfolioEntryProblem(input)
