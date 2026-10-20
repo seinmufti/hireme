@@ -32,7 +32,7 @@ const en = {
     inbox: "Inbox",
     pool: "The Pool",
     profile: "Profile",
-    goHome: "Go to Home",
+    goLogin: "Go to the sign-in page",
   },
   premium: {
     label: "Premium",

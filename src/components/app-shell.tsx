@@ -10,7 +10,6 @@ import { NotificationBell } from "@/components/notifications/notification-bell"
 import { PremiumToggle } from "@/components/premium-toggle"
 import { StoreGate } from "@/components/store-gate"
 import { useI18n } from "@/i18n/provider"
-import { homeFor } from "@/lib/options"
 import { unreadCountFor, useCurrentUser, useStore } from "@/lib/store"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -56,7 +55,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         </div>
         {/* Logo on the far left and the same physical order in every language; the text inside follows the language */}
         <div dir="ltr" className="mx-auto flex h-14 w-full max-w-7xl items-center gap-6 px-8">
-          <Link href={role ? homeFor(role) : "/login"} title={t("nav.goHome")} className="flex shrink-0 items-center gap-2.5">
+          <Link href="/login" title={t("nav.goLogin")} className="flex shrink-0 items-center gap-2.5">
             <Logo size={32} />
             <span className="text-lg font-semibold tracking-tight">HireMe</span>
           </Link>

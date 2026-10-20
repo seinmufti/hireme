@@ -32,7 +32,7 @@ const ckb: DeepPartial<Messages> = {
     inbox: "نامەکان",
     pool: "حەوزی بەهرەکان",
     profile: "پرۆفایل",
-    goHome: "چوون بۆ سەرەکی",
+    goLogin: "چوون بۆ پەڕەی چوونەژوورەوە",
   },
   premium: {
     label: "پریمیەم",

@@ -32,7 +32,7 @@ const ar: DeepPartial<Messages> = {
     inbox: "الرسائل",
     pool: "مجمّع المواهب",
     profile: "الملف الشخصي",
-    goHome: "الذهاب إلى الرئيسية",
+    goLogin: "الذهاب إلى صفحة تسجيل الدخول",
   },
   premium: {
     label: "بريميوم",
