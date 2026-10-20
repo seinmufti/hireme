@@ -256,7 +256,7 @@ export function JobBrowser({
             <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", !aside && "xl:grid-cols-3")}>
               {results.map((j) => (
                 <JobCard key={j.id} job={j} matches={isSeeker && talent ? matchPoints(talent, j) : undefined}
-                  isMatch={score.has(j.id)} have={have} applied={applied.get(j.id)} canApply={isSeeker} />
+                  isMatch={score.has(j.id)} have={have} applied={applied.get(j.id)} canApply={isSeeker || role === "GUEST"} />
               ))}
             </div>
           )}

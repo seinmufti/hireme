@@ -22,7 +22,7 @@ type Group = { title: string; items: Item[] }
 const PLACES: { key: MessageKey; href: string; words: string; roles?: Role[] }[] = [
   { key: "nav.home", href: "/home", words: "home dashboard overview", roles: ["SEEKER"] },
   { key: "nav.inbox", href: "/inbox", words: "inbox messages chat conversations", roles: ["SEEKER", "EMPLOYER"] },
-  { key: "nav.jobs", href: "/jobs", words: "jobs vacancies openings work listings", roles: ["SEEKER", "RECRUITER"] },
+  { key: "nav.jobs", href: "/jobs", words: "jobs vacancies openings work listings", roles: ["SEEKER", "RECRUITER", "GUEST"] },
   { key: "nav.companies", href: "/companies", words: "companies employers businesses contact" },
   { key: "nav.cvPreview", href: "/profile", words: "cv resume profile details edit", roles: ["SEEKER"] },
   { key: "seeker.previewCv", href: "/profile/cv", words: "cv resume preview download pdf", roles: ["SEEKER"] },

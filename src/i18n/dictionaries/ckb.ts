@@ -23,8 +23,10 @@ const ckb: DeepPartial<Messages> = {
     SEEKER: "کارخواز",
     RECRUITER: "دامەزرێنەر",
     EMPLOYER: "خاوەنکار",
+    GUEST: "میوان",
   },
   nav: {
+    signIn: "چوونەژوورەوە",
     home: "سەرەکی",
     jobs: "کارەکان",
     cvPreview: "CV",
@@ -61,6 +63,7 @@ const ckb: DeepPartial<Messages> = {
     signedIn: "(چووەتە ژوورەوە)",
   },
   login: {
+    continueGuest: "وەک میوان بەردەوام بە",
     welcome: "بەخێربێیت بۆ HireMe",
     searchLabel: "گەڕان لە هەژمارەکانی {role}",
     newAccount: "{role}ی نوێ",
@@ -302,6 +305,7 @@ const ckb: DeepPartial<Messages> = {
     },
   },
   applications: {
+    signInToApply: "بۆ پێشکەشکردن بچۆ ژوورەوە",
     statusApplied: "داواکاری نێردرا",
     statusShortlisted: "لە لیستی کورتدایە",
     statusNotSelected: "هەڵنەبژێردرا",

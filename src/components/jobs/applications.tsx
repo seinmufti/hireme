@@ -115,6 +115,14 @@ export function QuickApply({ job, className }: { job: Job; className?: string })
   const talent = useStore((s) => s.talents.find((x) => x.userId === s.currentUserId)) ?? null
   const [open, setOpen] = useState(false)
   if (!viewer || !takesApplications(job)) return null
+  // Guests sign in (or create an account) first
+  if (viewer.role === "GUEST") {
+    return (
+      <Link href="/login" className={buttonVariants({ size: "sm", className })}>
+        <SendIcon /> {t("applications.apply")}
+      </Link>
+    )
+  }
   const cvReady = listingMissing(viewer, talent).length === 0
 
   return (

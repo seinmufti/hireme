@@ -10,11 +10,12 @@ import { takesApplications } from "@/lib/jobs"
 import { matchingJobs, matchPoints } from "@/lib/matching"
 import { useStore } from "@/lib/store"
 import { useMyTalent } from "@/lib/use-my-talent"
+import { ANYONE } from "@/lib/options"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
 // One company: its contact details and the jobs it has open.
 export function CompanyView({ id }: { id: string }) {
-  const viewer = useRoleGuard()
+  const viewer = useRoleGuard(ANYONE)
   const t = useT()
   const company = useStore((s) => s.users.find((u) => u.id === id && u.role === "EMPLOYER")) ?? null
   const allJobs = useStore((s) => s.jobs)

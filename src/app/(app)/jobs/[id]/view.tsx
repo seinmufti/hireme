@@ -5,10 +5,11 @@ import { JobDetail } from "@/components/jobs/job-detail"
 import { useT } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
 import { useMyTalent } from "@/lib/use-my-talent"
+import { ANYONE } from "@/lib/options"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
 export function JobView({ id }: { id: string }) {
-  const viewer = useRoleGuard()
+  const viewer = useRoleGuard(ANYONE)
   const job = useStore((s) => s.jobs.find((j) => j.id === id)) ?? null
   const talent = useMyTalent()
   if (!viewer) return null

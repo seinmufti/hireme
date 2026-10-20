@@ -23,8 +23,10 @@ const ar: DeepPartial<Messages> = {
     SEEKER: "باحث عن عمل",
     RECRUITER: "مسؤول توظيف",
     EMPLOYER: "صاحب عمل",
+    GUEST: "زائر",
   },
   nav: {
+    signIn: "تسجيل الدخول",
     home: "الرئيسية",
     jobs: "الوظائف",
     cvPreview: "السيرة الذاتية",
@@ -61,6 +63,7 @@ const ar: DeepPartial<Messages> = {
     signedIn: "(مسجّل الدخول)",
   },
   login: {
+    continueGuest: "المتابعة كزائر",
     welcome: "مرحبًا بك في HireMe",
     searchLabel: "البحث في حسابات {role}",
     newAccount: "{role} جديد",
@@ -302,6 +305,7 @@ const ar: DeepPartial<Messages> = {
     },
   },
   applications: {
+    signInToApply: "سجّل الدخول للتقديم",
     statusApplied: "تم التقديم",
     statusShortlisted: "في القائمة المختصرة",
     statusNotSelected: "لم يتم الاختيار",

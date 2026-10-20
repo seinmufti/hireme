@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BriefcaseIcon, Building2Icon, FileUserIcon, HomeIcon, InboxIcon, UserIcon, UsersIcon } from "lucide-react"
+import { BriefcaseIcon, Building2Icon, FileUserIcon, HomeIcon, InboxIcon, LogInIcon, UserIcon, UsersIcon } from "lucide-react"
 import { BottomNav } from "@/components/bottom-nav"
 import { GlobalSearch } from "@/components/global-search"
 import { DevTools } from "@/components/dev-tools"
@@ -10,6 +10,7 @@ import { Logo } from "@/components/logo"
 import { NavLinks, type NavLink } from "@/components/nav-links"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { StoreGate } from "@/components/store-gate"
+import { buttonVariants } from "@/components/ui/button"
 import { useI18n } from "@/i18n/provider"
 import { unreadCountFor, useCurrentUser, useStore } from "@/lib/store"
 
@@ -24,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 function Shell({ children }: { children: React.ReactNode }) {
   const { t } = useI18n()
   const user = useCurrentUser()
-  const unread = useStore((s) => (user && user.role !== "RECRUITER" ? unreadCountFor(s, user.id) : 0))
+  const unread = useStore((s) => (user && (user.role === "SEEKER" || user.role === "EMPLOYER") ? unreadCountFor(s, user.id) : 0))
   const role = user?.role
 
   const home = { href: "/home", label: t("nav.home"), icon: HomeIcon }
@@ -44,7 +45,9 @@ function Shell({ children }: { children: React.ReactNode }) {
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
           ? [home, cv, jobs, inbox, companies]
-          : []
+          : role === "GUEST"
+            ? [jobs, companies]
+            : []
 
   return (
     <>
@@ -65,6 +68,12 @@ function Shell({ children }: { children: React.ReactNode }) {
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
               {role === "SEEKER" && <NotificationBell />}
               <LanguageSwitcher />
+              {/* Guests browse; signing in (or creating an account) is one click away */}
+              {role === "GUEST" && (
+                <Link href="/login" className={buttonVariants({ size: "sm" })}>
+                  <LogInIcon /> {t("nav.signIn")}
+                </Link>
+              )}
             </div>
           )}
         </div>

@@ -8,7 +8,7 @@ import { DEMO_SEEKER_TALENTS, DEMO_SEEKER_USERS } from "./demo-seekers"
 
 const CREATED = "2026-10-01T09:00:00.000Z"
 
-// One account per role. Reset demo brings back only these (see resetDemo in lib/store.ts).
+// One account per role, and the guest. Reset demo brings back only these (see resetDemo in lib/store.ts).
 export const CORE_USERS: User[] = [
   {
     id: "u-seeker",
@@ -58,6 +58,24 @@ export const CORE_USERS: User[] = [
     bio: "Hiring engineers and product people for Zagros Tech Solutions.",
     photoId: "",
     country: "IQ",
+    address: "",
+    createdAt: CREATED,
+  },
+  // The only guest: anyone browsing without an account
+  {
+    id: "u-guest",
+    name: "Guest",
+    role: "GUEST",
+    title: "",
+    company: "",
+    avatarColor: "#64748B",
+    email: "",
+    phone: "",
+    city: "",
+    linkedin: "",
+    bio: "",
+    photoId: "",
+    country: "",
     address: "",
     createdAt: CREATED,
   },

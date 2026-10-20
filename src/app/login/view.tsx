@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { homeFor, type Role } from "@/lib/options"
+import { GUEST_ID, homeFor, type Role } from "@/lib/options"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useT } from "@/i18n/provider"
 import { downloadBackup, restoreFromFile } from "@/lib/backup"
@@ -126,6 +126,15 @@ function Accounts() {
           )
         })}
       </div>
+
+      {/* Just looking: jobs and companies without an account */}
+      <button
+        type="button"
+        onClick={() => signIn(GUEST_ID, "GUEST")}
+        className="mt-4 shrink-0 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        {t("login.continueGuest")}
+      </button>
 
       <NewAccountDialog
         role={creating}

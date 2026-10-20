@@ -436,7 +436,7 @@ export const useStore = create<Data & Actions>()(
     {
       name: "hireme-demo",
       // Bump when the demo data or its shape changes so visitors start fresh
-      version: 15,
+      version: 16,
       // v9 -> v10: jobs record start and end dates instead of years and months (see withJobDates)
       // v10 -> v11: the generated demo job seekers are added (see withDemoSeekers)
       // v11 -> v12: CV builder fields (photo, location, summary, skills, projects, job descriptions and
@@ -444,6 +444,7 @@ export const useStore = create<Data & Actions>()(
       // v12 -> v13: job postings and notifications, with the demo companies and their jobs (see withJobPostings)
       // v13 -> v14: job applications, with a few demo ones (see withApplications)
       // v14 -> v15: jobs have an application deadline; saved ones get 30 days from posting (see withDeadlines)
+      // v15 -> v16: the guest account is added (see withGuest)
       migrate: (persisted, version) => {
         let data = withJobDates(migrateOlder(persisted, version))
         if (version < 11) data = withDemoSeekers(data)
@@ -451,6 +452,7 @@ export const useStore = create<Data & Actions>()(
         if (version < 13) data = withJobPostings(data)
         if (version < 14) data = withApplications(data)
         if (version < 15) data = withDeadlines(data)
+        if (version < 16) data = withGuest(data)
         return data
       },
       storage: createJSONStorage(() => safeStorage),
@@ -546,6 +548,12 @@ function withJobPostings(data: Data): Data {
 }
 
 /** v14 -> v15: jobs saved before deadlines existed get one 30 days after they were posted (the demo jobs get theirs). */
+/** Adds the one guest account to data saved before guests existed. */
+function withGuest(data: Data): Data {
+  if (data.users.some((u) => u.role === "GUEST")) return data
+  return { ...data, users: [...data.users, ...CORE_USERS.filter((u) => u.role === "GUEST")] }
+}
+
 function withDeadlines(data: Data): Data {
   return {
     ...data,

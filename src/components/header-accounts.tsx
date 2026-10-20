@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 const SHOWN = 1
 
 // Left to right in the header
-const ORDER: Role[] = ["SEEKER", "RECRUITER", "EMPLOYER"]
+const ORDER: Role[] = ["SEEKER", "RECRUITER", "EMPLOYER", "GUEST"]
 
 /** "+N more": every account of a role in a searchable list. */
 function MoreAccounts({

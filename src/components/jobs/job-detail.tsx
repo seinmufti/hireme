@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeftIcon, BellIcon, MailIcon, PencilIcon, PhoneIcon, TargetIcon, UsersIcon } from "lucide-react"
+import { ArrowLeftIcon, BellIcon, LogInIcon, MailIcon, PencilIcon, PhoneIcon, TargetIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
 import { matchJob, matchPoints, type MatchableTalent } from "@/lib/matching"
 import { useMatchLabel } from "./job-card"
+import { JobPostingData } from "./job-posting-data"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -34,6 +35,8 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
+      {/* For search engines: open jobs only */}
+      {takesApplications(job) && <JobPostingData job={job} />}
       <Link href={isOwner ? "/jobs/mine" : "/jobs"} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {isOwner ? t("jobs.myPosts") : t("jobs.allJobs")}
       </Link>
@@ -132,6 +135,11 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                 </div>
               )}
               {isSeeker && <ApplyPanel job={job} viewer={viewer} />}
+              {viewer.role === "GUEST" && takesApplications(job) && (
+                <Link href="/login" className={buttonVariants({ className: "w-full" })}>
+                  <LogInIcon /> {t("applications.signInToApply")}
+                </Link>
+              )}
             </div>
           )}
 

@@ -23,8 +23,10 @@ const en = {
     SEEKER: "Job Seeker",
     RECRUITER: "Recruiter",
     EMPLOYER: "Employer",
+    GUEST: "Guest",
   },
   nav: {
+    signIn: "Sign in",
     home: "Home",
     jobs: "Jobs",
     cvPreview: "CV",
@@ -61,6 +63,7 @@ const en = {
     signedIn: "(signed in)",
   },
   login: {
+    continueGuest: "Continue as guest",
     welcome: "Welcome to HireMe",
     searchLabel: "Search {role} accounts",
     newAccount: "New {role}",
@@ -303,6 +306,7 @@ const en = {
     },
   },
   applications: {
+    signInToApply: "Sign in to apply",
     statusApplied: "Applied",
     statusShortlisted: "Shortlisted",
     statusNotSelected: "Not selected",

@@ -1,12 +1,18 @@
 // Shared option lists for the portfolio form and the Pool filters.
 
-export const ROLES = ["EMPLOYER", "RECRUITER", "SEEKER"] as const
+export const ROLES = ["EMPLOYER", "RECRUITER", "SEEKER", "GUEST"] as const
 export type Role = (typeof ROLES)[number]
+
+/** The one guest account: browses jobs and companies without signing up; applying asks them to sign in. */
+export const GUEST_ID = "u-guest"
+/** Pages anyone may open, guests included (job search, a job's page, companies). */
+export const ANYONE: Role[] = ["SEEKER", "RECRUITER", "EMPLOYER", "GUEST"]
 
 export const ROLE_LABEL: Record<Role, string> = {
   EMPLOYER: "Employer",
   RECRUITER: "Recruiter",
   SEEKER: "Job Seeker",
+  GUEST: "Guest",
 }
 
 export const GENDERS = ["Male", "Female"]
@@ -79,7 +85,7 @@ export const AGE_BUCKETS = [
 ]
 
 /** Where each role lands after signing in: job seekers on Home (their dashboard), everyone else in the Pool. */
-export const homeFor = (role: Role) => (role === "SEEKER" ? "/home" : "/pool")
+export const homeFor = (role: Role) => (role === "SEEKER" ? "/home" : role === "GUEST" ? "/jobs" : "/pool")
 
 // New accounts get the next color from this list automatically
 export const AVATAR_COLORS = ["#1D4ED8", "#047857", "#8A1538", "#B45309", "#7C3AED", "#0E7490", "#BE185D", "#4D7C0F", "#334155"]
