@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import Link from "next/link"
-import { BellIcon, PencilIcon, PlusIcon, UsersIcon } from "lucide-react"
+import { BellIcon, CopyIcon, PencilIcon, PlusIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { useDeadlineLabel } from "@/components/jobs/job-meta"
 import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
@@ -83,6 +83,10 @@ export function MyJobsView() {
                 </span>
                 <Link href={`/jobs/${j.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                   <PencilIcon /> {t("common.edit")}
+                </Link>
+                {/* A new post starting from this one */}
+                <Link href={`/jobs/new?from=${j.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                  <CopyIcon /> {t("jobs.duplicate")}
                 </Link>
                 <Button
                   variant="outline"

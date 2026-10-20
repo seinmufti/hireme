@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { XIcon } from "lucide-react"
+import { LoaderCircleIcon, SparklesIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { JOB_TEMPLATES } from "@/data/job-templates"
 import { useT } from "@/i18n/provider"
 import { JOB_CITIES, today, WORKPLACES, workplaceOf, type WorkplaceKind } from "@/lib/jobs"
 import { CONTRACT_TYPES, JOB_CATEGORIES } from "@/lib/options"
@@ -138,19 +139,57 @@ function SalaryFields({ value, onChange }: { value: JobInput["salary"]; onChange
   )
 }
 
-/** Post a new job, or edit one (`job`). */
-export function JobForm({ job }: { job?: Job }) {
+/**
+ * Post a new job, or edit one (`job`). A new one can start from a copy of another post (`from`, "Duplicate")
+ * or from one of the templates.
+ */
+export function JobForm({ job, from }: { job?: Job; from?: Job }) {
   const t = useT()
   const router = useRouter()
   const postJob = useStore((s) => s.postJob)
   const updateJob = useStore((s) => s.updateJob)
   const jobs = useStore((s) => s.jobs)
+  const source = job ?? from
   const [value, setValue] = useState<JobInput>(() =>
-    job
-      ? { title: job.title, category: job.category, skills: job.skills, contractType: job.contractType, location: job.location, description: job.description, deadline: job.deadline, salary: job.salary }
+    source
+      ? {
+          title: source.title,
+          category: source.category,
+          skills: source.skills,
+          contractType: source.contractType,
+          location: source.location,
+          description: source.description,
+          // A copy gets a fresh deadline
+          deadline: job ? job.deadline : "",
+          salary: source.salary,
+        }
       : EMPTY
   )
-  const [workplace, setWorkplace] = useState<WorkplaceKind | "">(job ? workplaceOf(job.location) : "")
+  const [workplace, setWorkplace] = useState<WorkplaceKind | "">(source ? workplaceOf(source.location) : "")
+  const [refining, setRefining] = useState(false)
+
+  // "Improve wording": AI rewrites the description; the old text can be brought back from the toast
+  const refine = async () => {
+    const before = value.description
+    if (!before.trim()) return toast.error(t("jobs.form.writeFirst"))
+    setRefining(true)
+    try {
+      const base = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+      const res = await fetch(`${base}/api/refine-job`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: value.title, description: before }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || typeof data.description !== "string") return toast.error(data.error ?? t("jobs.form.refineFailed"))
+      set("description", data.description)
+      toast.success(t("jobs.form.refined"), { action: { label: t("jobs.form.undo"), onClick: () => set("description", before) } })
+    } catch {
+      toast.error(t("jobs.form.refineFailed"))
+    } finally {
+      setRefining(false)
+    }
+  }
   const suggestions = useMemo(() => [...new Set(jobs.flatMap((j) => j.skills))].sort(), [jobs])
   const set = <K extends keyof JobInput>(key: K, v: JobInput[K]) => setValue((p) => ({ ...p, [key]: v }))
 
@@ -179,6 +218,25 @@ export function JobForm({ job }: { job?: Job }) {
 
   return (
     <form onSubmit={submit} className="divide-y rounded-xl border bg-card">
+      {/* New posts: start from a template (fills the title, category, contract, skills and description) */}
+      {!source && (
+        <section className="space-y-2 p-6">
+          <h2 className="font-medium">{t("jobs.form.template")}</h2>
+          <div className="flex flex-wrap gap-1.5">
+            {JOB_TEMPLATES.map((tpl) => (
+              <button
+                key={tpl.title}
+                type="button"
+                onClick={() => setValue((v) => ({ ...v, ...tpl }))}
+                className={cn("rounded-full border px-3 py-1 text-sm hover:bg-muted", value.title === tpl.title && "border-primary bg-brand-soft")}
+              >
+                {tpl.title}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="space-y-4 p-6">
         <h2 className="font-medium">{t("jobs.form.theJob")}</h2>
         <Field label={t("jobs.form.jobTitle")}>
@@ -243,8 +301,14 @@ export function JobForm({ job }: { job?: Job }) {
       </section>
 
       <section className="space-y-3 p-6">
-        <h2 className="font-medium">{t("jobs.form.description")}</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-medium">{t("jobs.form.description")}</h2>
+          <Button type="button" variant="outline" size="sm" onClick={refine} disabled={refining}>
+            {refining ? <LoaderCircleIcon className="animate-spin" /> : <SparklesIcon />} {t("jobs.form.improveWording")}
+          </Button>
+        </div>
         <Textarea
+          disabled={refining}
           value={value.description}
           onChange={(e) => set("description", e.target.value)}
           className="min-h-48"
