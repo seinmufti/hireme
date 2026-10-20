@@ -19,10 +19,10 @@ export type StrengthCheck =
   | "certifications"
   | "projects"
 
-type Target = ListingSection | "profession"
+export type StrengthTarget = ListingSection | "profession"
 
 export function cvStrength(user: Pick<User, "photoId" | "title" | "phone" | "email" | "city">, p: TalentInput | null) {
-  const checks: { key: StrengthCheck; target: Target; done: boolean }[] = [
+  const checks: { key: StrengthCheck; target: StrengthTarget; done: boolean }[] = [
     { key: "profession", target: "profession", done: !!user.title.trim() },
     { key: "contact", target: "personal", done: !!user.phone && !!user.email },
     { key: "personal", target: "personal", done: !!p?.gender && !!p.dateOfBirth && !!user.city },

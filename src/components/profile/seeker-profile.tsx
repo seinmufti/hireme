@@ -23,6 +23,7 @@ import { toast } from "sonner"
 import { Flag, ProfilePhoto } from "@/components/cv/photo"
 import { CertificationList, DegreeList, ExperienceList, LanguageList } from "@/components/pool/talent-meta"
 import { PhoneInput } from "@/components/phone-input"
+import { CvStrengthBar } from "@/components/cv-strength-bar"
 import { CvImportButton } from "@/components/profile/cv-import-dialog"
 import { sectionsToCheck } from "@/components/profile/cv-import-review"
 import { stillMissing } from "@/lib/cv-import"
@@ -117,6 +118,20 @@ export function SeekerProfile({ user }: { user: User }) {
       )}
 
       <PoolStatus user={user} talent={talent} />
+
+      {/* CV strength: the next thing to add opens the form there */}
+      {!editing && (
+        <div className="rounded-xl border bg-card px-5 py-4">
+          <CvStrengthBar
+            user={user}
+            talent={talent}
+            onFix={(target) => {
+              setJumpTo(target)
+              setEditing(true)
+            }}
+          />
+        </div>
+      )}
 
       {editing ? (
         <PortfolioForm
@@ -523,7 +538,19 @@ function PortfolioForm({
 
   return (
     <form onSubmit={save} className="space-y-4">
-      <div className="flex justify-end">
+      {/* CV strength as it's being filled in; the next thing to add scrolls to its section */}
+      <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-card px-5 py-4">
+        <CvStrengthBar
+          user={contact}
+          talent={portfolio}
+          onFix={(target) => {
+            // A section, or the profession box itself (which also gets the cursor)
+            const el = document.getElementById(`edit-${target}`)
+            el?.scrollIntoView({ behavior: "smooth", block: target === "profession" ? "center" : "start" })
+            if (el instanceof HTMLInputElement) el.focus({ preventScroll: true })
+          }}
+          className="min-w-48 flex-1"
+        />
         <CvImportButton
           profile={contact}
           portfolio={portfolio}
