@@ -199,8 +199,6 @@ const ar: DeepPartial<Messages> = {
     noNotifications: "لا توجد إشعارات بعد. سنخبرك عندما ينشر صاحب عمل وظيفة تناسبك.",
     quickActions: "إجراءات سريعة",
     findJobs: "البحث عن وظائف",
-    openInbox: "فتح الرسائل",
-    browseCompanies: "تصفح الشركات",
     unread: "{count} غير مقروءة",
     workType: "نوع العمل الذي تريده",
     workTypeHint: "يستخدم أصحاب العمل وتنبيهات الوظائف هذا لمطابقتك.",

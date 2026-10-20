@@ -200,8 +200,6 @@ const en = {
     noNotifications: "No notifications yet. We'll tell you when an employer posts a job that matches you.",
     quickActions: "Quick actions",
     findJobs: "Find jobs",
-    openInbox: "Open inbox",
-    browseCompanies: "Browse companies",
     unread: "{count} unread",
     workType: "Type of work you want",
     workTypeHint: "Employers and job alerts use this to match you.",

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleAlertIcon, CircleCheckIcon, EyeIcon, EyeOffIcon, FileTextIcon, PencilIcon } from "lucide-react"
+import { CircleAlertIcon, CircleCheckIcon, EyeIcon, EyeOffIcon, FileTextIcon } from "lucide-react"
 import { UserAvatar } from "@/components/user-avatar"
 import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/i18n/provider"
@@ -39,9 +39,6 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
           )}
         </div>
         <div className="flex shrink-0 gap-2">
-          <Link href="/profile" className={buttonVariants({ variant: "outline", size: "sm" })}>
-            <PencilIcon /> {t("home.editCv")}
-          </Link>
           <Link href="/profile/cv" className={buttonVariants({ size: "sm" })}>
             <FileTextIcon /> {t("home.previewCv")}
           </Link>
