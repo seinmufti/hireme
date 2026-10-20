@@ -263,8 +263,6 @@ const ar: DeepPartial<Messages> = {
     reopenJob: "إعادة فتح الوظيفة",
     jobClosed: "تم إغلاق الوظيفة",
     jobReopened: "تمت إعادة فتح الوظيفة",
-    isMatch: "هذه الوظيفة تناسب سيرتك الذاتية",
-    notMatch: "لا تناسب سيرتك الذاتية بعد",
     editProfile: "تعديل سيرتي الذاتية",
     reasonCategory: "عملت في مجال {category}",
     reasonSkills: "لديك المهارات: {skills}",

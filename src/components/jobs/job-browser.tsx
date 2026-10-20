@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
-import { BriefcaseIcon, PlusIcon, SearchIcon, SendIcon, SparklesIcon, XIcon } from "lucide-react"
+import { BriefcaseIcon, PlusIcon, SearchIcon, SendIcon, TargetIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
@@ -181,7 +181,7 @@ export function JobBrowser({
                 onlyMatches ? "border-emerald-400 bg-emerald-50 text-emerald-900" : "hover:bg-muted"
               )}
             >
-              <SparklesIcon className="size-3.5" /> {t("jobs.matchingMine")}
+              <TargetIcon className="size-3.5" /> {t("jobs.matchingMine")}
               <span className="rounded-full bg-muted px-1.5 text-xs tabular-nums">{matches.length}</span>
             </button>
           )}

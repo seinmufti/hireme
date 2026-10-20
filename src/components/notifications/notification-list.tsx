@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { BellIcon, SparklesIcon } from "lucide-react"
+import { BellIcon, TargetIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
@@ -97,7 +97,7 @@ export function NotificationList({
                 )}
               >
                 <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-                  <SparklesIcon className="size-3.5" />
+                  <TargetIcon className="size-3.5" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs text-muted-foreground">{t("notifications.newJob")}</span>

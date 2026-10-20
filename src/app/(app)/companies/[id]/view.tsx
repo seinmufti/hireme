@@ -60,7 +60,7 @@ export function CompanyView({ id }: { id: string }) {
           )}
         </section>
         <aside>
-          <CompanyCard employer={company} />
+          <CompanyCard employer={company} showContact />
         </aside>
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { CheckIcon, SparklesIcon } from "lucide-react"
+import { CheckIcon, TargetIcon } from "lucide-react"
 import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
 import type { Job } from "@/lib/types"
@@ -71,7 +71,7 @@ export function JobCard({
               isMatch ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "bg-muted text-muted-foreground"
             )}
           >
-            <SparklesIcon className="size-3" /> {matchLabel(matches)}
+            <TargetIcon className="size-3" /> {matchLabel(matches)}
           </span>
         )}
         {!takesApplications(job) && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}

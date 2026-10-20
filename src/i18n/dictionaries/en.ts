@@ -264,8 +264,6 @@ const en = {
     reopenJob: "Reopen job",
     jobClosed: "Job closed",
     jobReopened: "Job reopened",
-    isMatch: "This job matches your CV",
-    notMatch: "Not a match for your CV yet",
     editProfile: "Edit my CV",
     reasonCategory: "You've worked in {category}",
     reasonSkills: "You have the skills {skills}",

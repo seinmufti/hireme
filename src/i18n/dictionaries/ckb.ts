@@ -263,8 +263,6 @@ const ckb: DeepPartial<Messages> = {
     reopenJob: "کردنەوەی کار",
     jobClosed: "کارەکە داخرا",
     jobReopened: "کارەکە کرایەوە",
-    isMatch: "ئەم کارە لەگەڵ CV ـەکەت دەگونجێت",
-    notMatch: "هێشتا لەگەڵ CV ـەکەت ناگونجێت",
     editProfile: "دەستکاریکردنی CV ـەکەم",
     reasonCategory: "لە بواری {category} کارت کردووە",
     reasonSkills: "ئەم کارامەییانەت هەیە: {skills}",

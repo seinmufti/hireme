@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeftIcon, BellIcon, MailIcon, PencilIcon, PhoneIcon, SparklesIcon, UsersIcon } from "lucide-react"
+import { ArrowLeftIcon, BellIcon, MailIcon, PencilIcon, PhoneIcon, TargetIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -116,7 +116,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                   )}
                 >
                   <p className="mb-1 flex items-center gap-1.5 font-medium">
-                    <SparklesIcon className="size-4" /> {match ? t("jobs.isMatch") : t("jobs.notMatch")} {talent && `(${matchLabel(points)})`}
+                    <TargetIcon className="size-4" /> {matchLabel(points)}
                   </p>
                   {match ? (
                     <ul className="list-disc space-y-0.5 ps-5 text-xs">
@@ -145,7 +145,8 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
 }
 
 /** The company behind a job, with its contact details. */
-export function CompanyCard({ employer }: { employer: User }) {
+/** The company; its contact details only on the company's own page (`showContact`), not on job pages. */
+export function CompanyCard({ employer, showContact }: { employer: User; showContact?: boolean }) {
   const t = useT()
   return (
     <div className="space-y-3 rounded-xl border bg-card p-5 text-sm">
@@ -159,30 +160,32 @@ export function CompanyCard({ employer }: { employer: User }) {
         </div>
       </div>
       {employer.bio && <p className="text-muted-foreground">{employer.bio}</p>}
-      <dl className="space-y-1.5">
-        <div className="text-xs text-muted-foreground">
-          {employer.name}
-          {employer.title && ` · ${employer.title}`}
-        </div>
-        {employer.email && (
-          <div className="flex items-center gap-2">
-            <MailIcon className="size-3.5 shrink-0 text-muted-foreground" />
-            <dt className="sr-only">{t("companies.email")}</dt>
-            <dd className="truncate">
-              <a href={`mailto:${employer.email}`} className="hover:underline">{employer.email}</a>
-            </dd>
+      {showContact && (
+        <dl className="space-y-1.5">
+          <div className="text-xs text-muted-foreground">
+            {employer.name}
+            {employer.title && ` · ${employer.title}`}
           </div>
-        )}
-        {employer.phone && (
-          <div className="flex items-center gap-2">
-            <PhoneIcon className="size-3.5 shrink-0 text-muted-foreground" />
-            <dt className="sr-only">{t("companies.phone")}</dt>
-            <dd>
-              <a href={`tel:${employer.phone.replace(/\s/g, "")}`} className="hover:underline">{employer.phone}</a>
-            </dd>
-          </div>
-        )}
-      </dl>
+          {employer.email && (
+            <div className="flex items-center gap-2">
+              <MailIcon className="size-3.5 shrink-0 text-muted-foreground" />
+              <dt className="sr-only">{t("companies.email")}</dt>
+              <dd className="truncate">
+                <a href={`mailto:${employer.email}`} className="hover:underline">{employer.email}</a>
+              </dd>
+            </div>
+          )}
+          {employer.phone && (
+            <div className="flex items-center gap-2">
+              <PhoneIcon className="size-3.5 shrink-0 text-muted-foreground" />
+              <dt className="sr-only">{t("companies.phone")}</dt>
+              <dd>
+                <a href={`tel:${employer.phone.replace(/\s/g, "")}`} className="hover:underline">{employer.phone}</a>
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
     </div>
   )
 }
