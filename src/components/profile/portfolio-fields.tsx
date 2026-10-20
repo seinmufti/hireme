@@ -17,6 +17,7 @@ import { DateOfBirthPicker } from "./date-of-birth-picker"
 import { CountrySelect, InstitutionPicker } from "./pickers"
 import { LanguagePicker } from "./language-picker"
 import { FieldOfStudyPicker } from "./field-of-study-picker"
+import { MonthPicker, PeriodPicker } from "./month-picker"
 
 // A job seeker's portfolio: their listing in The Pool, edited from the profile page.
 
@@ -64,6 +65,9 @@ const newExperience = (): Experience => ({
 })
 
 const degreeEndsTooEarly = (d: Degree) => !!d.startYear && !!d.endYear && Number(d.endYear) < Number(d.startYear)
+
+/** "YYYY-MM" for the current month (an issue date can't be in the future). */
+const thisMonth = () => new Date().toISOString().slice(0, 7)
 
 const EMPTY_REFERENCE = { name: "", position: "", phone: "", email: "" }
 
@@ -299,63 +303,6 @@ function ChoiceWithOther({
 }
 
 /** Month + year selects for a "YYYY-MM" value; only complete once both are chosen. */
-/** True when both dates are complete and the end is before the start. */
-export const endsBeforeStart = (start: string, end: string) => MONTH_VALUE.test(start) && MONTH_VALUE.test(end) && end < start
-
-/** Shown under an end date that comes before its start date. */
-export function EndBeforeStart({ what = "It" }: { what?: string }) {
-  return <p className="text-xs font-medium text-destructive">{what} can&apos;t end before it starts.</p>
-}
-
-const MONTH_VALUE = /^\d{4}-\d{2}$/
-
-/**
- * Month + year selects for a "YYYY-MM" value; only complete once both are chosen.
- * `min` ("YYYY-MM", e.g. the start date) hides earlier years and disables earlier months; `max` (e.g. the end
- * date) does the same for later ones.
- */
-export function MonthYearPicker({
-  value,
-  onChange,
-  min = "",
-  max = "",
-  invalid,
-}: {
-  value: string
-  onChange: (v: string) => void
-  min?: string
-  max?: string
-  invalid?: boolean
-}) {
-  const thisYear = new Date().getFullYear()
-  const [minYear = "", minMonth = ""] = MONTH_VALUE.test(min) ? min.split("-") : []
-  const [maxYear = "", maxMonth = ""] = MONTH_VALUE.test(max) ? max.split("-") : []
-  const years = Array.from({ length: 60 }, (_, i) => String(thisYear - i)).filter(
-    (y) => (!minYear || y >= minYear) && (!maxYear || y <= maxYear)
-  )
-  const [year = "", month = ""] = value ? value.split("-") : []
-  const set = (y: string, m: string) => onChange(y && m ? `${y}-${m}` : y ? `${y}-` : m ? `-${m}` : "")
-  const months = MONTHS.map((m, i) => ({ value: String(i + 1).padStart(2, "0"), label: m }))
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      <Select items={months} value={month || null} onValueChange={(v) => set(year, (v as string) ?? "")}>
-        <SelectTrigger className="h-9 w-full" aria-invalid={invalid || undefined}>
-          <SelectValue placeholder="Month" />
-        </SelectTrigger>
-        <SelectContent>
-          {months.map((m) => (
-            // In the start's year, months before the start can't be picked
-            <SelectItem key={m.value} value={m.value} disabled={(!!minYear && year === minYear && m.value < minMonth) || (!!maxYear && year === maxYear && m.value > maxMonth)}>
-              {m.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Choice value={year} options={years} onChange={(y) => set(y, month)} invalid={invalid} />
-    </div>
-  )
-}
-
 /** Previous jobs: category, position title, employer, contract type and start/end dates. Most recent first. */
 export function ExperienceFields({
   value,
@@ -401,18 +348,8 @@ export function ExperienceFields({
             <Field label="Contract type" className="col-span-6">
               <Choice value={e.contractType} options={CONTRACT_TYPES} onChange={(v) => update(e.id, { contractType: v })} />
             </Field>
-            <Field label="Start date" className="col-span-6">
-              <MonthYearPicker value={e.start} onChange={(start) => update(e.id, { start })} max={e.current ? "" : e.end} />
-            </Field>
-            <Field label="End date" className="col-span-6">
-              {e.current ? (
-                <div className="flex h-9 items-center text-sm text-muted-foreground">Present</div>
-              ) : (
-                <>
-                  <MonthYearPicker value={e.end} onChange={(end) => update(e.id, { end })} min={e.start} invalid={endsBeforeStart(e.start, e.end)} />
-                  {endsBeforeStart(e.start, e.end) && <EndBeforeStart what="A job" />}
-                </>
-              )}
+            <Field label="Period" className="col-span-12">
+              <PeriodPicker start={e.start} end={e.end} current={e.current} onChange={(patch) => update(e.id, patch)} what="A job" />
             </Field>
             <div className="col-span-12 flex items-center justify-between gap-3 text-sm">
               <label className="flex items-center gap-2">
@@ -491,7 +428,6 @@ export function ExperienceFields({
   )
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 /** A list of rows with "Most recent"/numbered headers, a delete button per row and an add button. */
 function RowList<T extends { id: string }>({
@@ -633,7 +569,7 @@ export function DegreeFields({
                     onChange={(endYear) => update({ endYear })}
                     invalid={degreeEndsTooEarly(d)}
                   />
-                  {degreeEndsTooEarly(d) && <EndBeforeStart what="A degree" />}
+                  {degreeEndsTooEarly(d) && <p className="text-xs font-medium text-destructive">A degree can&apos;t end before it starts.</p>}
                 </Field>
               </>
             )}
@@ -660,8 +596,6 @@ export function CertificationFields({
   value: Certification[]
   onChange: (update: (list: Certification[]) => Certification[]) => void
 }) {
-  const thisYear = new Date().getFullYear()
-  const years = Array.from({ length: 50 }, (_, i) => String(thisYear - i))
   return (
     <RowList
       items={value}
@@ -672,35 +606,16 @@ export function CertificationFields({
       create={() => ({ id: `c-${crypto.randomUUID()}`, title: "", institution: "", issued: "", attachmentIds: [] })}
     >
       {(c, update) => {
-        const [year = "", month = ""] = c.issued ? c.issued.split("-") : []
-        // Stored as "YYYY-MM"; only complete once both parts are chosen
-        const setIssued = (y: string, m: string) => update({ issued: y && m ? `${y}-${m}` : y ? `${y}-` : m ? `-${m}` : "" })
         return (
           <div className="grid grid-cols-12 gap-3">
             <Field label="Title" className="col-span-12">
               <Input className="h-9" value={c.title} onChange={(e) => update({ title: e.target.value })} placeholder="e.g. AWS Certified Cloud Practitioner, Driving licence" />
             </Field>
-            <Field label="Issuing institution" className="col-span-6">
+            <Field label="Issuing institution" className="col-span-8">
               <Input className="h-9" value={c.institution} onChange={(e) => update({ institution: e.target.value })} placeholder="e.g. Amazon Web Services" />
             </Field>
-            <Field label="Issue month" className="col-span-3">
-              <Select
-                items={MONTHS.map((m, i) => ({ value: String(i + 1).padStart(2, "0"), label: m }))}
-                value={month || null}
-                onValueChange={(v) => setIssued(year, (v as string) ?? "")}
-              >
-                <SelectTrigger className="h-9 w-full">
-                  <SelectValue placeholder="Month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MONTHS.map((m, i) => (
-                    <SelectItem key={m} value={String(i + 1).padStart(2, "0")}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Issue year" className="col-span-3">
-              <Choice value={year} options={years} onChange={(y) => setIssued(y, month)} />
+            <Field label="Issue date" className="col-span-4">
+              <MonthPicker value={c.issued} onChange={(issued) => update({ issued })} max={thisMonth()} />
             </Field>
             <div className="col-span-12">
               <AttachmentField label="Scan of the license or certificate (optional)" value={c.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />
