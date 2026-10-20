@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { LightbulbIcon, XIcon } from "lucide-react"
+import { XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -93,7 +93,6 @@ function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChan
           ))}
         </datalist>
       </div>
-      <p className="text-xs text-muted-foreground">{t("jobs.form.skillsHint")}</p>
     </div>
   )
 }
@@ -187,7 +186,6 @@ export function JobForm({ job }: { job?: Job }) {
 
       <section className="space-y-3 p-6">
         <h2 className="font-medium">{t("jobs.form.deadline")}</h2>
-        <p className="text-xs text-muted-foreground">{t("jobs.form.deadlineHint")}</p>
         <Input
           type="date"
           className="h-9 w-56"
@@ -200,10 +198,6 @@ export function JobForm({ job }: { job?: Job }) {
 
       <section className="space-y-3 p-6">
         <h2 className="font-medium">{t("jobs.form.description")}</h2>
-        <p className="flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-          <LightbulbIcon className="mt-px size-3.5 shrink-0" />
-          {t("jobs.form.descriptionTip")}
-        </p>
         <Textarea
           value={value.description}
           onChange={(e) => set("description", e.target.value)}

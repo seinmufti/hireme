@@ -48,7 +48,6 @@ export function MyJobsView() {
       {jobs.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
           <p className="font-medium">{t("jobs.noPosts")}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t("jobs.noPostsHint")}</p>
         </div>
       ) : (
         <ul className="divide-y rounded-xl border bg-card">

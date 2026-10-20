@@ -508,8 +508,7 @@ function PortfolioForm({
 
   return (
     <form onSubmit={save} className="space-y-4">
-      <div className="flex items-center justify-between gap-3 rounded-xl border bg-card p-6">
-        <p className="text-sm text-muted-foreground">{t("cvImport.prompt")}</p>
+      <div className="flex justify-end">
         <CvImportButton
           profile={contact}
           portfolio={portfolio}
@@ -558,7 +557,7 @@ function PortfolioForm({
       </section>
 
       <section id="edit-about" className={sectionClass("about")}>
-        {heading("about", t("seeker.aboutHint"))}
+        {heading("about")}
         <Textarea
           className="min-h-24 text-sm"
           value={portfolio.summary}
@@ -568,7 +567,7 @@ function PortfolioForm({
       </section>
 
       <section id="edit-work" className={sectionClass("work")}>
-        {heading("work", t("seeker.workHint"))}
+        {heading("work")}
         <ExperienceFields value={portfolio.experiences} onChange={list("experiences")} />
       </section>
 
@@ -578,7 +577,7 @@ function PortfolioForm({
       </section>
 
       <section id="edit-skills" className={sectionClass("skills")}>
-        {heading("skills", t("seeker.skillsHint"))}
+        {heading("skills")}
         <Field label={t("seeker.hardSkillsLabel")}>
           <TagPicker
             value={portfolio.hardSkills}
@@ -603,18 +602,17 @@ function PortfolioForm({
       </section>
 
       <section id="edit-certifications" className={sectionClass("certifications")}>
-        {heading("certifications", t("seeker.certificationsHint"))}
+        {heading("certifications")}
         <CertificationFields value={portfolio.certifications} onChange={list("certifications")} />
       </section>
 
       <section id="edit-projects" className={sectionClass("projects")}>
-        {heading("projects", t("seeker.projectsHint"))}
+        {heading("projects")}
         <ProjectFields value={portfolio.projects} onChange={list("projects")} />
       </section>
 
 
       <div className="sticky bottom-4 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
-        <span className="me-auto text-xs text-muted-foreground">{t("seeker.readyHint")}</span>
         <Button type="button" variant="ghost" onClick={cancel}>
           {t("common.cancel")}
         </Button>

@@ -49,7 +49,6 @@ export function MyApplicationsView() {
       {applications.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
           <p className="font-medium">{t("applications.none")}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t("applications.noneHint")}</p>
           <Link href="/jobs" className={cn(buttonVariants(), "mt-4")}>
             {t("applications.findJobs")}
           </Link>

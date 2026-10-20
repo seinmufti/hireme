@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 import { UserAvatar } from "@/components/user-avatar"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import type { PoolTalent } from "@/lib/filters"
 import { latestJob } from "./talent-meta"
@@ -71,7 +71,6 @@ export function MessageDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{t("pool.messageTitle", { name: talent.firstName })}</DialogTitle>
-          <DialogDescription>{t("pool.messageIntro")}</DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-3">
           <UserAvatar name={talent.firstName} color={talent.avatarColor} size={36} />

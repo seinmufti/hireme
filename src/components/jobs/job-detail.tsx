@@ -122,7 +122,6 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                     </ul>
                   ) : (
                     <p className="text-xs">
-                      {t("jobs.notMatchHint")}{" "}
                       <Link href="/profile" className="underline">{t("jobs.editProfile")}</Link>
                     </p>
                   )}

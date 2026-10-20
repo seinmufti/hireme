@@ -251,7 +251,6 @@ export function JobBrowser({
           {results.length === 0 ? (
             <div className="rounded-xl border border-dashed bg-card py-16 text-center">
               <p className="font-medium">{t("jobs.noResults")}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{t("jobs.noResultsHint")}</p>
             </div>
           ) : (
             <div className={cn("grid grid-cols-2 gap-4", !aside && "xl:grid-cols-3")}>

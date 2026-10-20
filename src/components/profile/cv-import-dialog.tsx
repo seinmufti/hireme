@@ -202,11 +202,7 @@ export function CvImportButton<P extends object, T extends object>({
         <DialogContent className="sm:max-w-lg" showCloseButton={step.kind !== "reading"}>
           <DialogHeader>
             <DialogTitle>{t("cvImport.title")}</DialogTitle>
-            <DialogDescription>
-              {step.kind === "conflicts"
-                ? t("cvImport.conflictsIntro")
-                : t("cvImport.intro")}
-            </DialogDescription>
+            {step.kind === "conflicts" && <DialogDescription>{t("cvImport.conflictsIntro")}</DialogDescription>}
           </DialogHeader>
 
           {step.kind === "pick" && (

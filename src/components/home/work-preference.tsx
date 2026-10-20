@@ -28,8 +28,7 @@ export function WorkPreferenceCard({ user, talent }: { user: HomeUser; talent: H
 
   return (
     <section className="rounded-xl border bg-card p-4">
-      <h3 className="text-sm font-semibold">{t("home.workType")}</h3>
-      <p className="mb-3 text-xs text-muted-foreground">{t("home.workTypeHint")}</p>
+      <h3 className="mb-3 text-sm font-semibold">{t("home.workType")}</h3>
       <fieldset disabled={!talent} className="space-y-2">
         <Toggle icon={WifiIcon} label={t("home.workRemote")} checked={pref.remote} onChange={(remote) => save({ ...pref, remote })} />
         <Toggle

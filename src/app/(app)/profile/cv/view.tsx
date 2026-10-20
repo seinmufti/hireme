@@ -49,8 +49,6 @@ export function CvView() {
           </Button>
         </div>
       </div>
-      {/* Only free CVs get a note (about the watermark) */}
-      {!premium && <p className="mx-auto w-[210mm] max-w-full text-xs text-muted-foreground">{t("cvPreview.freeNote")}</p>}
       <CvDocument
         ref={page}
         person={user}

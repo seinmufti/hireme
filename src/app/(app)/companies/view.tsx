@@ -51,7 +51,6 @@ export function CompaniesView({ initialQuery }: { initialQuery: string }) {
       {results.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
           <p className="font-medium">{t("companies.noResults")}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t("companies.noResultsHint")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">

@@ -162,7 +162,6 @@ export function PhotoField({
             </Button>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">{t("form.photoHint")}</p>
       </div>
     </div>
   )

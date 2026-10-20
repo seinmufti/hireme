@@ -29,7 +29,7 @@ const PAGE_W = 210
 const PAGE_H = 297
 const MARGIN_X = 18
 const MARGIN_TOP = 18
-const MARGIN_BOTTOM = 22 // room for the HireMe logo
+const MARGIN_BOTTOM = 26 // room for the HireMe logo
 const CONTENT_H_MM = PAGE_H - MARGIN_TOP - MARGIN_BOTTOM
 const MM = 96 / 25.4 // CSS pixels per millimetre
 
@@ -166,8 +166,8 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
       {children}
 
       {/* Always at the bottom of every page, also on premium CVs */}
-      <div className="absolute bottom-[6mm] left-1/2 flex -translate-x-1/2 items-center gap-2 text-[11pt] font-semibold" style={{ color: MUTED }}>
-        <Logo size={30} className="rounded-[6px]" />
+      <div className="absolute bottom-[5mm] left-1/2 flex -translate-x-1/2 items-center gap-2.5 text-[14pt] font-semibold" style={{ color: MUTED }}>
+        <Logo size={42} className="rounded-[8px]" />
         HireMe
       </div>
 

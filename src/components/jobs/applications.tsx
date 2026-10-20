@@ -8,7 +8,7 @@ import { ProfilePhoto } from "@/components/cv/photo"
 import { MessageDialog } from "@/components/pool/message-dialog"
 import { TalentProfileDialog } from "@/components/pool/talent-profile-dialog"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useT, useTimeAgo } from "@/i18n/provider"
@@ -128,7 +128,6 @@ function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onO
         <form onSubmit={submit} className="grid gap-4">
           <DialogHeader>
             <DialogTitle>{t("applications.dialogTitle", { job: job.title })}</DialogTitle>
-            <DialogDescription>{t("applications.dialogBody", { company: job.company })}</DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
             <label htmlFor="apply-note" className="text-sm font-medium">

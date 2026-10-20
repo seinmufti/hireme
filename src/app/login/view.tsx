@@ -57,7 +57,6 @@ function Accounts() {
       <BackupButtons />
       <Logo size={48} className="shrink-0" />
       <h1 className="mt-2 shrink-0 text-2xl font-semibold tracking-tight">{t("login.welcome")}</h1>
-      <p className="mt-1 shrink-0 text-sm text-muted-foreground">{t("login.subtitle")}</p>
 
       <div className="mt-5 flex min-h-0 items-stretch rounded-2xl border bg-card p-5 shadow-sm">
         {ORDER.map((role, i) => {
@@ -263,7 +262,6 @@ function NewAccountDialog({
         <form onSubmit={submit} className="grid gap-4" autoComplete="off">
           <DialogHeader>
             <DialogTitle>{t("login.newAccount", { role: t(`roles.${role}`) })}</DialogTitle>
-            {!isSeeker && <DialogDescription>{t("login.staffIntro")}</DialogDescription>}
           </DialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor="new-name">{t("login.fullName")}</Label>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { LightbulbIcon, ListIcon, PlusIcon, Trash2Icon, UserRoundCheckIcon } from "lucide-react"
+import { ListIcon, PlusIcon, Trash2Icon, UserRoundCheckIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -381,10 +381,6 @@ export function ExperienceFields({
               )}
             </div>
             <Field label={t("form.responsibilities")} className="col-span-12">
-              <p className="flex items-start gap-1.5 rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-900">
-                <LightbulbIcon className="mt-px size-3.5 shrink-0" />
-                {t("form.responsibilitiesTip")}
-              </p>
               <Textarea
                 value={e.description}
                 onChange={(ev) => update(e.id, { description: ev.target.value })}
@@ -401,9 +397,6 @@ export function ExperienceFields({
                       <Trash2Icon /> {t("form.removeReference")}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("form.referenceNote")}
-                  </p>
                   <div className="grid grid-cols-2 gap-3">
                     {(
                       [
