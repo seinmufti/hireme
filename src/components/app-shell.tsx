@@ -47,10 +47,11 @@ function Shell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b bg-card/90 backdrop-blur">
         {/* Demo bar: switch between the demo accounts, and pick the language */}
         <div className="border-b bg-muted/40">
-          <div dir="ltr" className="mx-auto flex h-14 w-full max-w-7xl items-center justify-end gap-4 px-8">
+          {/* Accounts in the middle, the language on the right */}
+          <div dir="ltr" className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-8">
+            <span aria-hidden />
             <HeaderAccounts />
-            <span className="h-8 w-px bg-border" aria-hidden />
-            <LanguageSwitcher />
+            <LanguageSwitcher className="justify-self-end" />
           </div>
         </div>
         {/* Logo on the far left and the same physical order in every language; the text inside follows the language */}
