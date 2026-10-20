@@ -74,6 +74,9 @@ export function matchJob(talent: MatchableTalent, job: Job): JobMatch | null {
 }
 
 /** How many things match: each of the job's skills they have, the job's field, a similar job title. */
+/** Out of how many: each of the job's skills, its field and its job title. */
+export const matchTotal = (job: Job) => job.skills.length + 2
+
 export const matchCount = (m: JobMatch) => m.skills.length + (m.category ? 1 : 0) + (m.title ? 1 : 0)
 
 /** The open jobs that suit the job seeker, best match first, newest first among equals. */

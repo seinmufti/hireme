@@ -90,10 +90,6 @@ const en = {
     company: "Company",
     createAccount: "Create account",
   },
-  mobile: {
-    title: "Not available on mobile yet",
-    body: "HireMe is built for desktop. Please open it on a computer with a screen at least 640px wide.",
-  },
   inbox: {
     title: "Inbox",
     conversations: "{count} conversations",
@@ -235,8 +231,7 @@ const en = {
     remote: "Remote",
     international: "International",
     iraq: "Iraq",
-    matchCount: "{count} matches",
-    matchOne: "1 match",
+    matchCount: "{count}/{total} matches",
     applied: "Applied",
     closed: "Closed",
     factCompany: "Company",

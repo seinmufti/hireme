@@ -89,10 +89,6 @@ const ckb: DeepPartial<Messages> = {
     company: "کۆمپانیا",
     createAccount: "دروستکردنی هەژمار",
   },
-  mobile: {
-    title: "هێشتا لەسەر مۆبایل بەردەست نییە",
-    body: "HireMe بۆ کۆمپیوتەر دروستکراوە. تکایە لەسەر کۆمپیوتەرێک بیکەرەوە کە پانی شاشەکەی لانیکەم 640px بێت.",
-  },
   inbox: {
     title: "نامەکان",
     conversations: "{count} گفتوگۆ",
@@ -234,8 +230,7 @@ const ckb: DeepPartial<Messages> = {
     remote: "لە دوورەوە",
     international: "دەرەوەی عێراق",
     iraq: "عێراق",
-    matchCount: "{count} خاڵی گونجاو",
-    matchOne: "١ خاڵی گونجاو",
+    matchCount: "{count}/{total} گونجاو",
     applied: "داواکاری نێردرا",
     closed: "داخراوە",
     factCompany: "کۆمپانیا",

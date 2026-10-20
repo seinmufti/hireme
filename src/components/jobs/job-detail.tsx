@@ -116,7 +116,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                   )}
                 >
                   <p className="mb-1 flex items-center gap-1.5 font-medium">
-                    <TargetIcon className="size-4" /> {matchLabel(points)}
+                    <TargetIcon className="size-4" /> {matchLabel(points, job)}
                   </p>
                   {match ? (
                     <ul className="list-disc space-y-0.5 ps-5 text-xs">

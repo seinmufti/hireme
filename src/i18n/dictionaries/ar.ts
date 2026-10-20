@@ -89,10 +89,6 @@ const ar: DeepPartial<Messages> = {
     company: "الشركة",
     createAccount: "إنشاء الحساب",
   },
-  mobile: {
-    title: "غير متاح على الجوال بعد",
-    body: "صُمّم HireMe لأجهزة الكمبيوتر. يرجى فتحه على جهاز بشاشة لا يقل عرضها عن 640 بكسل.",
-  },
   inbox: {
     title: "الرسائل",
     conversations: "{count} محادثات",
@@ -234,8 +230,7 @@ const ar: DeepPartial<Messages> = {
     remote: "عن بُعد",
     international: "خارج العراق",
     iraq: "العراق",
-    matchCount: "{count} نقاط تطابق",
-    matchOne: "نقطة تطابق واحدة",
+    matchCount: "{count}/{total} تطابق",
     applied: "تم التقديم",
     closed: "مغلقة",
     factCompany: "الشركة",

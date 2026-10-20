@@ -4,15 +4,16 @@ import Link from "next/link"
 import { CheckIcon, TargetIcon } from "lucide-react"
 import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
+import { matchTotal } from "@/lib/matching"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { QuickApply } from "./applications"
 import { SkillChips, useJobFacts } from "./job-meta"
 
-/** "3 matches" / "1 match" */
+/** "3/8 matches": how many of the job's skills, field and title match the CV */
 export function useMatchLabel() {
   const t = useT()
-  return (count: number) => (count === 1 ? t("jobs.matchOne") : t("jobs.matchCount", { count }))
+  return (count: number, job: Job) => t("jobs.matchCount", { count, total: matchTotal(job) })
 }
 
 /**
@@ -71,7 +72,7 @@ export function JobCard({
               isMatch ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "bg-muted text-muted-foreground"
             )}
           >
-            <TargetIcon className="size-3" /> {matchLabel(matches)}
+            <TargetIcon className="size-3" /> {matchLabel(matches, job)}
           </span>
         )}
         {!takesApplications(job) && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}
