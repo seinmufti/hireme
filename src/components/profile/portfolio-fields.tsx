@@ -11,6 +11,7 @@ import { useT } from "@/i18n/provider"
 import { degreeDuration, formatDuration, jobMonths } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE } from "@/lib/normalize"
 import { CONTRACT_TYPES, DEGREE_STATUSES, EDUCATION, GENDERS, JOB_CATEGORIES, LANGUAGE_LEVELS, LANGUAGES } from "@/lib/options"
+import { certificationComplete, degreeComplete, filled, jobComplete } from "@/lib/store"
 import type { Certification, Degree, Experience, LanguageSkill, Talent, TalentInput } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { AttachmentField } from "./cv-fields"
@@ -71,11 +72,16 @@ const degreeEndsTooEarly = (d: Degree) => !!d.startYear && !!d.endYear && Number
 const thisMonth = () => new Date().toISOString().slice(0, 7)
 
 const EMPTY_REFERENCE = { name: "", position: "", phone: "", email: "" }
+const MONTH = /^\d{4}-\d{2}$/
 
-export function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+/** Yellow: a required detail that's still missing (a field), or a job, degree or license that isn't complete (a row). */
+export const MISSING_FIELD = "rounded-md bg-amber-100/70 p-1.5 -m-1.5 ring-1 ring-amber-300"
+export const MISSING_ROW = "border-amber-300 bg-amber-50"
+
+export function Field({ label, children, className, missing }: { label: string; children: React.ReactNode; className?: string; missing?: boolean }) {
   return (
-    <div className={cn("space-y-1.5", className)}>
-      <Label>{label}</Label>
+    <div className={cn("space-y-1.5", missing && MISSING_FIELD, className)}>
+      <Label className={cn(missing && "text-amber-900")}>{label}</Label>
       {children}
     </div>
   )
@@ -121,10 +127,10 @@ export function PersonalFields({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <Field label={t("form.gender")}>
+        <Field label={t("form.gender")} missing={!value.gender}>
           <Choice value={value.gender} options={GENDERS} onChange={(v) => set("gender", v)} />
         </Field>
-        <Field label={t("form.dateOfBirth")}>
+        <Field label={t("form.dateOfBirth")} missing={!value.dateOfBirth}>
           <DateOfBirthPicker value={value.dateOfBirth} onChange={(v) => set("dateOfBirth", v)} />
         </Field>
       </div>
@@ -199,7 +205,7 @@ export function LanguageFields({
       )}
       {value.map((l, i) => (
         // Language on the left; its speaking and reading sliders stacked on the right
-        <div key={i} className="grid grid-cols-[11rem_1fr_2rem] items-center gap-4 rounded-lg border p-3">
+        <div key={i} className={cn("grid grid-cols-[11rem_1fr_2rem] items-center gap-4 rounded-lg border p-3", !l.language && MISSING_ROW)}>
           <LanguagePicker
             value={l.language}
             // A language that's already listed can't be picked twice
@@ -324,7 +330,7 @@ export function ExperienceFields({
     <div className="space-y-3">
       {value.length === 0 && <p className="text-sm text-muted-foreground">{t("form.noJobs")}</p>}
       {value.map((e, i) => (
-        <div key={e.id} className="rounded-lg border p-4">
+        <div key={e.id} className={cn("rounded-lg border p-4", !jobComplete(e) && MISSING_ROW)}>
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">{i === 0 ? t("form.mostRecentJob") : t("form.jobN", { n: i + 1 })}</span>
             <Button
@@ -338,7 +344,7 @@ export function ExperienceFields({
             </Button>
           </div>
           <div className="grid grid-cols-12 gap-3">
-            <Field label={t("form.category")} className="col-span-6">
+            <Field label={t("form.category")} className="col-span-6" missing={!filled(e.category)}>
               <ChoiceWithOther
                 value={e.category}
                 options={JOB_CATEGORIES}
@@ -346,16 +352,16 @@ export function ExperienceFields({
                 writePlaceholder={t("form.writeCategory")}
               />
             </Field>
-            <Field label={t("form.positionTitle")} className="col-span-6">
+            <Field label={t("form.positionTitle")} className="col-span-6" missing={!filled(e.title)}>
               <Input className="h-9" value={e.title} onChange={(ev) => update(e.id, { title: ev.target.value })} placeholder={t("form.positionPlaceholder")} />
             </Field>
-            <Field label={t("form.employer")} className="col-span-6">
+            <Field label={t("form.employer")} className="col-span-6" missing={!filled(e.employer)}>
               <Input className="h-9" value={e.employer} onChange={(ev) => update(e.id, { employer: ev.target.value })} placeholder={t("form.employerPlaceholder")} />
             </Field>
-            <Field label={t("form.contractType")} className="col-span-6">
+            <Field label={t("form.contractType")} className="col-span-6" missing={!e.contractType}>
               <Choice value={e.contractType} options={CONTRACT_TYPES} onChange={(v) => update(e.id, { contractType: v })} />
             </Field>
-            <Field label={t("form.period")} className="col-span-12">
+            <Field label={t("form.period")} className="col-span-12" missing={!MONTH.test(e.start ?? "") || (!e.current && !MONTH.test(e.end ?? ""))}>
               <PeriodPicker start={e.start} end={e.end} current={e.current} onChange={(patch) => update(e.id, patch)} what={t("form.jobEndsBefore")} />
             </Field>
             <div className="col-span-12 flex items-center justify-between gap-3 text-sm">
@@ -444,6 +450,7 @@ function RowList<T extends { id: string }>({
   onChange,
   create,
   children,
+  incomplete,
 }: {
   items: T[]
   label: string
@@ -452,13 +459,15 @@ function RowList<T extends { id: string }>({
   onChange: (update: (list: T[]) => T[]) => void
   create: () => T
   children: (item: T, update: (patch: Partial<T>) => void) => React.ReactNode
+  /** Rows still missing required details turn yellow */
+  incomplete?: (item: T) => boolean
 }) {
   const t = useT()
   return (
     <div className="space-y-3">
       {items.length === 0 && <p className="text-sm text-muted-foreground">{empty}</p>}
       {items.map((item, i) => (
-        <div key={item.id} className="rounded-lg border p-4">
+        <div key={item.id} className={cn("rounded-lg border p-4", incomplete?.(item) && MISSING_ROW)}>
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">
               {label} {i + 1}
@@ -501,6 +510,7 @@ export function DegreeFields({
       label={t("form.degree")}
       addLabel={t("form.addDegree")}
       empty={t("form.noDegrees")}
+      incomplete={(d) => !degreeComplete(d)}
       onChange={onChange}
       create={() => ({
         id: `d-${crypto.randomUUID()}`,
@@ -524,7 +534,7 @@ export function DegreeFields({
                 {/* An institution of the old country does not fit the new one */}
                 <CountrySelect value={d.country ?? "IQ"} onChange={(country) => update({ country, institution: "" })} />
               </Field>
-              <Field label={t("form.institution")} className="col-span-8">
+              <Field label={t("form.institution")} className="col-span-8" missing={!filled(d.institution)}>
                 <InstitutionPicker
                   key={d.country ?? "IQ"}
                   country={d.country ?? "IQ"}
@@ -533,16 +543,16 @@ export function DegreeFields({
                 />
               </Field>
             </div>
-            <Field label={t("form.degreeLevel")}>
+            <Field label={t("form.degreeLevel")} missing={!filled(d.level)}>
               <Choice value={d.level} options={EDUCATION} onChange={(level) => update({ level })} />
             </Field>
-            <Field label={t("form.fieldOfStudy")}>
+            <Field label={t("form.fieldOfStudy")} missing={!filled(d.field)}>
               <FieldOfStudyPicker value={d.field} onChange={(field) => update({ field })} />
             </Field>
-            <Field label={t("form.degreeName")} className="col-span-2">
+            <Field label={t("form.degreeName")} className="col-span-2" missing={!filled(d.name)}>
               <Input className="h-9" value={d.name} onChange={(e) => update({ name: e.target.value })} placeholder={t("form.degreeNamePlaceholder")} />
             </Field>
-            <Field label={t("form.status")} className="col-span-2">
+            <Field label={t("form.status")} className="col-span-2" missing={!filled(d.status)}>
               <div className="flex gap-1.5">
                 {DEGREE_STATUSES.map((st) => (
                   <button
@@ -561,14 +571,14 @@ export function DegreeFields({
             </Field>
             {d.status && (
               <>
-                <Field label={t("form.yearStarted")}>
+                <Field label={t("form.yearStarted")} missing={!filled(d.startYear)}>
                   <Choice
                     value={d.startYear}
                     options={years(thisYear, thisYear - 60).filter((y) => !d.endYear || y <= d.endYear)}
                     onChange={(startYear) => update({ startYear })}
                   />
                 </Field>
-                <Field label={studying ? t("form.expectedGraduation") : t("form.yearFinished")}>
+                <Field label={studying ? t("form.expectedGraduation") : t("form.yearFinished")} missing={!filled(d.endYear)}>
                   <Choice
                     value={d.endYear}
                     options={(studying ? years(thisYear + 10, thisYear) : years(thisYear, thisYear - 60)).filter(
@@ -611,19 +621,20 @@ export function CertificationFields({
       label={t("form.license")}
       addLabel={t("form.addLicense")}
       empty={t("form.noLicenses")}
+      incomplete={(c) => !certificationComplete(c)}
       onChange={onChange}
       create={() => ({ id: `c-${crypto.randomUUID()}`, title: "", institution: "", issued: "", attachmentIds: [] })}
     >
       {(c, update) => {
         return (
           <div className="grid grid-cols-12 gap-3">
-            <Field label={t("form.licenseTitle")} className="col-span-12">
+            <Field label={t("form.licenseTitle")} className="col-span-12" missing={!filled(c.title)}>
               <Input className="h-9" value={c.title} onChange={(e) => update({ title: e.target.value })} placeholder={t("form.licenseTitlePlaceholder")} />
             </Field>
-            <Field label={t("form.issuingInstitution")} className="col-span-8">
+            <Field label={t("form.issuingInstitution")} className="col-span-8" missing={!filled(c.institution)}>
               <Input className="h-9" value={c.institution} onChange={(e) => update({ institution: e.target.value })} placeholder={t("form.issuingPlaceholder")} />
             </Field>
-            <Field label={t("form.issueDate")} className="col-span-4">
+            <Field label={t("form.issueDate")} className="col-span-4" missing={!MONTH.test(c.issued ?? "")}>
               <MonthPicker value={c.issued} onChange={(issued) => update({ issued })} max={thisMonth()} />
             </Field>
             <div className="col-span-12">

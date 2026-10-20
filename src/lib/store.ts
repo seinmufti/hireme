@@ -683,7 +683,7 @@ export function portfolioEntryProblem(p: TalentInput) {
 }
 
 const MONTH_VALUE = /^\d{4}-\d{2}$/
-const jobComplete = (e: TalentInput["experiences"][number]) =>
+export const jobComplete = (e: TalentInput["experiences"][number]) =>
   filled(e.title) &&
   filled(e.employer) &&
   filled(e.category) &&
@@ -712,13 +712,24 @@ export function listingSectionsMissing(user: Pick<User, "phone" | "email">, p: T
 }
 
 // Saved data from older versions can lack newer fields; a missing field counts as empty instead of crashing
-const filled = (value: string | undefined) => !!value?.trim()
+export const filled = (value: string | undefined) => !!value?.trim()
 
-const degreeComplete = (d: TalentInput["degrees"][number]) =>
+export const degreeComplete = (d: TalentInput["degrees"][number]) =>
   filled(d.level) && filled(d.name) && filled(d.field) && filled(d.institution) && filled(d.status) && filled(d.startYear) && filled(d.endYear)
 
-const certificationComplete = (c: TalentInput["certifications"][number]) =>
+export const certificationComplete = (c: TalentInput["certifications"][number]) =>
   filled(c.title) && filled(c.institution) && /^\d{4}-\d{2}$/.test(c.issued ?? "")
+
+/**
+ * Sections that need details but have no entry or field to point at: no degree yet, or no language yet.
+ * Everything else that's missing is shown on the job, degree, license or field itself.
+ */
+export function sectionsMissingEntries(p: TalentInput | null): ListingSection[] {
+  const sections: ListingSection[] = []
+  if (!p?.degrees.length) sections.push("education")
+  if (!p?.languages.some((l) => l.language)) sections.push("languages")
+  return sections
+}
 
 /** What's still needed, as a list of plain-language items. Empty when the portfolio is complete. */
 export function listingMissing(user: Pick<User, "phone" | "email">, p: TalentInput | null) {

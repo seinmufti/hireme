@@ -34,7 +34,7 @@ import { ageFrom, formatDuration, formatMonthYear, projectDuration, totalMonths 
 import { countryName, HARD_SKILLS, SOFT_SKILLS } from "@/lib/options"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
-import { listingSectionsMissing, portfolioEntryProblem, useStore, type ListingSection } from "@/lib/store"
+import { certificationComplete, degreeComplete, filled, jobComplete, listingSectionsMissing, sectionsMissingEntries, portfolioEntryProblem, useStore, type ListingSection } from "@/lib/store"
 import type { Talent, TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { AttachmentThumb, LocationFields, PhotoField, ProjectFields, TagPicker, WorkPreferenceFields } from "./cv-fields"
@@ -206,22 +206,26 @@ function Attachments({ ids }: { ids: string[] }) {
 
 function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | null; onEdit: (section: SectionId) => void }) {
   const t = useT()
-  const needs = new Set(listingSectionsMissing(user, talent))
+  // A whole section is yellow only when it needs an entry it doesn't have (no degree, no language);
+  // otherwise just the incomplete job, degree, license, project or detail is
+  const needs = new Set(sectionsMissingEntries(talent))
   const p = talent ?? EMPTY_PORTFOLIO
+  const item = (incomplete: boolean) => cn(incomplete && "-mx-2 rounded-lg px-2 py-1.5 ring-1 ring-amber-300 bg-amber-50")
   const age = ageFrom(p.dateOfBirth)
   const months = totalMonths(p.experiences)
   const location = [user.city, countryName(user.country)].filter(Boolean).join(", ")
   const details = [
-    { icon: UserIcon, label: t("seeker.gender"), value: p.gender },
+    { icon: UserIcon, label: t("seeker.gender"), value: p.gender, required: true },
     {
       icon: CakeIcon,
       label: t("seeker.dateOfBirth"),
       value: p.dateOfBirth
         ? `${new Date(p.dateOfBirth).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} (${t("seeker.yearsOld", { age: age ?? "" })})`
         : "",
+      required: true,
     },
-    { icon: PhoneIcon, label: t("seeker.phone"), value: user.phone, href: user.phone ? `tel:${user.phone.replace(/\s/g, "")}` : "" },
-    { icon: MailIcon, label: t("seeker.email"), value: user.email, href: user.email ? `mailto:${user.email}` : "" },
+    { icon: PhoneIcon, label: t("seeker.phone"), value: user.phone, href: user.phone ? `tel:${user.phone.replace(/\s/g, "")}` : "", required: true },
+    { icon: MailIcon, label: t("seeker.email"), value: user.email, href: user.email ? `mailto:${user.email}` : "", required: true },
     { icon: MapPinIcon, label: t("seeker.location"), value: location, flag: user.country },
     { icon: HomeIcon, label: t("seeker.address"), value: user.address, private: true },
     { icon: LinkIcon, label: t("seeker.linkedin"), value: user.linkedin.replace(/^https?:\/\/(www\.)?/, ""), href: user.linkedin, external: true },
@@ -231,10 +235,10 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
 
   return (
     <div className="space-y-4">
-      <Card id="personal" onEdit={onEdit} needsDetails={needs.has("personal")}>
+      <Card id="personal" onEdit={onEdit}>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
           {details.map((d) => (
-            <div key={d.label} className="flex min-w-0 items-center gap-2.5" title={d.label}>
+            <div key={d.label} className={cn("flex min-w-0 items-center gap-2.5", item(!!d.required && !d.value))} title={d.label}>
               <d.icon className="size-4 shrink-0 text-muted-foreground" />
               <dt className="sr-only">{d.label}</dt>
               <dd className="flex min-w-0 items-center gap-1.5">
@@ -263,13 +267,13 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         {p.summary ? <p className="text-sm whitespace-pre-line">{p.summary}</p> : <Empty>{t("seeker.aboutEmpty")}</Empty>}
       </Card>
 
-      <Card id="work" onEdit={onEdit} needsDetails={needs.has("work")} note={months > 0 && t("seeker.inTotal", { duration: formatDuration(months) })}>
+      <Card id="work" onEdit={onEdit} note={months > 0 && t("seeker.inTotal", { duration: formatDuration(months) })}>
         {p.experiences.length === 0 ? (
           <Empty>{t("seeker.noJobs")}</Empty>
         ) : (
           <ol className="space-y-4">
             {p.experiences.map((e) => (
-              <li key={e.id}>
+              <li key={e.id} className={item(!jobComplete(e))}>
                 <ExperienceList experiences={[e]} />
                 {e.description && (
                   <ul className="mt-1.5 list-disc space-y-0.5 ps-5 text-sm marker:text-primary">
@@ -294,7 +298,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         <div className="space-y-3">
           {p.degrees.length === 0 && <DegreeList degrees={[]} />}
           {p.degrees.map((d) => (
-            <div key={d.id}>
+            <div key={d.id} className={item(!degreeComplete(d))}>
               <DegreeList degrees={[d]} />
               <Attachments ids={d.attachmentIds} />
             </div>
@@ -344,11 +348,11 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         )}
       </Card>
 
-      <Card id="certifications" onEdit={onEdit} needsDetails={needs.has("certifications")}>
+      <Card id="certifications" onEdit={onEdit}>
         <div className="space-y-3">
           {p.certifications.length === 0 && <CertificationList certifications={[]} />}
           {p.certifications.map((c) => (
-            <div key={c.id}>
+            <div key={c.id} className={item(!certificationComplete(c))}>
               <CertificationList certifications={[c]} />
               <Attachments ids={c.attachmentIds} />
             </div>
@@ -356,13 +360,13 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         </div>
       </Card>
 
-      <Card id="projects" onEdit={onEdit} needsDetails={needs.has("projects")}>
+      <Card id="projects" onEdit={onEdit}>
         {p.projects.length === 0 ? (
           <Empty>{t("seeker.projectsEmpty")}</Empty>
         ) : (
           <ol className="space-y-3 text-sm">
             {p.projects.map((x) => (
-              <li key={x.id}>
+              <li key={x.id} className={item(!filled(x.name))}>
                 <div className="font-medium">{x.name || <span className="text-muted-foreground italic">{t("seeker.nameNotAdded")}</span>}</div>
                 <div className="text-xs text-muted-foreground">
                   {[x.start && formatMonthYear(x.start), x.start && (x.end ? formatMonthYear(x.end) : t("seeker.ongoing"))].filter(Boolean).join(" – ")}
@@ -454,7 +458,9 @@ function PortfolioForm({
   // Files that were stored when the form opened; the rest were uploaded while editing
   const savedFiles = useRef(new Set(fileIds(talent ?? EMPTY_PORTFOLIO, user.photoId).filter(Boolean)))
   // Follows what's typed: a section turns normal as soon as its required details are in
-  const needs = new Set(listingSectionsMissing(contact, portfolio))
+  // Whole sections turn yellow only when they need an entry they don't have; otherwise the incomplete job,
+  // degree, license or field itself does (see portfolio-fields)
+  const needs = new Set(sectionsMissingEntries(portfolio))
   // After a CV import: fields the AI wasn't sure about or couldn't find also turn their section yellow
   const [toCheck, setToCheck] = useState<string[]>([])
   const importFlags: Set<string> = sectionsToCheck(toCheck)
@@ -534,10 +540,10 @@ function PortfolioForm({
         </div>
         <PersonalFields value={portfolio} onChange={setPortfolio} />
         <div className="grid grid-cols-2 gap-4">
-          <Field label={t("seeker.phoneNumber")}>
+          <Field label={t("seeker.phoneNumber")} missing={!contact.phone}>
             <PhoneInput value={contact.phone} onChange={(phone) => setContact((c) => ({ ...c, phone }))} />
           </Field>
-          <Field label={t("seeker.email")}>
+          <Field label={t("seeker.email")} missing={!contact.email}>
             <Input className="h-9" type="email" value={contact.email} onChange={setField("email")} placeholder="name@example.com" />
           </Field>
           <Field label={t("seeker.linkedinOptional")} className="col-span-2">
