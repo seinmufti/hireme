@@ -1,15 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { ListIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { LightbulbIcon, ListIcon, PlusIcon, Trash2Icon, UserRoundCheckIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { formatDuration, jobMonths } from "@/lib/format"
+import { EMPTY_WORK_PREFERENCE } from "@/lib/normalize"
 import { CONTRACT_TYPES, DEGREE_STATUSES, EDUCATION, GENDERS, JOB_CATEGORIES, LANGUAGE_LEVELS, LANGUAGES } from "@/lib/options"
 import type { Certification, Degree, Experience, LanguageSkill, Talent, TalentInput } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { AttachmentField } from "./cv-fields"
 import { DateOfBirthPicker } from "./date-of-birth-picker"
 import { LanguagePicker } from "./language-picker"
 import { FieldOfStudyPicker } from "./field-of-study-picker"
@@ -19,20 +22,30 @@ import { FieldOfStudyPicker } from "./field-of-study-picker"
 export const EMPTY_PORTFOLIO: TalentInput = {
   gender: "",
   dateOfBirth: "",
+  summary: "",
   degrees: [],
   certifications: [],
   languages: [],
   experiences: [],
+  hardSkills: [],
+  softSkills: [],
+  projects: [],
+  workPreference: EMPTY_WORK_PREFERENCE,
   published: true,
 }
 
 export const toPortfolioInput = (t: Talent): TalentInput => ({
   gender: t.gender,
   dateOfBirth: t.dateOfBirth,
+  summary: t.summary,
   degrees: t.degrees,
   certifications: t.certifications,
   languages: t.languages,
   experiences: t.experiences,
+  hardSkills: t.hardSkills,
+  softSkills: t.softSkills,
+  projects: t.projects,
+  workPreference: t.workPreference,
   published: t.published,
 })
 
@@ -45,7 +58,11 @@ const newExperience = (): Experience => ({
   start: "",
   end: "",
   current: false,
+  description: "",
+  reference: null,
 })
+
+const EMPTY_REFERENCE = { name: "", position: "", phone: "", email: "" }
 
 export function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -181,6 +198,13 @@ export function LanguageFields({
           >
             <Trash2Icon />
           </Button>
+          <div className="col-span-3 border-t pt-3">
+            <AttachmentField
+              label="Language certificate, e.g. IELTS (optional)"
+              value={l.attachmentIds}
+              onChange={(attachmentIds) => update(i, { attachmentIds })}
+            />
+          </div>
         </div>
       ))}
       {used.length < LANGUAGES.length && (
@@ -190,7 +214,7 @@ export function LanguageFields({
           className="mt-1"
           onClick={() => {
             setJustAdded(value.length)
-            onChange((list) => [...list, { language: "", speaking: "A1", reading: "A1" }])
+            onChange((list) => [...list, { language: "", speaking: "A1", reading: "A1", attachmentIds: [] }])
           }}
         >
           <PlusIcon /> Add a language
@@ -262,7 +286,7 @@ function ChoiceWithOther({
 }
 
 /** Month + year selects for a "YYYY-MM" value; only complete once both are chosen. */
-function MonthYearPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function MonthYearPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const thisYear = new Date().getFullYear()
   const years = Array.from({ length: 60 }, (_, i) => String(thisYear - i))
   const [year = "", month = ""] = value ? value.split("-") : []
@@ -356,6 +380,57 @@ export function ExperienceFields({
                 </span>
               )}
             </div>
+            <Field label="Responsibilities and achievements" className="col-span-12">
+              <p className="flex items-start gap-1.5 rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-900">
+                <LightbulbIcon className="mt-px size-3.5 shrink-0" />
+                Tip: write one bullet point per line, mostly achievements. Start with a verb and add numbers where you can,
+                e.g. &ldquo;Increased monthly sales by 20%&rdquo;.
+              </p>
+              <Textarea
+                value={e.description}
+                onChange={(ev) => update(e.id, { description: ev.target.value })}
+                placeholder={"Increased monthly sales by 20% in one year\nTrained 5 new team members\nHandled 50+ customer requests a day"}
+                className="min-h-24 text-sm"
+              />
+            </Field>
+            <div className="col-span-12">
+              {e.reference ? (
+                <div className="space-y-3 rounded-md border border-dashed p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Reference</span>
+                    <Button type="button" variant="ghost" size="xs" onClick={() => update(e.id, { reference: null })}>
+                      <Trash2Icon /> Remove reference
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Employers and your CV only show &ldquo;Reference available on request&rdquo;.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(
+                      [
+                        ["name", "Name", "Full name"],
+                        ["position", "Position", "e.g. Sales Manager"],
+                        ["phone", "Phone", "+964 750 000 0000"],
+                        ["email", "Email", "name@example.com"],
+                      ] as const
+                    ).map(([key, label, placeholder]) => (
+                      <Field key={key} label={label}>
+                        <Input
+                          className="h-9"
+                          value={e.reference![key]}
+                          onChange={(ev) => update(e.id, { reference: { ...e.reference!, [key]: ev.target.value } })}
+                          placeholder={placeholder}
+                        />
+                      </Field>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Button type="button" variant="ghost" size="sm" onClick={() => update(e.id, { reference: EMPTY_REFERENCE })}>
+                  <UserRoundCheckIcon /> Add a reference (optional)
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       ))}
@@ -442,6 +517,7 @@ export function DegreeFields({
         status: "",
         startYear: "",
         endYear: "",
+        attachmentIds: [],
       })}
     >
       {(d, update) => {
@@ -491,6 +567,9 @@ export function DegreeFields({
                 </Field>
               </>
             )}
+            <div className="col-span-2">
+              <AttachmentField label="Degree certificate (optional)" value={d.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />
+            </div>
           </div>
         )
       }}
@@ -498,7 +577,7 @@ export function DegreeFields({
   )
 }
 
-/** Certifications: title, issuing institution and issue month/year. Optional. */
+/** Licenses and certifications: title, issuing institution, issue month/year and scans. Optional. */
 export function CertificationFields({
   value,
   onChange,
@@ -511,11 +590,11 @@ export function CertificationFields({
   return (
     <RowList
       items={value}
-      label="Certification"
-      addLabel="Add a certification"
-      empty="No certifications added. They're optional."
+      label="License or certification"
+      addLabel="Add a license or certification"
+      empty="No licenses or certifications added. They're optional."
       onChange={onChange}
-      create={() => ({ id: `c-${crypto.randomUUID()}`, title: "", institution: "", issued: "" })}
+      create={() => ({ id: `c-${crypto.randomUUID()}`, title: "", institution: "", issued: "", attachmentIds: [] })}
     >
       {(c, update) => {
         const [year = "", month = ""] = c.issued ? c.issued.split("-") : []
@@ -523,8 +602,8 @@ export function CertificationFields({
         const setIssued = (y: string, m: string) => update({ issued: y && m ? `${y}-${m}` : y ? `${y}-` : m ? `-${m}` : "" })
         return (
           <div className="grid grid-cols-12 gap-3">
-            <Field label="Certification title" className="col-span-12">
-              <Input className="h-9" value={c.title} onChange={(e) => update({ title: e.target.value })} placeholder="e.g. AWS Certified Cloud Practitioner" />
+            <Field label="Title" className="col-span-12">
+              <Input className="h-9" value={c.title} onChange={(e) => update({ title: e.target.value })} placeholder="e.g. AWS Certified Cloud Practitioner, Driving licence" />
             </Field>
             <Field label="Issuing institution" className="col-span-6">
               <Input className="h-9" value={c.institution} onChange={(e) => update({ institution: e.target.value })} placeholder="e.g. Amazon Web Services" />
@@ -548,6 +627,9 @@ export function CertificationFields({
             <Field label="Issue year" className="col-span-3">
               <Choice value={year} options={years} onChange={(y) => setIssued(y, month)} />
             </Field>
+            <div className="col-span-12">
+              <AttachmentField label="Scan of the license or certificate (optional)" value={c.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />
+            </div>
           </div>
         )
       }}

@@ -24,6 +24,9 @@ const toInput = (u: User): ProfileInput => ({
   city: u.city,
   linkedin: u.linkedin,
   bio: u.bio,
+  photoId: u.photoId,
+  country: u.country,
+  address: u.address,
 })
 
 export function ProfileForm({ user }: { user: User }) {

@@ -168,3 +168,45 @@ export const FIELD_GROUPS: Record<string, string[]> = {
 }
 
 export const FIELDS_OF_STUDY = Object.values(FIELD_GROUPS).flat()
+
+// Cities in Iraq, for a job seeker's location and the cities they would work in. Searchable in the form.
+export const IRAQ_CITIES = [
+  "Erbil","Sulaymaniyah","Duhok","Halabja","Kirkuk","Zakho","Soran","Ranya","Koya","Akre","Shaqlawa","Choman","Kalar",
+  "Chamchamal","Penjwen","Qaladze","Darbandikhan","Khanaqin","Amedi","Semel","Baghdad","Basra","Mosul","Najaf","Karbala",
+  "Hillah","Nasiriyah","Amarah","Diwaniyah","Kut","Ramadi","Fallujah","Baqubah","Samarra","Tikrit","Samawah","Tal Afar",
+  "Sinjar","Al-Qa'im","Haditha","Zubair","Umm Qasr","Tuz Khurmatu",
+]
+
+const flagOf = (code: string) => String.fromCodePoint(...[...code].map((c) => 0x1f1a5 + c.charCodeAt(0)))
+
+// Iraq and its neighbours first, then other common countries
+export const COUNTRIES = [
+  ["IQ", "Iraq"], ["TR", "Turkey"], ["IR", "Iran"], ["SY", "Syria"], ["JO", "Jordan"], ["SA", "Saudi Arabia"], ["KW", "Kuwait"],
+  ["AE", "United Arab Emirates"], ["QA", "Qatar"], ["BH", "Bahrain"], ["OM", "Oman"], ["LB", "Lebanon"], ["EG", "Egypt"],
+  ["GB", "United Kingdom"], ["DE", "Germany"], ["NL", "Netherlands"], ["SE", "Sweden"], ["NO", "Norway"], ["FR", "France"],
+  ["IT", "Italy"], ["ES", "Spain"], ["AT", "Austria"], ["CH", "Switzerland"], ["BE", "Belgium"], ["DK", "Denmark"],
+  ["FI", "Finland"], ["GR", "Greece"], ["CY", "Cyprus"], ["US", "United States"], ["CA", "Canada"], ["AU", "Australia"],
+  ["IN", "India"], ["PK", "Pakistan"], ["MY", "Malaysia"], ["GE", "Georgia"], ["AZ", "Azerbaijan"], ["AM", "Armenia"],
+].map(([code, name]) => ({ code, name, flag: flagOf(code) }))
+
+export const countryName = (code: string) => COUNTRIES.find((c) => c.code === code)?.name ?? code
+
+// Suggestions for core competencies; people can also write their own
+export const HARD_SKILLS = [
+  "Microsoft Excel", "Microsoft Office", "Accounting", "Bookkeeping", "Financial analysis", "Budgeting", "Data analysis",
+  "Data entry", "SQL", "Python", "JavaScript", "TypeScript", "React", "Node.js", "Java", "C#", ".NET", "PHP", "Web development",
+  "Mobile development", "Cloud computing (AWS / Azure)", "Networking", "Cybersecurity", "IT support", "Graphic design",
+  "Adobe Photoshop", "Adobe Illustrator", "UI/UX design", "Video editing", "Digital marketing", "Social media marketing",
+  "SEO", "Content writing", "Copywriting", "Translation", "Sales", "Customer service", "CRM software", "Project management",
+  "Procurement", "Supply chain management", "Inventory management", "Logistics", "AutoCAD", "Revit", "Civil engineering",
+  "Electrical engineering", "Mechanical engineering", "HSE (health & safety)", "Quality control", "Nursing", "First aid",
+  "Pharmacy", "Laboratory skills", "Teaching", "Curriculum design", "HR administration", "Recruitment", "Payroll",
+  "Legal research", "Contract drafting", "Report writing", "Driving licence",
+]
+
+export const SOFT_SKILLS = [
+  "Communication", "Teamwork", "Leadership", "Problem solving", "Time management", "Attention to detail", "Adaptability",
+  "Critical thinking", "Creativity", "Negotiation", "Customer focus", "Working under pressure", "Organization",
+  "Presentation skills", "Decision making", "Conflict resolution", "Self-motivation", "Multitasking", "Mentoring",
+  "Emotional intelligence", "Reliability", "Interpersonal skills",
+]

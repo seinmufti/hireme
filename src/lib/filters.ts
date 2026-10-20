@@ -1,12 +1,22 @@
-import { AGE_BUCKETS, EDUCATION, EXPERIENCE_BUCKETS, GENDERS, JOB_CATEGORIES, LANGUAGES, MAIN_LANGUAGES } from "@/lib/options"
-import type { Certification, Degree, Experience, LanguageSkill } from "@/lib/types"
+import { AGE_BUCKETS, EDUCATION, EXPERIENCE_BUCKETS, GENDERS, IRAQ_CITIES, JOB_CATEGORIES, LANGUAGES, MAIN_LANGUAGES } from "@/lib/options"
+import type { Certification, Degree, Experience, LanguageSkill, Project, WorkPreference } from "@/lib/types"
 
-// What an employer may see about a job seeker: first name only and no contact details or birth date.
+// What an employer may see about a job seeker: first name only and no contact details, address,
+// references or birth date.
 export type PoolTalent = {
   id: string
   userId: string
   firstName: string
   avatarColor: string
+  photoId: string
+  title: string // profession
+  country: string
+  city: string
+  summary: string
+  hardSkills: string[]
+  softSkills: string[]
+  projects: Project[]
+  workPreference: WorkPreference
   gender: string
   age: number | null
   education: string // highest degree level
@@ -19,7 +29,7 @@ export type PoolTalent = {
   conversationId: string | null
 }
 
-export type FilterKey = "category" | "gender" | "age" | "experience" | "education" | "languages"
+export type FilterKey = "category" | "gender" | "age" | "experience" | "education" | "languages" | "workType"
 
 export type FilterDef = {
   key: FilterKey
@@ -40,7 +50,7 @@ export function labelFor(def: FilterDef, value: string) {
   if (own) return own.label
   for (const [parent, list] of Object.entries(def.children ?? {})) {
     const child = list.find((c) => c.value === value)
-    if (child) return `${parent} · ${child.label}`
+    if (child) return `${def.options.find((o) => o.value === parent)?.label ?? parent} · ${child.label}`
   }
   return value
 }
@@ -99,6 +109,28 @@ export function buildFilters(talents: PoolTalent[]): FilterDef[] {
       options: plain(withExtras(LANGUAGES, talents.flatMap((t) => t.languages.map((l) => l.language)))),
       values: (t) => t.languages.map((l) => l.language),
     },
+    {
+      key: "workType",
+      label: "Work type",
+      mode: "any",
+      // Hover "City in Iraq" to pick the cities people would work in
+      options: [
+        { value: "remote", label: "Remote" },
+        { value: "international", label: "International" },
+        { value: "iraq", label: "City in Iraq" },
+      ],
+      children: {
+        iraq: withExtras(IRAQ_CITIES, talents.flatMap((t) => t.workPreference.iraqCities))
+          .filter((c) => talents.some((t) => t.workPreference.iraqCities.includes(c)))
+          .map((c) => ({ value: `iraq|${c}`, label: c })),
+      },
+      values: (t) => [
+        ...(t.workPreference.remote ? ["remote"] : []),
+        ...(t.workPreference.international ? ["international"] : []),
+        ...(t.workPreference.iraqCities.length ? ["iraq"] : []),
+        ...t.workPreference.iraqCities.map((c) => `iraq|${c}`),
+      ],
+    },
   ]
 }
 
@@ -111,7 +143,7 @@ function matchesFilter(t: PoolTalent, def: FilterDef, selected: string[] | undef
 export function matchesSearch(t: PoolTalent, query: string) {
   const q = query.trim().toLowerCase()
   if (!q) return true
-  return [t.firstName, ...t.experiences.flatMap((e) => [e.title])].some((s) => s.toLowerCase().includes(q))
+  return [t.firstName, t.title, ...t.hardSkills, ...t.experiences.map((e) => e.title)].some((s) => s.toLowerCase().includes(q))
 }
 
 export function applyFilters(talents: PoolTalent[], defs: FilterDef[], state: FilterState, query: string) {

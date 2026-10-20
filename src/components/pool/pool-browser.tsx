@@ -72,7 +72,7 @@ export function PoolBrowser({
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search name or job title…"
+              placeholder="Search name, profession, job title or skill…"
               className="h-8 pl-8"
             />
           </div>

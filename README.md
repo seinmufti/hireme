@@ -4,11 +4,13 @@ Desktop-only talent pool connecting **Job Seekers**, **Recruiters** and **Employ
 
 - `/` sends you to `/login`, a demo sign-in screen: pick any account to continue. The header also has a quick account switcher.
 - `/profile` is every signed-in account's profile.
-- **Job Seeker** has no access to The Pool. They fill in their portfolio on their profile (that is what employers see in The Pool) and reply to employers in the Inbox.
-- **Employer** searches The Pool (`/pool`) with filters (each dropdown shows how many candidates each option would match) and sends an editable template message.
+- **Job Seeker** has no access to The Pool. They fill in their CV on their profile (that is what employers see in The Pool) and reply to employers in the Inbox. **Ready** saves it and opens `/profile/cv`, the A4 CV preview, where **Download PDF** prints exactly that page (choose "Save as PDF"). Every CV has a small HireMe logo at the bottom; free CVs would also get a watermark, but everyone is premium for now (`isPremium` in `src/lib/premium.ts`).
+- **Employer** searches The Pool (`/pool`) with filters (each dropdown shows how many candidates each option would match), opens a candidate's CV (without contact details, address or references, and no download) and sends an editable template message.
 - **Recruiter** can view The Pool (read-only for now).
 
 Phones and windows narrower than 1024px see a "Not available on mobile yet" screen.
+
+Uploaded files (profile photos, scans of degrees, licenses and language certificates; images or PDFs up to 10 MB, images are shrunk first) are kept in the browser's IndexedDB (`src/lib/files.ts`); the app data only stores their ids. They are included in the Demo Download backup.
 
 ## Demo data
 

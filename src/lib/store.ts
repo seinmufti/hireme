@@ -7,6 +7,7 @@ import { findContactDetail } from "@/lib/contact-guard"
 import { rememberLogin } from "@/lib/recent-accounts"
 import { replaceAllOnce, safeStorage, setOnRestored } from "@/lib/safe-storage"
 import { ageFrom, PHONE_PATTERN } from "@/lib/format"
+import { EMPTY_WORK_PREFERENCE, professionFrom, withTalentDefaults, withUserDefaults, type LegacyTalent, type LegacyUser } from "@/lib/normalize"
 import { AVATAR_COLORS, type Role } from "@/lib/options"
 import type { Conversation, Degree, Message, ProfileInput, Result, Talent, TalentInput, User } from "@/lib/types"
 
@@ -57,6 +58,38 @@ const now = () => new Date().toISOString()
 const newId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`
 const fail = (error: string) => ({ ok: false as const, error })
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const emptyTalent = (userId: string, at: string): Talent => ({
+  id: newId("t"),
+  userId,
+  gender: "",
+  dateOfBirth: "",
+  summary: "",
+  degrees: [],
+  certifications: [],
+  languages: [],
+  experiences: [],
+  hardSkills: [],
+  softSkills: [],
+  projects: [],
+  workPreference: EMPTY_WORK_PREFERENCE,
+  published: true,
+  createdAt: at,
+  updatedAt: at,
+})
+
+/** Trims each line (bullet) and drops empty ones and leading bullet characters people type themselves. */
+const cleanLines = (text: string) =>
+  text
+    .split("\n")
+    .map((l) => l.replace(/^\s*[-•*·]\s*/, "").trim())
+    .filter(Boolean)
+    .join("\n")
+
+const uniqueSkills = (list: string[]) => {
+  const seen = new Set<string>()
+  return list.map((s) => s.trim()).filter((s) => s && !seen.has(s.toLowerCase()) && seen.add(s.toLowerCase()))
+}
 
 export const useStore = create<Data & Actions>()(
   persist(
@@ -110,23 +143,14 @@ export const useStore = create<Data & Actions>()(
             city: "",
             linkedin: "",
             bio: "",
+            photoId: "",
+            country: "IQ",
+            address: "",
             createdAt: at,
           }
           // A job seeker starts with a draft portfolio holding what they just entered
           const talent: Talent | null = isSeeker
-            ? {
-                id: newId("t"),
-                userId: user.id,
-                gender: input.gender ?? "",
-                dateOfBirth: input.dateOfBirth ?? "",
-                degrees: [],
-                certifications: [],
-                languages: [],
-                experiences: [],
-                published: true,
-                createdAt: at,
-                updatedAt: at,
-              }
+            ? { ...emptyTalent(user.id, at), gender: input.gender ?? "", dateOfBirth: input.dateOfBirth ?? "" }
             : null
           rememberLogin(user.id)
           set((s) => ({
@@ -147,20 +171,7 @@ export const useStore = create<Data & Actions>()(
             if (existing) {
               return { talents: s.talents.map((t) => (t.id === existing.id ? { ...t, published: visible, updatedAt: at } : t)) }
             }
-            const draft: Talent = {
-              id: newId("t"),
-              userId: user.id,
-              gender: "",
-              dateOfBirth: "",
-              degrees: [],
-              certifications: [],
-              languages: [],
-              experiences: [],
-              published: visible,
-              createdAt: at,
-              updatedAt: at,
-            }
-            return { talents: [...s.talents, draft] }
+            return { talents: [...s.talents, { ...emptyTalent(user.id, at), published: visible }] }
           })
         },
 
@@ -178,14 +189,26 @@ export const useStore = create<Data & Actions>()(
             employer: e.employer.trim(),
             category: e.category.trim(),
             end: e.current ? "" : e.end,
+            description: cleanLines(e.description),
+            // A reference with nothing filled in isn't kept
+            reference: e.reference && Object.values(e.reference).some((v) => v.trim())
+              ? { name: e.reference.name.trim(), position: e.reference.position.trim(), phone: e.reference.phone.trim(), email: e.reference.email.trim() }
+              : null,
           }))
           const degrees = input.degrees.map((d) => ({ ...d, name: d.name.trim(), field: d.field.trim(), institution: d.institution.trim() }))
           const certifications = input.certifications.map((c) => ({ ...c, title: c.title.trim(), institution: c.institution.trim() }))
+          const projects = input.projects
+            .map((p) => ({ ...p, name: p.name.trim(), link: p.link.trim(), description: p.description.trim() }))
+            .filter((p) => p.name || p.link || p.description)
           const data = {
             ...input,
+            summary: input.summary.trim(),
+            hardSkills: uniqueSkills(input.hardSkills),
+            softSkills: uniqueSkills(input.softSkills),
             experiences,
             degrees,
             certifications,
+            projects,
             // Rows where no language was picked aren't kept
             languages: input.languages.filter((l) => l.language),
             updatedAt: now(),
@@ -212,8 +235,10 @@ export const useStore = create<Data & Actions>()(
           if (phone && !PHONE_PATTERN.test(phone)) return fail("Phone number must look like +964 750 000 0103.")
           if (email && !EMAIL_PATTERN.test(email)) return fail("That email doesn't look right.")
           if (linkedin && !/^https?:\/\//.test(linkedin)) return fail("LinkedIn should be a full link starting with https://")
-          // Job seekers describe their role in their portfolio, so title/company only apply to the other roles
+          // Job seekers have a profession (title) but no company
           const isSeeker = user.role === "SEEKER"
+          const title = input.title.trim()
+          if (isSeeker && findContactDetail(title)) return fail("Your profession can't contain contact details.")
           const patch: Partial<User> = {
             name,
             email,
@@ -221,7 +246,11 @@ export const useStore = create<Data & Actions>()(
             phone,
             city: input.city.trim(),
             bio: input.bio.trim(),
-            ...(isSeeker ? {} : { title: input.title.trim(), company: input.company.trim() }),
+            photoId: input.photoId,
+            country: input.country || "IQ",
+            address: input.address.trim(),
+            title,
+            ...(isSeeker ? {} : { company: input.company.trim() }),
           }
           set((s) => ({ users: s.users.map((u) => (u.id === user.id ? { ...u, ...patch } : u)) }))
           return { ok: true }
@@ -276,12 +305,14 @@ export const useStore = create<Data & Actions>()(
     {
       name: "hireme-demo",
       // Bump when the demo data or its shape changes so visitors start fresh
-      version: 11,
+      version: 12,
       // v9 -> v10: jobs record start and end dates instead of years and months (see withJobDates)
       // v10 -> v11: the generated demo job seekers are added (see withDemoSeekers)
+      // v11 -> v12: CV builder fields (photo, location, summary, skills, projects, job descriptions and
+      //             references, attachments, work preference) are added empty (see withCvFields)
       migrate: (persisted, version) => {
         const data = withJobDates(migrateOlder(persisted, version))
-        return version < 11 ? withDemoSeekers(data) : data
+        return withCvFields(version < 11 ? withDemoSeekers(data) : data)
       },
       storage: createJSONStorage(() => safeStorage),
       partialize: ({ users, talents, conversations, messages, currentUserId }) => ({
@@ -312,9 +343,33 @@ function withJobDates(data: Data): Data {
         if (typeof e.start === "string") return e
         const demoJob = demo.find((x) => x.id === e.id)
         if (demoJob) return demoJob
-        return { id: e.id, title: e.title, employer: e.employer, category: e.category, contractType: e.contractType, start: "", end: "", current: false }
+        return { id: e.id, title: e.title, employer: e.employer, category: e.category, contractType: e.contractType, start: "", end: "", current: false, description: "", reference: null }
       }),
     })),
+  }
+}
+
+/**
+ * v11 -> v12: fills in the CV builder fields that saved data lacks. Safe to run on any version.
+ * The built-in demo accounts nobody has edited yet get the new demo CV details.
+ */
+function withCvFields(data: Data): Data {
+  const demoTalent = (t: LegacyTalent) => DEMO_TALENTS.find((d) => d.id === t.id && t.updatedAt === d.updatedAt)
+  const talents = (data.talents as LegacyTalent[]).map((t) => demoTalent(t) ?? withTalentDefaults(t))
+  return {
+    ...data,
+    users: (data.users as LegacyUser[]).map((u) => {
+      const filled = withUserDefaults(u)
+      if (u.role !== "SEEKER" || u.photoId !== undefined) return filled
+      // Job seekers from before professions existed get their latest job title (or degree) as profession
+      const demo = DEMO_USERS.find((d) => d.id === u.id)
+      return {
+        ...filled,
+        title: filled.title || professionFrom(talents.find((t) => t.userId === u.id)),
+        address: filled.address || (demo?.address ?? ""),
+      }
+    }),
+    talents,
   }
 }
 
@@ -347,7 +402,7 @@ function migrateOlder(persisted: unknown, version: number): Data {
                 if (demoDegree) return demoDegree
                 // Degrees saved before these fields existed start blank
                 const { institution = "", status = "", startYear = "", endYear = "" } = d as Partial<Degree> & typeof d
-                return { ...d, institution, status, startYear, endYear }
+                return { ...d, institution, status, startYear, endYear, attachmentIds: [] }
               }),
             })),
           }
@@ -364,7 +419,7 @@ function migrateOlder(persisted: unknown, version: number): Data {
                 : {
                     ...t,
                     degrees: education
-                      ? [{ id: newId("d"), level: education, name: "", field: "", institution: "", status: "", startYear: "", endYear: "" }]
+                      ? [{ id: newId("d"), level: education, name: "", field: "", institution: "", status: "", startYear: "", endYear: "", attachmentIds: [] }]
                       : [],
                     certifications: [],
                   }
@@ -398,11 +453,22 @@ export function portfolioEntryProblem(p: TalentInput) {
   if (badJob >= 0) return `Job ${badJob + 1} ends before it starts. Please check the dates.`
   const names = p.languages.map((l) => l.language).filter(Boolean)
   if (new Set(names).size !== names.length) return "Each language can only be listed once."
+  const badLink = p.projects.findIndex((x) => x.link.trim() && !/^https?:\/\/\S+\.\S+/.test(x.link.trim()))
+  if (badLink >= 0) return `The link of project ${badLink + 1} should be a full link starting with https://`
+  const badProject = p.projects.findIndex((x) => MONTH_VALUE.test(x.start) && MONTH_VALUE.test(x.end) && x.end < x.start)
+  if (badProject >= 0) return `Project ${badProject + 1} ends before it starts. Please check the dates.`
+  const badReference = p.experiences.findIndex((e) => e.reference?.email.trim() && !EMAIL_PATTERN.test(e.reference.email.trim()))
+  if (badReference >= 0) return `The reference email for job ${badReference + 1} doesn't look right.`
+  // Everything employers see (references are never shown; project links are meant to be links)
   const contact = findContactDetail(
     [
-      ...p.experiences.flatMap((e) => [e.title, e.employer, e.category]),
+      p.summary,
+      ...p.hardSkills,
+      ...p.softSkills,
+      ...p.experiences.flatMap((e) => [e.title, e.employer, e.category, e.description]),
       ...p.degrees.flatMap((d) => [d.name, d.field, d.institution]),
       ...p.certifications.flatMap((c) => [c.title, c.institution]),
+      ...p.projects.flatMap((x) => [x.name, x.description]),
     ].join("\n")
   )
   if (contact) return `Your portfolio contains ${contact}. Remove it: employers contact you through HireMe messages.`
@@ -419,20 +485,22 @@ const jobComplete = (e: TalentInput["experiences"][number]) =>
   (!!e.current || MONTH_VALUE.test(e.end ?? ""))
 
 /** Profile sections that can hold details The Pool needs. */
-export type ListingSection = "personal" | "contact" | "languages" | "education" | "certifications" | "work"
+// In CV order. "personal" holds personal details and contact details together.
+export type ListingSection = "personal" | "about" | "work" | "education" | "skills" | "languages" | "certifications" | "projects"
 
 /**
  * The profile sections that still need details before the portfolio is listed in The Pool.
  * An empty list means it's complete. Drafts can be saved at any point.
+ * About me and skills are optional; projects only need a name once one is added.
  */
 export function listingSectionsMissing(user: Pick<User, "phone" | "email">, p: TalentInput | null): ListingSection[] {
   const sections = new Set<ListingSection>()
-  if (!p?.gender || !p?.dateOfBirth) sections.add("personal")
-  if (!user.phone || !user.email) sections.add("contact")
-  if (!p?.languages.some((l) => l.language)) sections.add("languages")
-  if (!p?.degrees.length || p.degrees.some((d) => !degreeComplete(d))) sections.add("education")
-  if (p?.certifications.some((c) => !certificationComplete(c))) sections.add("certifications")
+  if (!p?.gender || !p?.dateOfBirth || !user.phone || !user.email) sections.add("personal")
   if (p?.experiences.some((e) => !jobComplete(e))) sections.add("work")
+  if (!p?.degrees.length || p.degrees.some((d) => !degreeComplete(d))) sections.add("education")
+  if (!p?.languages.some((l) => l.language)) sections.add("languages")
+  if (p?.certifications.some((c) => !certificationComplete(c))) sections.add("certifications")
+  if (p?.projects?.some((x) => !filled(x.name))) sections.add("projects")
   return [...sections]
 }
 

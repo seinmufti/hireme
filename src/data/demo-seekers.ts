@@ -1,11 +1,11 @@
-import type { Talent, User } from "@/lib/types"
+import type { LegacyTalent, LegacyUser } from "@/lib/normalize"
 
 // Generated demo job seekers (50 people across the Kurdistan Region, with varied backgrounds,
 // some with no work experience yet). Built in, like the other demo accounts.
 
 const CREATED = "2026-10-01T09:00:00.000Z"
 
-export const DEMO_SEEKER_USERS: User[] = [
+export const DEMO_SEEKER_USERS: LegacyUser[] = [
   {
     "id": "u-seeker-01",
     "name": "Aveen Salih",
@@ -708,7 +708,7 @@ export const DEMO_SEEKER_USERS: User[] = [
   }
 ]
 
-export const DEMO_SEEKER_TALENTS: Talent[] = [
+export const DEMO_SEEKER_TALENTS: LegacyTalent[] = [
   {
     "id": "t-seeker-01",
     "userId": "u-seeker-01",

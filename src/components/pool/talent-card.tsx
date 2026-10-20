@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { MessageSquareTextIcon, SendIcon } from "lucide-react"
-import { UserAvatar } from "@/components/user-avatar"
+import { ProfilePhoto } from "@/components/cv/photo"
 import { Button, buttonVariants } from "@/components/ui/button"
 import type { PoolTalent } from "@/lib/filters"
 import { timeAgo } from "@/lib/format"
@@ -22,10 +22,10 @@ export function TalentCard({
   return (
     <article className="flex flex-col rounded-xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-sm">
       <button type="button" onClick={onOpen} className="flex items-start gap-3 text-left">
-        <UserAvatar name={talent.firstName} color={talent.avatarColor} size={44} />
+        <ProfilePhoto photoId={talent.photoId} name={talent.firstName} color={talent.avatarColor} size={44} />
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-semibold hover:underline">{talent.firstName}</h3>
-          <p className="truncate text-sm text-muted-foreground">{latestJob(talent.experiences)}</p>
+          <p className="truncate text-sm text-muted-foreground">{talent.title || latestJob(talent.experiences)}</p>
         </div>
       </button>
 
