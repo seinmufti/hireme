@@ -61,7 +61,12 @@ function Accounts() {
 
       <div className="mt-5 flex min-h-0 items-stretch rounded-2xl border bg-card p-5 shadow-sm">
         {ORDER.map((role, i) => {
-          const all = users.filter((u) => u.role === role)
+          // Most recently created first (accounts created together keep the newest last-added first)
+          const all = users
+            .map((u, i) => ({ u, i }))
+            .filter(({ u }) => u.role === role)
+            .sort((a, b) => b.u.createdAt.localeCompare(a.u.createdAt) || b.i - a.i)
+            .map(({ u }) => u)
           // With more than 4 accounts, a search box takes the place of the last row of the list
           const searchable = all.length > 4
           const q = (search[role] ?? "").trim().toLowerCase()
