@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import { BulletTextarea } from "@/components/bullet-textarea"
 import { useT } from "@/i18n/provider"
 import { degreeDuration, formatDuration, jobMonths } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE } from "@/lib/normalize"
@@ -381,9 +381,10 @@ export function ExperienceFields({
               )}
             </div>
             <Field label={t("form.responsibilities")} className="col-span-12">
-              <Textarea
+              {/* One bullet point per line, as on the CV */}
+              <BulletTextarea
                 value={e.description}
-                onChange={(ev) => update(e.id, { description: ev.target.value })}
+                onChange={(description) => update(e.id, { description })}
                 placeholder={t("form.responsibilitiesPlaceholder")}
                 className="min-h-24 text-sm"
               />
