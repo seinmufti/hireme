@@ -23,6 +23,7 @@ import { saveUpload, UPLOAD_ACCEPT, useStoredFile } from "@/lib/files"
 import { projectDuration } from "@/lib/format"
 import { IRAQ_CITIES } from "@/lib/options"
 import type { Project, WorkPreference } from "@/lib/types"
+import { useT } from "@/i18n/provider"
 import { cn } from "@/lib/utils"
 import { CityPicker, CountrySelect } from "./pickers"
 import { PeriodPicker } from "./month-picker"
@@ -32,6 +33,7 @@ import { Field } from "./portfolio-fields"
 
 /** Uploads for one entry (degree, license, language): images (shrunk) or PDFs, up to 10 MB each. */
 export function AttachmentField({ label, value, onChange }: { label: string; value: string[]; onChange: (ids: string[]) => void }) {
+  const t = useT()
   const input = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
 
@@ -64,7 +66,7 @@ export function AttachmentField({ label, value, onChange }: { label: string; val
           }}
         />
         <Button type="button" variant="outline" size="xs" disabled={busy} onClick={() => input.current?.click()}>
-          {busy ? <LoaderCircleIcon className="animate-spin" /> : <PaperclipIcon />} Upload
+          {busy ? <LoaderCircleIcon className="animate-spin" /> : <PaperclipIcon />} {t("form.upload")}
         </Button>
       </div>
       {value.length > 0 && (
@@ -80,6 +82,7 @@ export function AttachmentField({ label, value, onChange }: { label: string; val
 
 /** A small preview of an uploaded file; click to open it. */
 export function AttachmentThumb({ id, onRemove }: { id: string; onRemove?: () => void }) {
+  const t = useT()
   const stored = useStoredFile(id)
   const isImage = stored?.file.type.startsWith("image/")
   return (
@@ -106,8 +109,8 @@ export function AttachmentThumb({ id, onRemove }: { id: string; onRemove?: () =>
         <button
           type="button"
           onClick={onRemove}
-          aria-label={`Remove ${stored?.file.name ?? "file"}`}
-          className="absolute -top-1.5 -right-1.5 hidden size-5 items-center justify-center rounded-full border bg-background shadow-sm group-hover:flex hover:text-destructive"
+          aria-label={t("form.removeFile", { file: stored?.file.name ?? "" })}
+          className="absolute -top-1.5 -end-1.5 hidden size-5 items-center justify-center rounded-full border bg-background shadow-sm group-hover:flex hover:text-destructive"
         >
           <XIcon className="size-3" />
         </button>
@@ -128,6 +131,7 @@ export function PhotoField({
   color: string
   onChange: (id: string) => void
 }) {
+  const t = useT()
   const input = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   return (
@@ -152,15 +156,15 @@ export function PhotoField({
         />
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => input.current?.click()}>
-            {busy ? <LoaderCircleIcon className="animate-spin" /> : <CameraIcon />} {photoId ? "Change photo" : "Add a photo"}
+            {busy ? <LoaderCircleIcon className="animate-spin" /> : <CameraIcon />} {photoId ? t("form.changePhoto") : t("form.addPhoto")}
           </Button>
           {photoId && (
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
-              <Trash2Icon /> Remove
+              <Trash2Icon /> {t("form.remove")}
             </Button>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">Optional. A clear, professional photo of your face. Up to 10 MB.</p>
+        <p className="text-xs text-muted-foreground">{t("form.photoHint")}</p>
       </div>
     </div>
   )
@@ -174,25 +178,26 @@ export function LocationFields({
   value: { country: string; city: string; address: string }
   onChange: (patch: Partial<{ country: string; city: string; address: string }>) => void
 }) {
+  const t = useT()
   return (
     <div className="grid grid-cols-12 gap-4 rounded-xl border bg-muted/30 p-4">
       <div className="col-span-12 flex items-center gap-2">
         <MapPinIcon className="size-4 text-primary" />
-        <h3 className="text-sm font-medium">Location</h3>
+        <h3 className="text-sm font-medium">{t("seeker.location")}</h3>
       </div>
-      <Field label="Country" className="col-span-4">
+      <Field label={t("form.country")} className="col-span-4">
         {/* A city in the old country does not fit the new one */}
         <CountrySelect value={value.country} onChange={(country) => onChange({ country, city: "" })} />
       </Field>
-      <Field label="City" className="col-span-4">
+      <Field label={t("form.city")} className="col-span-4">
         {/* Keyed so each country starts with its own list */}
         <CityPicker key={value.country} country={value.country || "IQ"} value={value.city} onChange={(city) => onChange({ city })} />
       </Field>
-      <Field label="Address (optional, private)" className="col-span-4">
-        <Input className="h-9" value={value.address} onChange={(e) => onChange({ address: e.target.value })} placeholder="Street, area" />
+      <Field label={t("form.addressOptional")} className="col-span-4">
+        <Input className="h-9" value={value.address} onChange={(e) => onChange({ address: e.target.value })} placeholder={t("form.addressPlaceholder")} />
       </Field>
       <p className="col-span-12 flex items-center gap-1.5 border-t pt-3 text-xs text-muted-foreground">
-        <LockIcon className="size-3 shrink-0" /> Your address is only on your own CV. Employers see your city.
+        <LockIcon className="size-3 shrink-0" /> {t("form.addressPrivate")}
       </p>
     </div>
   )
@@ -212,6 +217,7 @@ export function TagPicker({
   allowCustom?: boolean
   placeholder: string
 }) {
+  const t = useT()
   const [query, setQuery] = useState("")
   const q = query.trim().toLowerCase()
   const has = (s: string) => value.some((v) => v.toLowerCase() === s.toLowerCase())
@@ -227,11 +233,11 @@ export function TagPicker({
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {value.map((s) => (
-            <span key={s} className="flex items-center gap-1 rounded-full bg-primary/10 py-0.5 pr-1 pl-2.5 text-sm text-primary">
+            <span key={s} className="flex items-center gap-1 rounded-full bg-primary/10 py-0.5 ps-2.5 pe-1 text-sm text-primary">
               {s}
               <button
                 type="button"
-                aria-label={`Remove ${s}`}
+                aria-label={t("form.removeTag", { tag: s })}
                 onClick={() => onChange(value.filter((x) => x !== s))}
                 className="rounded-full p-0.5 hover:bg-primary/15"
               >
@@ -274,7 +280,7 @@ export function TagPicker({
             onClick={() => add(query)}
             className="flex items-center gap-1 rounded-full border border-dashed border-primary/50 px-2.5 py-0.5 text-xs text-primary hover:bg-primary/5"
           >
-            <PlusIcon className="size-3" /> Add &ldquo;{query.trim()}&rdquo;
+            <PlusIcon className="size-3" /> {t("form.addTag", { tag: query.trim() })}
           </button>
         )}
       </div>
@@ -284,45 +290,46 @@ export function TagPicker({
 
 /** Projects and activities: name, optional link, dates and a short description. */
 export function ProjectFields({ value, onChange }: { value: Project[]; onChange: (update: (list: Project[]) => Project[]) => void }) {
+  const t = useT()
   const update = (id: string, patch: Partial<Project>) => onChange((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)))
   return (
     <div className="space-y-3">
-      {value.length === 0 && <p className="text-sm text-muted-foreground">No projects or activities added. They&apos;re optional.</p>}
+      {value.length === 0 && <p className="text-sm text-muted-foreground">{t("seeker.projectsEmpty")}</p>}
       {value.map((p, i) => (
         <div key={p.id} className="rounded-lg border p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Project {i + 1}</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("form.projectN", { n: i + 1 })}</span>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={`Remove project ${i + 1}`}
+              aria-label={t("form.removeProject", { n: i + 1 })}
               onClick={() => onChange((list) => list.filter((x) => x.id !== p.id))}
             >
               <Trash2Icon />
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Name">
-              <Input className="h-9" value={p.name} onChange={(e) => update(p.id, { name: e.target.value })} placeholder="e.g. Volunteer at the Red Crescent" />
+            <Field label={t("form.projectName")}>
+              <Input className="h-9" value={p.name} onChange={(e) => update(p.id, { name: e.target.value })} placeholder={t("form.projectNamePlaceholder")} />
             </Field>
-            <Field label="Link (optional)">
+            <Field label={t("form.linkOptional")}>
               <Input className="h-9" value={p.link} onChange={(e) => update(p.id, { link: e.target.value })} placeholder="https://…" />
             </Field>
-            <Field label="Period (optional)" className="col-span-2">
-              <PeriodPicker start={p.start} end={p.end} onChange={(patch) => update(p.id, patch)} endPlaceholder="End (empty if ongoing)" what="A project" />
+            <Field label={t("form.periodOptional")} className="col-span-2">
+              <PeriodPicker start={p.start} end={p.end} onChange={(patch) => update(p.id, patch)} endPlaceholder={t("form.endOngoing")} what={t("form.projectEndsBefore")} />
             </Field>
             {projectDuration(p) && (
-              <p className="col-span-2 text-right text-sm text-muted-foreground">
-                Duration: <span className="font-medium text-foreground">{projectDuration(p)}</span>
+              <p className="col-span-2 text-end text-sm text-muted-foreground">
+                {t("form.duration")} <span className="font-medium text-foreground">{projectDuration(p)}</span>
               </p>
             )}
-            <Field label="Description (optional)" className="col-span-2">
+            <Field label={t("form.descriptionOptional")} className="col-span-2">
               <Textarea
                 className="min-h-16 text-sm"
                 value={p.description}
                 onChange={(e) => update(p.id, { description: e.target.value })}
-                placeholder="What you did and what came of it"
+                placeholder={t("form.projectPlaceholder")}
               />
             </Field>
           </div>
@@ -335,7 +342,7 @@ export function ProjectFields({ value, onChange }: { value: Project[]; onChange:
           onChange((list) => [...list, { id: `p-${crypto.randomUUID()}`, name: "", link: "", description: "", start: "", end: "" }])
         }
       >
-        <PlusIcon /> Add a project or activity
+        <PlusIcon /> {t("form.addProject")}
       </Button>
     </div>
   )
@@ -343,6 +350,7 @@ export function ProjectFields({ value, onChange }: { value: Project[]; onChange:
 
 /** Where the job seeker wants to work. Used for job matching and employers' filters; not shown on the CV. */
 export function WorkPreferenceFields({ value, onChange }: { value: WorkPreference; onChange: (v: WorkPreference) => void }) {
+  const t = useT()
   const toggle = (key: "remote" | "international", label: string, hint: string) => (
     <label
       className={cn(
@@ -360,16 +368,16 @@ export function WorkPreferenceFields({ value, onChange }: { value: WorkPreferenc
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        {toggle("remote", "Remote", "Work from home for a company anywhere")}
-        {toggle("international", "International", "Jobs outside Iraq")}
+        {toggle("remote", t("form.remote"), t("form.remoteHint"))}
+        {toggle("international", t("form.international"), t("form.internationalHint"))}
       </div>
-      <Field label="Cities in Iraq where you'd work">
+      <Field label={t("form.citiesInIraq")}>
         <TagPicker
           value={value.iraqCities}
           onChange={(iraqCities) => onChange({ ...value, iraqCities })}
           suggestions={IRAQ_CITIES}
           allowCustom={false}
-          placeholder="Search cities, e.g. Sulaymaniyah"
+          placeholder={t("form.searchCitiesPlaceholder")}
         />
       </Field>
     </div>

@@ -5,6 +5,7 @@ import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { IRAQI_LANGUAGES, LANGUAGES, MAIN_LANGUAGES } from "@/lib/options"
 import { handleListKeys, OPTION_ACTIVE, resetActiveOption } from "@/lib/list-keys"
+import { useT } from "@/i18n/provider"
 import { cn } from "@/lib/utils"
 
 /**
@@ -23,6 +24,7 @@ export function LanguagePicker({
   autoOpen?: boolean
   onChange: (v: string) => void
 }) {
+  const t = useT()
   const [open, setOpen] = useState(autoOpen)
   const [query, setQuery] = useState("")
 
@@ -34,9 +36,9 @@ export function LanguagePicker({
   const iraqi = matches.filter((l) => IRAQI_LANGUAGES.includes(l) && !main.includes(l))
   const others = matches.filter((l) => !IRAQI_LANGUAGES.includes(l) && !main.includes(l))
   const groups = [
-    ["Main languages", main],
-    ["Languages of Iraq", iraqi],
-    ["Other languages", others],
+    [t("form.mainLanguages"), main],
+    [t("form.iraqLanguages"), iraqi],
+    [t("form.otherLanguages"), others],
   ] as const
 
   return (
@@ -51,12 +53,12 @@ export function LanguagePicker({
         render={
           <button
             type="button"
-            aria-label={value ? `Language: ${value}` : "Choose a language"}
+            aria-label={value ? t("form.languageValue", { language: value }) : t("form.chooseLanguage")}
             className="flex h-9 w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent pr-2 pl-2.5 text-left text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         }
       >
-        <span className={cn("truncate", !value && "text-muted-foreground")}>{value || "Choose language"}</span>
+        <span className={cn("truncate", !value && "text-muted-foreground")}>{value || t("form.chooseLanguageShort")}</span>
         <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent align="start" collisionAvoidance={{ fallbackAxisSide: "none" }} className="w-72 gap-0 p-0">
@@ -69,7 +71,7 @@ export function LanguagePicker({
               resetActiveOption(e.currentTarget)
             }}
             onKeyDown={handleListKeys}
-            placeholder="Search languages"
+            placeholder={t("form.searchLanguages")}
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />

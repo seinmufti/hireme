@@ -73,8 +73,10 @@ export function CvDocument({
   const hasSkills = t.hardSkills.length > 0 || t.softSkills.length > 0
 
   return (
+    // The CV is always in English, so it stays left to right even when the app is in Arabic or Kurdish
     <div
       ref={ref}
+      dir="ltr"
       className={cn(
         "cv-page relative mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white px-[16mm] pt-[14mm] pb-[10mm] text-[9.5pt] leading-[1.45] text-neutral-800 shadow-lg ring-1 ring-black/5 [print-color-adjust:exact]",
         className

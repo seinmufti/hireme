@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useT } from "@/i18n/provider"
 import { degreeDuration, formatDuration, jobMonths } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE } from "@/lib/normalize"
 import { CONTRACT_TYPES, DEGREE_STATUSES, EDUCATION, GENDERS, JOB_CATEGORIES, LANGUAGE_LEVELS, LANGUAGES } from "@/lib/options"
@@ -91,10 +92,11 @@ function Choice({
   onChange: (v: string) => void
   invalid?: boolean
 }) {
+  const t = useT()
   return (
     <Select value={value || null} onValueChange={(v) => onChange((v as string) ?? "")}>
       <SelectTrigger className="h-9 w-full" aria-invalid={invalid || undefined}>
-        <SelectValue placeholder="Choose" />
+        <SelectValue placeholder={t("form.choose")} />
       </SelectTrigger>
       <SelectContent>
         {options.map((o) => (
@@ -113,15 +115,16 @@ export function PersonalFields({
   value: TalentInput
   onChange: (update: (p: TalentInput) => TalentInput) => void
 }) {
+  const t = useT()
   const set = <K extends keyof TalentInput>(key: K, v: TalentInput[K]) => onChange((p) => ({ ...p, [key]: v }))
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Gender">
+        <Field label={t("form.gender")}>
           <Choice value={value.gender} options={GENDERS} onChange={(v) => set("gender", v)} />
         </Field>
-        <Field label="Date of birth">
+        <Field label={t("form.dateOfBirth")}>
           <DateOfBirthPicker value={value.dateOfBirth} onChange={(v) => set("dateOfBirth", v)} />
         </Field>
       </div>
@@ -141,6 +144,7 @@ function levelColor(index: number) {
 }
 
 function LevelSlider({ label, language, value, onChange }: { label: string; language: string; value: string; onChange: (v: string) => void }) {
+  const t = useT()
   const index = Math.max(0, SLIDER_LEVELS.findIndex((l) => l.value === value))
   const current = SLIDER_LEVELS[index]
   const color = levelColor(index)
@@ -155,7 +159,7 @@ function LevelSlider({ label, language, value, onChange }: { label: string; lang
           step={1}
           value={index}
           onChange={(e) => onChange(SLIDER_LEVELS[Number(e.target.value)].value)}
-          aria-label={`${language || "Language"} ${label.toLowerCase()} level`}
+          aria-label={t("form.levelOf", { language: language || t("form.language"), skill: label })}
           aria-valuetext={current.label}
           className="h-1.5 w-full cursor-pointer"
           style={{ accentColor: color }}
@@ -183,6 +187,7 @@ export function LanguageFields({
 }) {
   const update = (i: number, patch: Partial<LanguageSkill>) =>
     onChange((list) => list.map((l, j) => (j === i ? { ...l, ...patch } : l)))
+  const t = useT()
   const used = value.map((l) => l.language)
   // The row added by the button opens its language dropdown right away (not rows already on the page)
   const [justAdded, setJustAdded] = useState<number | null>(null)
@@ -190,7 +195,7 @@ export function LanguageFields({
   return (
     <div className="space-y-3">
       {value.length === 0 && (
-        <p className="text-sm text-muted-foreground">No languages added yet. You need at least one to appear in The Pool.</p>
+        <p className="text-sm text-muted-foreground">{t("form.noLanguages")}</p>
       )}
       {value.map((l, i) => (
         // Language on the left; its speaking and reading sliders stacked on the right
@@ -203,21 +208,21 @@ export function LanguageFields({
             onChange={(language) => update(i, { language })}
           />
           <div className="space-y-2">
-            <LevelSlider label="Speaking" language={l.language} value={l.speaking} onChange={(speaking) => update(i, { speaking })} />
-            <LevelSlider label="Reading" language={l.language} value={l.reading} onChange={(reading) => update(i, { reading })} />
+            <LevelSlider label={t("form.speaking")} language={l.language} value={l.speaking} onChange={(speaking) => update(i, { speaking })} />
+            <LevelSlider label={t("form.reading")} language={l.language} value={l.reading} onChange={(reading) => update(i, { reading })} />
           </div>
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label={`Remove ${l.language || "language"}`}
+            aria-label={t("form.removeLanguage", { language: l.language || t("form.language") })}
             onClick={() => onChange((list) => list.filter((_, j) => j !== i))}
           >
             <Trash2Icon />
           </Button>
           <div className="col-span-3 border-t pt-3">
             <AttachmentField
-              label="Language certificate, e.g. IELTS (optional)"
+              label={t("form.languageCertificate")}
               value={l.attachmentIds}
               onChange={(attachmentIds) => update(i, { attachmentIds })}
             />
@@ -234,7 +239,7 @@ export function LanguageFields({
             onChange((list) => [...list, { language: "", speaking: "A1", reading: "A1", attachmentIds: [] }])
           }}
         >
-          <PlusIcon /> Add a language
+          <PlusIcon /> {t("form.addLanguage")}
         </Button>
       )}
     </div>
@@ -255,6 +260,7 @@ function ChoiceWithOther({
   onChange: (v: string) => void
   writePlaceholder: string
 }) {
+  const t = useT()
   const [writing, setWriting] = useState(() => !!value && !options.includes(value))
 
   if (writing) {
@@ -265,8 +271,8 @@ function ChoiceWithOther({
           type="button"
           variant="outline"
           size="icon-lg"
-          title="Choose from the list"
-          aria-label="Choose from the list"
+          title={t("form.chooseFromList")}
+          aria-label={t("form.chooseFromList")}
           onClick={() => {
             setWriting(false)
             onChange("")
@@ -289,14 +295,14 @@ function ChoiceWithOther({
       }}
     >
       <SelectTrigger className="h-9 w-full">
-        <SelectValue placeholder="Choose" />
+        <SelectValue placeholder={t("form.choose")} />
       </SelectTrigger>
       <SelectContent>
         {options.map((c) => (
           <SelectItem key={c} value={c}>{c}</SelectItem>
         ))}
         <SelectSeparator />
-        <SelectItem value={CUSTOM_OPTION}>Other (write your own)</SelectItem>
+        <SelectItem value={CUSTOM_OPTION}>{t("form.otherWriteOwn")}</SelectItem>
       </SelectContent>
     </Select>
   )
@@ -311,45 +317,46 @@ export function ExperienceFields({
   value: Experience[]
   onChange: (update: (list: Experience[]) => Experience[]) => void
 }) {
+  const t = useT()
   const update = (id: string, patch: Partial<Experience>) => onChange((list) => list.map((e) => (e.id === id ? { ...e, ...patch } : e)))
 
   return (
     <div className="space-y-3">
-      {value.length === 0 && <p className="text-sm text-muted-foreground">No previous jobs added yet.</p>}
+      {value.length === 0 && <p className="text-sm text-muted-foreground">{t("form.noJobs")}</p>}
       {value.map((e, i) => (
         <div key={e.id} className="rounded-lg border p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">{i === 0 ? "Most recent job" : `Job ${i + 1}`}</span>
+            <span className="text-xs font-medium text-muted-foreground">{i === 0 ? t("form.mostRecentJob") : t("form.jobN", { n: i + 1 })}</span>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={`Remove job ${i + 1}`}
+              aria-label={t("form.removeJob", { n: i + 1 })}
               onClick={() => onChange((list) => list.filter((x) => x.id !== e.id))}
             >
               <Trash2Icon />
             </Button>
           </div>
           <div className="grid grid-cols-12 gap-3">
-            <Field label="Category" className="col-span-6">
+            <Field label={t("form.category")} className="col-span-6">
               <ChoiceWithOther
                 value={e.category}
                 options={JOB_CATEGORIES}
                 onChange={(category) => update(e.id, { category })}
-                writePlaceholder="Write your category"
+                writePlaceholder={t("form.writeCategory")}
               />
             </Field>
-            <Field label="Position title" className="col-span-6">
-              <Input className="h-9" value={e.title} onChange={(ev) => update(e.id, { title: ev.target.value })} placeholder="e.g. Accountant" />
+            <Field label={t("form.positionTitle")} className="col-span-6">
+              <Input className="h-9" value={e.title} onChange={(ev) => update(e.id, { title: ev.target.value })} placeholder={t("form.positionPlaceholder")} />
             </Field>
-            <Field label="Employer" className="col-span-6">
-              <Input className="h-9" value={e.employer} onChange={(ev) => update(e.id, { employer: ev.target.value })} placeholder="Company name" />
+            <Field label={t("form.employer")} className="col-span-6">
+              <Input className="h-9" value={e.employer} onChange={(ev) => update(e.id, { employer: ev.target.value })} placeholder={t("form.employerPlaceholder")} />
             </Field>
-            <Field label="Contract type" className="col-span-6">
+            <Field label={t("form.contractType")} className="col-span-6">
               <Choice value={e.contractType} options={CONTRACT_TYPES} onChange={(v) => update(e.id, { contractType: v })} />
             </Field>
-            <Field label="Period" className="col-span-12">
-              <PeriodPicker start={e.start} end={e.end} current={e.current} onChange={(patch) => update(e.id, patch)} what="A job" />
+            <Field label={t("form.period")} className="col-span-12">
+              <PeriodPicker start={e.start} end={e.end} current={e.current} onChange={(patch) => update(e.id, patch)} what={t("form.jobEndsBefore")} />
             </Field>
             <div className="col-span-12 flex items-center justify-between gap-3 text-sm">
               <label className="flex items-center gap-2">
@@ -359,24 +366,23 @@ export function ExperienceFields({
                   checked={e.current}
                   onChange={(ev) => update(e.id, { current: ev.target.checked, end: "" })}
                 />
-                I currently work here
+                {t("form.currentlyWorkHere")}
               </label>
               {jobMonths(e) > 0 && (
                 <span className="text-muted-foreground">
-                  Duration: <span className="font-medium text-foreground">{formatDuration(jobMonths(e))}</span>
+                  {t("form.duration")} <span className="font-medium text-foreground">{formatDuration(jobMonths(e))}</span>
                 </span>
               )}
             </div>
-            <Field label="Responsibilities and achievements" className="col-span-12">
+            <Field label={t("form.responsibilities")} className="col-span-12">
               <p className="flex items-start gap-1.5 rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-900">
                 <LightbulbIcon className="mt-px size-3.5 shrink-0" />
-                Tip: write one bullet point per line, mostly achievements. Start with a verb and add numbers where you can,
-                e.g. &ldquo;Increased monthly sales by 20%&rdquo;.
+                {t("form.responsibilitiesTip")}
               </p>
               <Textarea
                 value={e.description}
                 onChange={(ev) => update(e.id, { description: ev.target.value })}
-                placeholder={"Increased monthly sales by 20% in one year\nTrained 5 new team members\nHandled 50+ customer requests a day"}
+                placeholder={t("form.responsibilitiesPlaceholder")}
                 className="min-h-24 text-sm"
               />
             </Field>
@@ -384,21 +390,21 @@ export function ExperienceFields({
               {e.reference ? (
                 <div className="space-y-3 rounded-md border border-dashed p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Reference</span>
+                    <span className="text-sm font-medium">{t("form.reference")}</span>
                     <Button type="button" variant="ghost" size="xs" onClick={() => update(e.id, { reference: null })}>
-                      <Trash2Icon /> Remove reference
+                      <Trash2Icon /> {t("form.removeReference")}
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Employers and your CV only show &ldquo;Reference available on request&rdquo;.
+                    {t("form.referenceNote")}
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     {(
                       [
-                        ["name", "Name", "Full name"],
-                        ["position", "Position", "e.g. Sales Manager"],
-                        ["phone", "Phone", "+964 750 000 0000"],
-                        ["email", "Email", "name@example.com"],
+                        ["name", t("form.refName"), t("form.refNamePlaceholder")],
+                        ["position", t("form.refPosition"), t("form.refPositionPlaceholder")],
+                        ["phone", t("form.refPhone"), "+964 750 000 0000"],
+                        ["email", t("form.refEmail"), "name@example.com"],
                       ] as const
                     ).map(([key, label, placeholder]) => (
                       <Field key={key} label={label}>
@@ -414,7 +420,7 @@ export function ExperienceFields({
                 </div>
               ) : (
                 <Button type="button" variant="ghost" size="sm" onClick={() => update(e.id, { reference: EMPTY_REFERENCE })}>
-                  <UserRoundCheckIcon /> Add a reference (optional)
+                  <UserRoundCheckIcon /> {t("form.addReference")}
                 </Button>
               )}
             </div>
@@ -422,7 +428,7 @@ export function ExperienceFields({
         </div>
       ))}
       <Button type="button" variant="outline" onClick={() => onChange((list) => [...list, newExperience()])}>
-        <PlusIcon /> Add a job
+        <PlusIcon /> {t("form.addJob")}
       </Button>
     </div>
   )
@@ -447,6 +453,7 @@ function RowList<T extends { id: string }>({
   create: () => T
   children: (item: T, update: (patch: Partial<T>) => void) => React.ReactNode
 }) {
+  const t = useT()
   return (
     <div className="space-y-3">
       {items.length === 0 && <p className="text-sm text-muted-foreground">{empty}</p>}
@@ -460,7 +467,7 @@ function RowList<T extends { id: string }>({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={`Remove ${label.toLowerCase()} ${i + 1}`}
+              aria-label={t("form.removeItem", { item: label, n: i + 1 })}
               onClick={() => onChange((list) => list.filter((x) => x.id !== item.id))}
             >
               <Trash2Icon />
@@ -487,12 +494,13 @@ export function DegreeFields({
   const thisYear = new Date().getFullYear()
   // Start years: this year back 60 years. Graduated: finish up to this year. Studying: finish up to 10 years ahead.
   const years = (from: number, to: number) => Array.from({ length: from - to + 1 }, (_, i) => String(from - i))
+  const t = useT()
   return (
     <RowList
       items={value}
-      label="Degree"
-      addLabel="Add a degree"
-      empty="No degrees added yet. You need at least one to appear in The Pool."
+      label={t("form.degree")}
+      addLabel={t("form.addDegree")}
+      empty={t("form.noDegrees")}
       onChange={onChange}
       create={() => ({
         id: `d-${crypto.randomUUID()}`,
@@ -512,11 +520,11 @@ export function DegreeFields({
         return (
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2 grid grid-cols-12 gap-3">
-              <Field label="Country" className="col-span-4">
+              <Field label={t("form.country")} className="col-span-4">
                 {/* An institution of the old country does not fit the new one */}
                 <CountrySelect value={d.country ?? "IQ"} onChange={(country) => update({ country, institution: "" })} />
               </Field>
-              <Field label="Institution" className="col-span-8">
+              <Field label={t("form.institution")} className="col-span-8">
                 <InstitutionPicker
                   key={d.country ?? "IQ"}
                   country={d.country ?? "IQ"}
@@ -525,16 +533,16 @@ export function DegreeFields({
                 />
               </Field>
             </div>
-            <Field label="Degree level">
+            <Field label={t("form.degreeLevel")}>
               <Choice value={d.level} options={EDUCATION} onChange={(level) => update({ level })} />
             </Field>
-            <Field label="Field of study">
+            <Field label={t("form.fieldOfStudy")}>
               <FieldOfStudyPicker value={d.field} onChange={(field) => update({ field })} />
             </Field>
-            <Field label="Degree name" className="col-span-2">
-              <Input className="h-9" value={d.name} onChange={(e) => update({ name: e.target.value })} placeholder="e.g. BSc in Computer Science" />
+            <Field label={t("form.degreeName")} className="col-span-2">
+              <Input className="h-9" value={d.name} onChange={(e) => update({ name: e.target.value })} placeholder={t("form.degreeNamePlaceholder")} />
             </Field>
-            <Field label="Status" className="col-span-2">
+            <Field label={t("form.status")} className="col-span-2">
               <div className="flex gap-1.5">
                 {DEGREE_STATUSES.map((st) => (
                   <button
@@ -553,14 +561,14 @@ export function DegreeFields({
             </Field>
             {d.status && (
               <>
-                <Field label="Year started">
+                <Field label={t("form.yearStarted")}>
                   <Choice
                     value={d.startYear}
                     options={years(thisYear, thisYear - 60).filter((y) => !d.endYear || y <= d.endYear)}
                     onChange={(startYear) => update({ startYear })}
                   />
                 </Field>
-                <Field label={studying ? "Expected year of graduation" : "Year finished"}>
+                <Field label={studying ? t("form.expectedGraduation") : t("form.yearFinished")}>
                   <Choice
                     value={d.endYear}
                     options={(studying ? years(thisYear + 10, thisYear) : years(thisYear, thisYear - 60)).filter(
@@ -569,17 +577,17 @@ export function DegreeFields({
                     onChange={(endYear) => update({ endYear })}
                     invalid={degreeEndsTooEarly(d)}
                   />
-                  {degreeEndsTooEarly(d) && <p className="text-xs font-medium text-destructive">A degree can&apos;t end before it starts.</p>}
+                  {degreeEndsTooEarly(d) && <p className="text-xs font-medium text-destructive">{t("form.degreeEndsBefore")}</p>}
                 </Field>
               </>
             )}
             {degreeDuration(d) && (
               <p className="col-span-2 text-right text-sm text-muted-foreground">
-                Duration: <span className="font-medium text-foreground">{degreeDuration(d)}</span>
+                {t("form.duration")} <span className="font-medium text-foreground">{degreeDuration(d)}</span>
               </p>
             )}
             <div className="col-span-2">
-              <AttachmentField label="Degree certificate (optional)" value={d.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />
+              <AttachmentField label={t("form.degreeCertificate")} value={d.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />
             </div>
           </div>
         )
@@ -596,29 +604,30 @@ export function CertificationFields({
   value: Certification[]
   onChange: (update: (list: Certification[]) => Certification[]) => void
 }) {
+  const t = useT()
   return (
     <RowList
       items={value}
-      label="License or certification"
-      addLabel="Add a license or certification"
-      empty="No licenses or certifications added. They're optional."
+      label={t("form.license")}
+      addLabel={t("form.addLicense")}
+      empty={t("form.noLicenses")}
       onChange={onChange}
       create={() => ({ id: `c-${crypto.randomUUID()}`, title: "", institution: "", issued: "", attachmentIds: [] })}
     >
       {(c, update) => {
         return (
           <div className="grid grid-cols-12 gap-3">
-            <Field label="Title" className="col-span-12">
-              <Input className="h-9" value={c.title} onChange={(e) => update({ title: e.target.value })} placeholder="e.g. AWS Certified Cloud Practitioner, Driving licence" />
+            <Field label={t("form.licenseTitle")} className="col-span-12">
+              <Input className="h-9" value={c.title} onChange={(e) => update({ title: e.target.value })} placeholder={t("form.licenseTitlePlaceholder")} />
             </Field>
-            <Field label="Issuing institution" className="col-span-8">
-              <Input className="h-9" value={c.institution} onChange={(e) => update({ institution: e.target.value })} placeholder="e.g. Amazon Web Services" />
+            <Field label={t("form.issuingInstitution")} className="col-span-8">
+              <Input className="h-9" value={c.institution} onChange={(e) => update({ institution: e.target.value })} placeholder={t("form.issuingPlaceholder")} />
             </Field>
-            <Field label="Issue date" className="col-span-4">
+            <Field label={t("form.issueDate")} className="col-span-4">
               <MonthPicker value={c.issued} onChange={(issued) => update({ issued })} max={thisMonth()} />
             </Field>
             <div className="col-span-12">
-              <AttachmentField label="Scan of the license or certificate (optional)" value={c.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />
+              <AttachmentField label={t("form.licenseScan")} value={c.attachmentIds} onChange={(attachmentIds) => update({ attachmentIds })} />
             </div>
           </div>
         )

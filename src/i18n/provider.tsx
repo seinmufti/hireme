@@ -51,3 +51,29 @@ export function useLocationLabel() {
   const t = useT()
   return (l: JobLocation) => (l.remote ? t("jobs.remote") : l.international ? t("jobs.international") : l.iraqCity || t("jobs.iraq"))
 }
+
+// en-US: en-GB shortens September to "Sept"
+const dateLocale = (locale: Locale) => (locale === "en" ? "en-US" : locale)
+
+/** The twelve month names in the current language ("Jan" … or "January" …). */
+export function useMonthNames(style: "short" | "long") {
+  const { locale } = useI18n()
+  return useMemo(
+    () => Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString(dateLocale(locale), { month: style })),
+    [locale, style]
+  )
+}
+
+/** Weekday names from Sunday, short enough for a calendar ("Su" … in English). */
+export function useWeekdayNames() {
+  const { locale } = useI18n()
+  return useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) => {
+        // 2 January 2000 was a Sunday
+        const name = new Date(2000, 0, 2 + i).toLocaleDateString(dateLocale(locale), { weekday: locale === "en" ? "short" : "narrow" })
+        return locale === "en" ? name.slice(0, 2) : name
+      }),
+    [locale]
+  )
+}

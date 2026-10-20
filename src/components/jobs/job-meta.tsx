@@ -1,6 +1,6 @@
-import { BriefcaseIcon, Building2Icon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
 "use client"
 
+import { BriefcaseIcon, Building2Icon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
 import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"

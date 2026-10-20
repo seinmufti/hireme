@@ -4,10 +4,9 @@ import { useState } from "react"
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useMonthNames, useT, useWeekdayNames } from "@/i18n/provider"
 import { cn } from "@/lib/utils"
 
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
 const YEARS_PER_PAGE = 16
 // Job seekers are 16 to 80 years old
 const MIN_AGE = 16
@@ -22,6 +21,10 @@ type Step = "year" | "month" | "day"
  * Value is "YYYY-MM-DD" (or "" when empty).
  */
 export function DateOfBirthPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useT()
+  const months = useMonthNames("long")
+  const shortMonths = useMonthNames("short")
+  const weekdays = useWeekdayNames()
   const thisYear = new Date().getFullYear()
   const latest = thisYear - MIN_AGE
   const earliest = thisYear - MAX_AGE
@@ -61,11 +64,11 @@ export function DateOfBirthPicker({ value, onChange }: { value: string; onChange
 
   const header = (title: React.ReactNode, onPrev?: () => void, onNext?: () => void, prevDisabled = false, nextDisabled = false) => (
     <div className="mb-2 flex items-center justify-between">
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="Previous" onClick={onPrev} disabled={!onPrev || prevDisabled} className={cn(!onPrev && "invisible")}>
+      <Button type="button" variant="ghost" size="icon-sm" aria-label={t("form.previous")} onClick={onPrev} disabled={!onPrev || prevDisabled} className={cn(!onPrev && "invisible")}>
         <ChevronLeftIcon />
       </Button>
       <div className="text-sm font-medium">{title}</div>
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="Next" onClick={onNext} disabled={!onNext || nextDisabled} className={cn(!onNext && "invisible")}>
+      <Button type="button" variant="ghost" size="icon-sm" aria-label={t("form.next")} onClick={onNext} disabled={!onNext || nextDisabled} className={cn(!onNext && "invisible")}>
         <ChevronRightIcon />
       </Button>
     </div>
@@ -81,7 +84,7 @@ export function DateOfBirthPicker({ value, onChange }: { value: string; onChange
           />
         }
       >
-        <span className={cn(!label && "text-muted-foreground")}>{label || "Choose"}</span>
+        <span className={cn(!label && "text-muted-foreground")}>{label || t("form.choose")}</span>
         <ChevronDownIcon className="size-4 text-muted-foreground" />
       </PopoverTrigger>
       {/* Stay above or below the field (never beside it), at the same height for every step */}
@@ -95,7 +98,7 @@ export function DateOfBirthPicker({ value, onChange }: { value: string; onChange
               pageStart <= earliest,
               pageStart + YEARS_PER_PAGE > latest
             )}
-            <p className="mb-2 text-xs text-muted-foreground">Choose your birth year</p>
+            <p className="mb-2 text-xs text-muted-foreground">{t("form.chooseBirthYear")}</p>
             <div className="grid grid-cols-4 gap-1">
               {years.map((y) => (
                 <button
@@ -121,9 +124,9 @@ export function DateOfBirthPicker({ value, onChange }: { value: string; onChange
                 {year}
               </button>
             )}
-            <p className="mb-2 text-xs text-muted-foreground">Choose the month</p>
+            <p className="mb-2 text-xs text-muted-foreground">{t("form.chooseMonth")}</p>
             <div className="grid grid-cols-3 gap-1">
-              {MONTHS.map((m, i) => (
+              {months.map((m, i) => (
                 <button
                   key={m}
                   type="button"
@@ -133,7 +136,7 @@ export function DateOfBirthPicker({ value, onChange }: { value: string; onChange
                     setStep("day")
                   }}
                 >
-                  {m.slice(0, 3)}
+                  {shortMonths[i]}
                 </button>
               ))}
             </div>
@@ -145,7 +148,7 @@ export function DateOfBirthPicker({ value, onChange }: { value: string; onChange
             {header(
               <span className="flex items-center gap-1">
                 <button type="button" className="rounded-md px-1.5 py-0.5 hover:bg-muted" onClick={() => setStep("month")}>
-                  {MONTHS[month]}
+                  {months[month]}
                 </button>
                 <button type="button" className="rounded-md px-1.5 py-0.5 hover:bg-muted" onClick={() => setStep("year")}>
                   {year}
@@ -153,7 +156,7 @@ export function DateOfBirthPicker({ value, onChange }: { value: string; onChange
               </span>
             )}
             <div className="grid grid-cols-7 gap-0.5 text-center">
-              {WEEKDAYS.map((w) => (
+              {weekdays.map((w) => (
                 <span key={w} className="py-1 text-xs text-muted-foreground">{w}</span>
               ))}
               {Array.from({ length: firstWeekday }, (_, i) => (

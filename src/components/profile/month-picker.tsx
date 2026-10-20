@@ -4,15 +4,11 @@ import { useState } from "react"
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useMonthNames, useT } from "@/i18n/provider"
 import { cn } from "@/lib/utils"
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const MONTH_VALUE = /^\d{4}-\d{2}$/
 const pad = (n: number) => String(n).padStart(2, "0")
-const label = (value: string) => {
-  const [y, m] = value.split("-").map(Number)
-  return `${MONTHS[m - 1]} ${y}`
-}
 
 /** True when both dates are complete and the end is before the start. */
 export const endsBeforeStart = (start: string, end: string) => MONTH_VALUE.test(start) && MONTH_VALUE.test(end) && end < start
@@ -26,7 +22,7 @@ export function MonthPicker({
   onChange,
   min = "",
   max = "",
-  placeholder = "Month and year",
+  placeholder,
   invalid,
   clearable,
 }: {
@@ -38,6 +34,12 @@ export function MonthPicker({
   invalid?: boolean
   clearable?: boolean
 }) {
+  const t = useT()
+  const months = useMonthNames("short")
+  const label = (v: string) => {
+    const [y, m] = v.split("-").map(Number)
+    return `${months[m - 1]} ${y}`
+  }
   const thisYear = new Date().getFullYear()
   const first = Math.max(thisYear - 60, MONTH_VALUE.test(min) ? Number(min.slice(0, 4)) : 0)
   const last = Math.min(thisYear + 10, MONTH_VALUE.test(max) ? Number(max.slice(0, 4)) : Infinity)
@@ -69,12 +71,12 @@ export function MonthPicker({
         }
       >
         <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
-        <span className={cn("flex-1 truncate", !set && "text-muted-foreground")}>{set ? label(value) : placeholder}</span>
+        <span className={cn("flex-1 truncate", !set && "text-muted-foreground")}>{set ? label(value) : (placeholder ?? t("form.monthAndYear"))}</span>
         {clearable && set && (
           <span
             role="button"
             tabIndex={-1}
-            aria-label="Clear"
+            aria-label={t("form.clear")}
             onClick={(e) => {
               e.stopPropagation()
               onChange("")
@@ -87,16 +89,16 @@ export function MonthPicker({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 gap-2 p-2">
         <div className="flex items-center justify-between">
-          <Button type="button" variant="ghost" size="icon-sm" aria-label="Previous year" disabled={year <= first} onClick={() => setYear(year - 1)}>
+          <Button type="button" variant="ghost" size="icon-sm" aria-label={t("form.previousYear")} disabled={year <= first} onClick={() => setYear(year - 1)}>
             <ChevronLeftIcon />
           </Button>
           <span className="text-sm font-medium tabular-nums">{year}</span>
-          <Button type="button" variant="ghost" size="icon-sm" aria-label="Next year" disabled={year >= last} onClick={() => setYear(year + 1)}>
+          <Button type="button" variant="ghost" size="icon-sm" aria-label={t("form.nextYear")} disabled={year >= last} onClick={() => setYear(year + 1)}>
             <ChevronRightIcon />
           </Button>
         </div>
         <div className="grid grid-cols-3 gap-1">
-          {MONTHS.map((m, i) => {
+          {months.map((m, i) => {
             const key = `${year}-${pad(i + 1)}`
             return (
               <button
@@ -131,8 +133,8 @@ export function PeriodPicker({
   end,
   onChange,
   current,
-  endPlaceholder = "End",
-  what = "It",
+  endPlaceholder,
+  what,
 }: {
   start: string
   end: string
@@ -141,19 +143,20 @@ export function PeriodPicker({
   endPlaceholder?: string
   what?: string
 }) {
+  const t = useT()
   const wrong = !current && endsBeforeStart(start, end)
   return (
     <div className="space-y-1.5">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <MonthPicker value={start} onChange={(v) => onChange({ start: v })} max={current ? "" : end} placeholder="Start" />
+        <MonthPicker value={start} onChange={(v) => onChange({ start: v })} max={current ? "" : end} placeholder={t("form.start")} />
         <span className="text-muted-foreground">–</span>
         {current ? (
-          <div className="flex h-9 items-center rounded-lg border border-dashed px-2.5 text-sm text-muted-foreground">Present</div>
+          <div className="flex h-9 items-center rounded-lg border border-dashed px-2.5 text-sm text-muted-foreground">{t("form.present")}</div>
         ) : (
-          <MonthPicker value={end} onChange={(v) => onChange({ end: v })} min={start} placeholder={endPlaceholder} invalid={wrong} clearable />
+          <MonthPicker value={end} onChange={(v) => onChange({ end: v })} min={start} placeholder={endPlaceholder ?? t("form.end")} invalid={wrong} clearable />
         )}
       </div>
-      {wrong && <p className="text-xs font-medium text-destructive">{what} can&apos;t end before it starts.</p>}
+      {wrong && <p className="text-xs font-medium text-destructive">{what ?? t("form.endsBefore")}</p>}
     </div>
   )
 }

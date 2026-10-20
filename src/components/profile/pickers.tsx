@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { COUNTRIES, IRAQ_CITIES, MAIN_COUNTRIES } from "@/lib/options"
 import { handleListKeys, OPTION_ACTIVE, resetActiveOption } from "@/lib/list-keys"
+import { useT } from "@/i18n/provider"
 import { cn } from "@/lib/utils"
 
 // Pickers for a country's cities and institutions: choose from a searchable list, or (only when nothing
@@ -27,6 +28,7 @@ function SearchablePicker({
   onChange: (v: string) => void
   labels: { choose: string; search: string; loading: string; none: string; write: string }
 }) {
+  const t = useT()
   const { items, loading } = list
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
@@ -48,8 +50,8 @@ function SearchablePicker({
           type="button"
           variant="outline"
           size="icon-lg"
-          title="Choose from the list"
-          aria-label="Choose from the list"
+          title={t("form.chooseFromList")}
+          aria-label={t("form.chooseFromList")}
           onClick={() => {
             setCustom(false)
             onChange("")
@@ -129,7 +131,7 @@ function SearchablePicker({
               className={cn("flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted", OPTION_ACTIVE)}
             >
               <PencilLineIcon className="size-4 text-muted-foreground" />
-              {q ? <>Other: write &ldquo;{query.trim()}&rdquo;</> : "Other (write your own)"}
+              {q ? t("form.otherWrite", { text: query.trim() }) : t("form.otherWriteOwn")}
             </button>
           </div>
         )}
@@ -164,13 +166,14 @@ function useCities(country: string): ListState {
 
 /** The country's cities, or "Other" to write your own. */
 export function CityPicker({ country, value, onChange }: { country: string; value: string; onChange: (v: string) => void }) {
+  const t = useT()
   const list = useCities(country)
   return (
     <SearchablePicker
       list={list}
       value={value}
       onChange={onChange}
-      labels={{ choose: "Choose a city", search: "Search cities", loading: "Loading cities…", none: "No city found.", write: "Write your city" }}
+      labels={{ choose: t("form.chooseCity"), search: t("form.searchCities"), loading: t("form.loadingCities"), none: t("form.noCity"), write: t("form.writeCity") }}
     />
   )
 }
@@ -192,6 +195,7 @@ function useUniversities(country: string): ListState {
 
 /** The country's universities and colleges, or "Other" to write your own. */
 export function InstitutionPicker({ country, value, onChange }: { country: string; value: string; onChange: (v: string) => void }) {
+  const t = useT()
   const list = useUniversities(country)
   return (
     <SearchablePicker
@@ -199,11 +203,11 @@ export function InstitutionPicker({ country, value, onChange }: { country: strin
       value={value}
       onChange={onChange}
       labels={{
-        choose: "Choose a university or college",
-        search: "Search institutions",
-        loading: "Loading institutions…",
-        none: "No institution found.",
-        write: "Write your institution",
+        choose: t("form.chooseInstitution"),
+        search: t("form.searchInstitutions"),
+        loading: t("form.loadingInstitutions"),
+        none: t("form.noInstitution"),
+        write: t("form.writeInstitution"),
       }}
     />
   )
@@ -211,6 +215,7 @@ export function InstitutionPicker({ country, value, onChange }: { country: strin
 
 /** Searchable country list with flags; Iraq unless changed. */
 export function CountrySelect({ value, onChange }: { value: string; onChange: (code: string) => void }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const current = COUNTRIES.find((c) => c.code === (value || "IQ"))
@@ -255,7 +260,7 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
               resetActiveOption(e.currentTarget)
             }}
             onKeyDown={handleListKeys}
-            placeholder="Search countries"
+            placeholder={t("form.searchCountries")}
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />

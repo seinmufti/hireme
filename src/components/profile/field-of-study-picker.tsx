@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { FIELD_GROUPS, FIELDS_OF_STUDY } from "@/lib/options"
 import { handleListKeys, OPTION_ACTIVE, resetActiveOption } from "@/lib/list-keys"
+import { useT } from "@/i18n/provider"
 import { cn } from "@/lib/utils"
 
 /**
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils"
  * Value is the field's name, either from the list or typed.
  */
 export function FieldOfStudyPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [writing, setWriting] = useState(() => !!value && !FIELDS_OF_STUDY.includes(value))
@@ -21,13 +23,13 @@ export function FieldOfStudyPicker({ value, onChange }: { value: string; onChang
   if (writing) {
     return (
       <div className="flex gap-1.5">
-        <Input className="h-9" value={value} onChange={(e) => onChange(e.target.value)} placeholder="Write your field" autoFocus />
+        <Input className="h-9" value={value} onChange={(e) => onChange(e.target.value)} placeholder={t("form.writeField")} autoFocus />
         <Button
           type="button"
           variant="outline"
           size="icon-lg"
-          title="Choose from the list"
-          aria-label="Choose from the list"
+          title={t("form.chooseFromList")}
+          aria-label={t("form.chooseFromList")}
           onClick={() => {
             setWriting(false)
             onChange("")
@@ -65,7 +67,7 @@ export function FieldOfStudyPicker({ value, onChange }: { value: string; onChang
           />
         }
       >
-        <span className={cn("truncate", !value && "text-muted-foreground")}>{value || "Choose"}</span>
+        <span className={cn("truncate", !value && "text-muted-foreground")}>{value || t("form.choose")}</span>
         <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent align="start" collisionAvoidance={{ fallbackAxisSide: "none" }} className="w-80 gap-0 p-0">
@@ -78,7 +80,7 @@ export function FieldOfStudyPicker({ value, onChange }: { value: string; onChang
               resetActiveOption(e.currentTarget)
             }}
             onKeyDown={handleListKeys}
-            placeholder="Search fields, e.g. biology"
+            placeholder={t("form.searchFields")}
             className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />
@@ -115,7 +117,7 @@ export function FieldOfStudyPicker({ value, onChange }: { value: string; onChang
             className={cn("flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted", OPTION_ACTIVE)}
           >
             <PencilLineIcon className="size-4 text-muted-foreground" />
-            {q ? <>Other: write &ldquo;{query.trim()}&rdquo;</> : "Other (write your own)"}
+            {q ? t("form.otherWrite", { text: query.trim() }) : t("form.otherWriteOwn")}
           </button>
         </div>
       </PopoverContent>
