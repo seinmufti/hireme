@@ -588,7 +588,7 @@ const ar: DeepPartial<Messages> = {
     fromCv: "من سيرتك الذاتية: {value}",
     keepMine: "الإبقاء على بياناتي",
     import: "استيراد من المسح",
-    replaceAndImport: "استبدال {count} واستيراد",
+    replaceAndImport: "استيراد {count} من المسح",
     doneAll: "تم الاستيراد. راجع كل شيء ثم اضغط “جاهز”.",
     tooBig: "حجم الملف أكبر من 10 ميغابايت. يرجى رفع ملف أصغر.",
     failed: "تعذّرت قراءة السيرة الذاتية. يرجى المحاولة مرة أخرى.",
