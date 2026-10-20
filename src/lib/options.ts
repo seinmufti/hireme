@@ -228,3 +228,6 @@ export const SOFT_SKILLS = [
   "Presentation skills", "Decision making", "Conflict resolution", "Self-motivation", "Multitasking", "Mentoring",
   "Emotional intelligence", "Reliability", "Interpersonal skills",
 ]
+
+// Where a job application stands; the employer moves it along
+export const APPLICATION_STATUSES = ["Applied", "Shortlisted", "Not selected"]

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { BriefcaseIcon, PlusIcon, SearchIcon, SparklesIcon, XIcon } from "lucide-react"
+import { BriefcaseIcon, PlusIcon, SearchIcon, SendIcon, SparklesIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { JOB_CITIES, jobMatchesQuery, locationValue } from "@/lib/jobs"
 import { matchingJobs, type MatchableTalent } from "@/lib/matching"
 import { CONTRACT_TYPES, JOB_CATEGORIES, type Role } from "@/lib/options"
+import { useStore } from "@/lib/store"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { JobCard } from "./job-card"
@@ -84,6 +85,13 @@ export function JobBrowser({
   const matches = useMemo(() => (talent ? matchingJobs(talent, open) : []), [talent, open])
   const score = useMemo(() => new Map(matches.map((m) => [m.job.id, m.score])), [matches])
   const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
+  // The signed-in job seeker's applications, by job
+  const userId = useStore((s) => s.currentUserId)
+  const allApplications = useStore((s) => s.applications)
+  const applied = useMemo(
+    () => new Map(allApplications.filter((a) => a.seekerId === userId).map((a) => [a.jobId, a.status])),
+    [allApplications, userId]
+  )
 
   const setSearch = (q: string) => {
     setQuery(q)
@@ -127,6 +135,12 @@ export function JobBrowser({
             )}
           </p>
         </div>
+        {isSeeker && (
+          <Link href="/jobs/applied" className={buttonVariants({ variant: "outline" })}>
+            <SendIcon /> My applications
+            {applied.size > 0 && <span className="text-muted-foreground">{applied.size}</span>}
+          </Link>
+        )}
         {role === "EMPLOYER" && (
           <div className="flex gap-2">
             <Link href="/jobs/mine" className={buttonVariants({ variant: "outline" })}>
@@ -239,7 +253,7 @@ export function JobBrowser({
       ) : (
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
           {results.map((j) => (
-            <JobCard key={j.id} job={j} match={isSeeker && score.has(j.id)} have={have} />
+            <JobCard key={j.id} job={j} match={isSeeker && score.has(j.id)} have={have} applied={applied.get(j.id)} />
           ))}
         </div>
       )}

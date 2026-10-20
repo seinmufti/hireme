@@ -1,21 +1,22 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeftIcon, BellIcon, LockIcon, MailIcon, PencilIcon, PhoneIcon, SparklesIcon } from "lucide-react"
+import { ArrowLeftIcon, BellIcon, MailIcon, PencilIcon, PhoneIcon, SparklesIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { matchJob, matchReasons, type MatchableTalent } from "@/lib/matching"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { ApplicantsList, ApplyPanel } from "./applications"
 import { JobDescription, jobFacts, SkillChips } from "./job-meta"
 
 /** One job: what it is, why it suits the job seeker, and the company behind it. */
 export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; talent: MatchableTalent | null }) {
   const employer = useStore((s) => s.users.find((u) => u.id === job.employerId)) ?? null
   const notified = useStore((s) => s.notifications.filter((n) => n.jobId === job.id).length)
+  const applicants = useStore((s) => s.applications.filter((a) => a.jobId === job.id).length)
   const setJobOpen = useStore((s) => s.setJobOpen)
   const isOwner = viewer.id === job.employerId
   const isSeeker = viewer.role === "SEEKER"
@@ -77,6 +78,10 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                 <BellIcon className="size-4 text-muted-foreground" />
                 {notified} matching job seeker{notified === 1 ? " was" : "s were"} notified
               </p>
+              <a href="#applicants" className="flex items-center gap-2 text-sm hover:underline">
+                <UsersIcon className="size-4 text-muted-foreground" />
+                {applicants} applicant{applicants === 1 ? "" : "s"}
+              </a>
               <div className="flex gap-2">
                 <Link href={`/jobs/${job.id}/edit`} className={cn(buttonVariants({ variant: "outline" }), "flex-1")}>
                   <PencilIcon /> Edit
@@ -119,21 +124,15 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                   )}
                 </div>
               )}
-              {/* Applying comes later */}
-              <Tooltip>
-                <TooltipTrigger render={<span tabIndex={0} className="block outline-none" />}>
-                  <Button className="w-full" disabled>
-                    <LockIcon /> Apply (coming soon)
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Applying through HireMe is coming soon.</TooltipContent>
-              </Tooltip>
+              {isSeeker && <ApplyPanel job={job} viewer={viewer} />}
             </div>
           )}
 
           {employer && <CompanyCard employer={employer} />}
         </aside>
       </div>
+
+      {isOwner && <ApplicantsList job={job} viewer={viewer} />}
     </div>
   )
 }

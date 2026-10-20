@@ -26,6 +26,7 @@ export function PremiumToggle({ user }: { user: User }) {
       {t("premium.label")}
       <SwitchPrimitive.Root
         checked={premium}
+        aria-label={t("premium.label")}
         onCheckedChange={(on) => {
           setPremium(user.id, on)
           toast.success(on ? t("premium.on") : t("premium.off"))

@@ -1,11 +1,24 @@
 import Link from "next/link"
-import { SparklesIcon } from "lucide-react"
+import { CheckIcon, SparklesIcon } from "lucide-react"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { jobFacts, SkillChips } from "./job-meta"
 
 /** One job in a list. `match` marks jobs that suit the signed-in job seeker. */
-export function JobCard({ job, match, have, className }: { job: Job; match?: boolean; have?: string[]; className?: string }) {
+/** `applied` is the signed-in job seeker's application status, if they applied. */
+export function JobCard({
+  job,
+  match,
+  have,
+  applied,
+  className,
+}: {
+  job: Job
+  match?: boolean
+  have?: string[]
+  applied?: string
+  className?: string
+}) {
   const facts = jobFacts(job).filter((f) => f.label !== "Company" && f.label !== "Category")
   return (
     <article
@@ -27,7 +40,11 @@ export function JobCard({ job, match, have, className }: { job: Job; match?: boo
             {job.company} · {job.category}
           </p>
         </div>
-        {match && (
+        {applied ? (
+          <span className="flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
+            <CheckIcon className="size-3" /> Applied
+          </span>
+        ) : match && (
           <span className="flex shrink-0 items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900">
             <SparklesIcon className="size-3" /> Matches you
           </span>

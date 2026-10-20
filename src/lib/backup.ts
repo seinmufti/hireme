@@ -10,16 +10,16 @@ const STORAGE_KEY = "hireme-demo"
 // every change to the app by itself. Files from older versions are upgraded by the store's migrate()
 // when they are loaded, so keep that up to date whenever a field is added or changed.
 
-/** Everything in the app (accounts, portfolios, conversations, messages, jobs, notifications, uploaded files) as a downloadable file. */
+/** Everything in the app (accounts, portfolios, conversations, messages, jobs, notifications, applications, uploaded files) as a downloadable file. */
 export async function downloadBackup() {
-  const { users, talents, conversations, messages, jobs, notifications, currentUserId } = useStore.getState()
+  const { users, talents, conversations, messages, jobs, notifications, applications, currentUserId } = useStore.getState()
   // Uploaded photos and certificates live outside the app data (lib/files.ts); they go in the file too
   const files = await exportFiles().catch(() => [])
   const file = {
     app: APP,
     version: useStore.persist.getOptions().version,
     exportedAt: new Date().toISOString(),
-    state: { users, talents, conversations, messages, jobs, notifications, currentUserId },
+    state: { users, talents, conversations, messages, jobs, notifications, applications, currentUserId },
     files,
   }
   const url = URL.createObjectURL(new Blob([JSON.stringify(file, null, 2)], { type: "application/json" }))

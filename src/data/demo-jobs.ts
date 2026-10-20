@@ -1,4 +1,4 @@
-import type { Job, JobLocation, Notification, User } from "@/lib/types"
+import type { Application, Job, JobLocation, Notification, User } from "@/lib/types"
 
 // Built-in demo companies (employer accounts) and the jobs they have posted.
 
@@ -141,3 +141,20 @@ export const DEMO_NOTIFICATIONS: Notification[] = ["j-zagros-1", "j-zagros-2"].m
   createdAt: DEMO_JOBS.find((j) => j.id === jobId)!.createdAt,
   readAt: null,
 }))
+
+// A few job seekers have applied to Zagros Tech's developer jobs, so the employer has applicants to look at
+const application = (id: string, jobId: string, seekerId: string, day: number, status: string, note = ""): Application => ({
+  id,
+  jobId,
+  seekerId,
+  note,
+  status,
+  createdAt: at(day, 14),
+  updatedAt: at(day, 14),
+})
+
+export const DEMO_APPLICATIONS: Application[] = [
+  application("a-demo-1", "j-zagros-1", "u-seeker-48", 18, "Shortlisted", "I'd love to bring my React experience to Zagros Tech."),
+  application("a-demo-2", "j-zagros-1", "u-seeker-02", 19, "Applied"),
+  application("a-demo-3", "j-zagros-2", "u-seeker-21", 16, "Applied", "Remote work suits me well, and I'm keen to keep learning."),
+]

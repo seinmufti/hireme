@@ -162,3 +162,14 @@ export type Notification = {
 }
 
 export type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string }
+
+// A job seeker's application to a job. The employer sees their CV (without contact details) and the note.
+export type Application = {
+  id: string
+  jobId: string
+  seekerId: string
+  note: string // optional message to the employer
+  status: string // an APPLICATION_STATUSES value
+  createdAt: string
+  updatedAt: string
+}

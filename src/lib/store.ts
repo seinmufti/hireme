@@ -3,7 +3,7 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { CORE_TALENTS, CORE_USERS, DEMO_CONVERSATIONS, DEMO_MESSAGES, DEMO_TALENTS, DEMO_USERS, EMPLOYER_USERS } from "@/data/demo"
-import { DEMO_JOBS, DEMO_NOTIFICATIONS } from "@/data/demo-jobs"
+import { DEMO_APPLICATIONS, DEMO_JOBS, DEMO_NOTIFICATIONS } from "@/data/demo-jobs"
 import { findContactDetail } from "@/lib/contact-guard"
 import { matchJob } from "@/lib/matching"
 import { rememberLogin } from "@/lib/recent-accounts"
@@ -11,7 +11,7 @@ import { replaceAllOnce, safeStorage, setOnRestored } from "@/lib/safe-storage"
 import { ageFrom, PHONE_PATTERN } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE, professionFrom, withTalentDefaults, withUserDefaults, type LegacyTalent, type LegacyUser } from "@/lib/normalize"
 import { AVATAR_COLORS, type Role } from "@/lib/options"
-import type { Conversation, Degree, Job, JobInput, Message, Notification, ProfileInput, Result, Talent, TalentInput, User } from "@/lib/types"
+import type { Application, Conversation, Degree, Job, JobInput, Message, Notification, ProfileInput, Result, Talent, TalentInput, User } from "@/lib/types"
 
 // All app data lives here. It starts as the built-in demo data and every change
 // is saved to this browser's localStorage, so it only affects the current visitor.
@@ -35,6 +35,7 @@ type Data = {
   messages: Message[]
   jobs: Job[]
   notifications: Notification[]
+  applications: Application[]
   currentUserId: string | null
 }
 
@@ -52,6 +53,9 @@ type Actions = {
   setJobOpen: (jobId: string, open: boolean) => void
   markNotificationRead: (notificationId: string) => void
   markAllNotificationsRead: () => void
+  applyToJob: (jobId: string, note: string) => Result
+  withdrawApplication: (applicationId: string) => void
+  setApplicationStatus: (applicationId: string, status: string) => void
   resetDemo: () => void
 }
 
@@ -62,6 +66,7 @@ const initialData = (): Data => ({
   messages: DEMO_MESSAGES,
   jobs: DEMO_JOBS,
   notifications: DEMO_NOTIFICATIONS,
+  applications: DEMO_APPLICATIONS,
   currentUserId: null,
 })
 
@@ -369,36 +374,73 @@ export const useStore = create<Data & Actions>()(
           set((s) => ({ notifications: s.notifications.map((n) => (n.userId === userId && !n.readAt ? { ...n, readAt: at } : n)) }))
         },
 
+        // A job seeker applies with their CV (employers see it without contact details) and an optional note
+        applyToJob: (jobId, note) => {
+          const seeker = me()
+          if (seeker?.role !== "SEEKER") return fail("Only job seekers can apply to jobs.")
+          const job = get().jobs.find((j) => j.id === jobId)
+          if (!job?.open) return fail("This job is no longer taking applications.")
+          if (get().applications.some((a) => a.jobId === jobId && a.seekerId === seeker.id)) return fail("You've already applied to this job.")
+          const talent = get().talents.find((t) => t.userId === seeker.id) ?? null
+          if (listingMissing(seeker, talent).length) return fail("Please finish your CV before applying.")
+          const text = note.trim()
+          const contact = findContactDetail(text)
+          if (contact) return fail(`Your note contains ${contact}. Remove it: the employer contacts you through HireMe messages.`)
+          const at = now()
+          const application: Application = { id: newId("a"), jobId, seekerId: seeker.id, note: text, status: "Applied", createdAt: at, updatedAt: at }
+          set((s) => ({ applications: [...s.applications, application] }))
+          return { ok: true }
+        },
+
+        // Only while the employer hasn't looked at it yet
+        withdrawApplication: (applicationId) => {
+          const seekerId = get().currentUserId
+          set((s) => ({ applications: s.applications.filter((a) => !(a.id === applicationId && a.seekerId === seekerId && a.status === "Applied")) }))
+        },
+
+        setApplicationStatus: (applicationId, status) => {
+          const employerId = get().currentUserId
+          const application = get().applications.find((a) => a.id === applicationId)
+          if (!application || !get().jobs.some((j) => j.id === application.jobId && j.employerId === employerId)) return
+          set((s) => ({ applications: s.applications.map((a) => (a.id === applicationId ? { ...a, status, updatedAt: now() } : a)) }))
+        },
+
         // The only way to replace everything on purpose; the previous data is kept as a backup (see safe-storage).
         // Starts over with one account per role (plus the demo companies behind the demo jobs), not the generated job seekers.
+        // The demo applications come from generated job seekers, so they go too.
         resetDemo: () =>
-          replaceAllOnce(() => set({ ...initialData(), users: [...CORE_USERS, ...EMPLOYER_USERS], talents: CORE_TALENTS })),
+          replaceAllOnce(() =>
+            set({ ...initialData(), users: [...CORE_USERS, ...EMPLOYER_USERS], talents: CORE_TALENTS, applications: [] })
+          ),
       }
     },
     {
       name: "hireme-demo",
       // Bump when the demo data or its shape changes so visitors start fresh
-      version: 13,
+      version: 14,
       // v9 -> v10: jobs record start and end dates instead of years and months (see withJobDates)
       // v10 -> v11: the generated demo job seekers are added (see withDemoSeekers)
       // v11 -> v12: CV builder fields (photo, location, summary, skills, projects, job descriptions and
       //             references, attachments, work preference) are added empty (see withCvFields)
       // v12 -> v13: job postings and notifications, with the demo companies and their jobs (see withJobPostings)
+      // v13 -> v14: job applications, with a few demo ones (see withApplications)
       migrate: (persisted, version) => {
         let data = withJobDates(migrateOlder(persisted, version))
         if (version < 11) data = withDemoSeekers(data)
         data = withCvFields(data)
         if (version < 13) data = withJobPostings(data)
+        if (version < 14) data = withApplications(data)
         return data
       },
       storage: createJSONStorage(() => safeStorage),
-      partialize: ({ users, talents, conversations, messages, jobs, notifications, currentUserId }) => ({
+      partialize: ({ users, talents, conversations, messages, jobs, notifications, applications, currentUserId }) => ({
         users,
         talents,
         conversations,
         messages,
         jobs,
         notifications,
+        applications,
         currentUserId,
       }),
       // Rehydrated from the client shell, so server and first client render match
@@ -480,6 +522,16 @@ function withJobPostings(data: Data): Data {
     jobs: [...jobs, ...DEMO_JOBS.filter((j) => !haveJobs.has(j.id))],
     notifications: [...notifications, ...DEMO_NOTIFICATIONS.filter((n) => !haveNotifications.has(n.id))],
   }
+}
+
+/** v13 -> v14: adds job applications (an empty list if the saved data has none) and the demo ones whose job seeker and job exist. */
+function withApplications(data: Data): Data {
+  const applications = data.applications ?? []
+  const have = new Set(applications.map((a) => a.id))
+  const users = new Set(data.users.map((u) => u.id))
+  const jobs = new Set(data.jobs.map((j) => j.id))
+  const demo = DEMO_APPLICATIONS.filter((a) => !have.has(a.id) && users.has(a.seekerId) && jobs.has(a.jobId))
+  return { ...data, applications: [...applications, ...demo] }
 }
 
 function migrateOlder(persisted: unknown, version: number): Data {

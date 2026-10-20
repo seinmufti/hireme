@@ -9,7 +9,7 @@ import type { StateStorage } from "zustand/middleware"
 //  - the previous version is always kept as a backup, so even a reset can be undone
 
 const BACKUP_KEY = "hireme-demo-backup"
-const LISTS = ["users", "talents", "conversations", "messages", "jobs", "notifications"] as const
+const LISTS = ["users", "talents", "conversations", "messages", "jobs", "notifications", "applications"] as const
 
 let replacing = false
 let onRestored: (() => void) | null = null

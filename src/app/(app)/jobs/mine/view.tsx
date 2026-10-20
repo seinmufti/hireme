@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import Link from "next/link"
-import { BellIcon, PencilIcon, PlusIcon } from "lucide-react"
+import { BellIcon, PencilIcon, PlusIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { timeAgo } from "@/lib/format"
@@ -16,6 +16,7 @@ export function MyJobsView() {
   const viewer = useRoleGuard(["EMPLOYER"])
   const allJobs = useStore((s) => s.jobs)
   const notifications = useStore((s) => s.notifications)
+  const applications = useStore((s) => s.applications)
   const setJobOpen = useStore((s) => s.setJobOpen)
   const jobs = useMemo(
     () =>
@@ -49,6 +50,7 @@ export function MyJobsView() {
         <ul className="divide-y rounded-xl border bg-card">
           {jobs.map((j) => {
             const notified = notifications.filter((n) => n.jobId === j.id).length
+            const applied = applications.filter((a) => a.jobId === j.id).length
             return (
               <li key={j.id} className={cn("flex items-center gap-4 px-5 py-4", !j.open && "bg-muted/30")}>
                 <div className="min-w-0 flex-1">
@@ -69,6 +71,9 @@ export function MyJobsView() {
                     {[j.category, locationLabel(j.location), j.contractType, `posted ${timeAgo(j.createdAt)}`].join(" · ")}
                   </p>
                 </div>
+                <Link href={`/jobs/${j.id}#applicants`} className="flex shrink-0 items-center gap-1.5 text-sm hover:underline">
+                  <UsersIcon className="size-3.5 text-muted-foreground" /> {applied} applicant{applied === 1 ? "" : "s"}
+                </Link>
                 <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground" title="Matching job seekers notified">
                   <BellIcon className="size-3.5" /> {notified} notified
                 </span>
