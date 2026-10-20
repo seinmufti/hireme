@@ -254,8 +254,19 @@ export function CvDocument({
       </footer>
 
       {!premium && (
-        <div aria-hidden className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-          <span className="-rotate-30 text-[72pt] font-black tracking-widest whitespace-nowrap text-primary/10 select-none">HireMe</span>
+        // Free CVs: "HireMe" repeated across the whole page, like a stock photo; rows are staggered
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden select-none">
+          <div className="absolute -inset-[40%] flex -rotate-30 flex-col justify-center gap-[14mm]">
+            {Array.from({ length: 22 }, (_, row) => (
+              <div key={row} className={cn("flex gap-[16mm] whitespace-nowrap", row % 2 && "translate-x-[22mm]")}>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <span key={i} className="text-[20pt] font-black tracking-wider text-primary/[0.13]">
+                    HireMe
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
