@@ -73,7 +73,8 @@ const emptyTalent = (userId: string, at: string): Talent => ({
   softSkills: [],
   projects: [],
   workPreference: EMPTY_WORK_PREFERENCE,
-  published: true,
+  // Off until the profile is complete and the job seeker switches it on
+  published: false,
   createdAt: at,
   updatedAt: at,
 })

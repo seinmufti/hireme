@@ -122,23 +122,14 @@ export function SeekerProfile({ user }: { user: User }) {
 function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   const setPortfolioVisible = useStore((s) => s.setPortfolioVisible)
   const sections = listingSectionsMissing(user, talent)
-  const visible = talent?.published ?? true
-  const inPool = visible && sections.length === 0
+  // Visible only when switched on and complete: the switch can't be turned on while required details are missing
+  const inPool = (talent?.published ?? false) && sections.length === 0
+  const missing = sections.map((s) => SECTION_TITLES[s]).join(", ")
 
   const status = (
-    <span
-      className={cn(
-        "flex items-center gap-1.5 text-sm font-medium",
-        inPool ? "text-emerald-900" : "text-amber-900"
-      )}
-    >
+    <span className={cn("flex items-center gap-1.5 text-sm font-medium", inPool ? "text-emerald-900" : "text-amber-900")}>
       {inPool ? <CircleCheckIcon className="size-4" /> : <CircleAlertIcon className="size-4" />}
-      {/* Switched on but details still missing: not visible yet */}
-      {inPool
-        ? "Your profile is visible to employers"
-        : visible
-          ? "Your profile isn't visible to employers yet"
-          : "Your profile is hidden from employers"}
+      {inPool ? "Your profile is visible to employers" : "Your profile is hidden from employers"}
     </span>
   )
 
@@ -149,12 +140,11 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
         inPool ? "border-emerald-300 bg-emerald-50" : "border-amber-300 bg-amber-50"
       )}
     >
-      {visible && sections.length ? (
-        // Turned on but incomplete: how many sections still need details, on hover
+      {sections.length ? (
         <Tooltip>
           <TooltipTrigger render={<span tabIndex={0} className="cursor-help rounded outline-none" />}>{status}</TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-64">
-            Required details missing in: {sections.map((s) => SECTION_TITLES[s]).join(", ")}.
+            Required details missing in: {missing}.
           </TooltipContent>
         </Tooltip>
       ) : (
@@ -162,16 +152,17 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
       )}
       {/* On = visible to employers, off = hidden */}
       <SwitchPrimitive.Root
-        checked={visible}
+        checked={inPool}
         onCheckedChange={(v) => {
-          setPortfolioVisible(v)
-          if (!v) toast.success("Your profile is hidden from employers")
-          // Turned on but not complete: say what's still needed
-          else if (sections.length)
-            toast.warning("Your profile isn't visible to employers yet", {
-              description: `Required details missing in: ${sections.map((s) => SECTION_TITLES[s]).join(", ")}.`,
+          if (v && sections.length) {
+            // Not allowed until every required detail is in
+            toast.warning("Your profile can't be visible to employers yet", {
+              description: `Required details missing in: ${missing}.`,
             })
-          else toast.success("Your profile is visible to employers")
+            return
+          }
+          setPortfolioVisible(v)
+          toast.success(v ? "Your profile is visible to employers" : "Your profile is hidden from employers")
         }}
         aria-label="Your profile is visible to employers"
         className="group relative inline-flex h-7 w-16 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-input transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:bg-primary"

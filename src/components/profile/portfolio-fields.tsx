@@ -31,7 +31,7 @@ export const EMPTY_PORTFOLIO: TalentInput = {
   softSkills: [],
   projects: [],
   workPreference: EMPTY_WORK_PREFERENCE,
-  published: true,
+  published: false,
 }
 
 export const toPortfolioInput = (t: Talent): TalentInput => ({
