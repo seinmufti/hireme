@@ -25,7 +25,7 @@ import { IRAQ_CITIES } from "@/lib/options"
 import type { Project, WorkPreference } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { CityPicker, CountrySelect } from "./pickers"
-import { Field, MonthYearPicker } from "./portfolio-fields"
+import { EndBeforeStart, endsBeforeStart, Field, MonthYearPicker } from "./portfolio-fields"
 
 // Fields added for the CV builder: photo, location, skills, projects, work preference and uploads.
 
@@ -309,10 +309,11 @@ export function ProjectFields({ value, onChange }: { value: Project[]; onChange:
               <Input className="h-9" value={p.link} onChange={(e) => update(p.id, { link: e.target.value })} placeholder="https://…" />
             </Field>
             <Field label="Start (optional)">
-              <MonthYearPicker value={p.start} onChange={(start) => update(p.id, { start })} />
+              <MonthYearPicker value={p.start} onChange={(start) => update(p.id, { start })} max={p.end} />
             </Field>
             <Field label="End (optional, empty if ongoing)">
-              <MonthYearPicker value={p.end} onChange={(end) => update(p.id, { end })} />
+              <MonthYearPicker value={p.end} onChange={(end) => update(p.id, { end })} min={p.start} invalid={endsBeforeStart(p.start, p.end)} />
+              {endsBeforeStart(p.start, p.end) && <EndBeforeStart what="A project" />}
             </Field>
             {projectDuration(p) && (
               <p className="col-span-2 text-right text-sm text-muted-foreground">

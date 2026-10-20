@@ -63,6 +63,8 @@ const newExperience = (): Experience => ({
   reference: null,
 })
 
+const degreeEndsTooEarly = (d: Degree) => !!d.startYear && !!d.endYear && Number(d.endYear) < Number(d.startYear)
+
 const EMPTY_REFERENCE = { name: "", position: "", phone: "", email: "" }
 
 export function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
@@ -74,10 +76,20 @@ export function Field({ label, children, className }: { label: string; children:
   )
 }
 
-function Choice({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
+function Choice({
+  value,
+  options,
+  onChange,
+  invalid,
+}: {
+  value: string
+  options: string[]
+  onChange: (v: string) => void
+  invalid?: boolean
+}) {
   return (
     <Select value={value || null} onValueChange={(v) => onChange((v as string) ?? "")}>
-      <SelectTrigger className="h-9 w-full">
+      <SelectTrigger className="h-9 w-full" aria-invalid={invalid || undefined}>
         <SelectValue placeholder="Choose" />
       </SelectTrigger>
       <SelectContent>
@@ -287,25 +299,59 @@ function ChoiceWithOther({
 }
 
 /** Month + year selects for a "YYYY-MM" value; only complete once both are chosen. */
-export function MonthYearPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+/** True when both dates are complete and the end is before the start. */
+export const endsBeforeStart = (start: string, end: string) => MONTH_VALUE.test(start) && MONTH_VALUE.test(end) && end < start
+
+/** Shown under an end date that comes before its start date. */
+export function EndBeforeStart({ what = "It" }: { what?: string }) {
+  return <p className="text-xs font-medium text-destructive">{what} can&apos;t end before it starts.</p>
+}
+
+const MONTH_VALUE = /^\d{4}-\d{2}$/
+
+/**
+ * Month + year selects for a "YYYY-MM" value; only complete once both are chosen.
+ * `min` ("YYYY-MM", e.g. the start date) hides earlier years and disables earlier months; `max` (e.g. the end
+ * date) does the same for later ones.
+ */
+export function MonthYearPicker({
+  value,
+  onChange,
+  min = "",
+  max = "",
+  invalid,
+}: {
+  value: string
+  onChange: (v: string) => void
+  min?: string
+  max?: string
+  invalid?: boolean
+}) {
   const thisYear = new Date().getFullYear()
-  const years = Array.from({ length: 60 }, (_, i) => String(thisYear - i))
+  const [minYear = "", minMonth = ""] = MONTH_VALUE.test(min) ? min.split("-") : []
+  const [maxYear = "", maxMonth = ""] = MONTH_VALUE.test(max) ? max.split("-") : []
+  const years = Array.from({ length: 60 }, (_, i) => String(thisYear - i)).filter(
+    (y) => (!minYear || y >= minYear) && (!maxYear || y <= maxYear)
+  )
   const [year = "", month = ""] = value ? value.split("-") : []
   const set = (y: string, m: string) => onChange(y && m ? `${y}-${m}` : y ? `${y}-` : m ? `-${m}` : "")
   const months = MONTHS.map((m, i) => ({ value: String(i + 1).padStart(2, "0"), label: m }))
   return (
     <div className="grid grid-cols-2 gap-3">
       <Select items={months} value={month || null} onValueChange={(v) => set(year, (v as string) ?? "")}>
-        <SelectTrigger className="h-9 w-full">
+        <SelectTrigger className="h-9 w-full" aria-invalid={invalid || undefined}>
           <SelectValue placeholder="Month" />
         </SelectTrigger>
         <SelectContent>
           {months.map((m) => (
-            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+            // In the start's year, months before the start can't be picked
+            <SelectItem key={m.value} value={m.value} disabled={(!!minYear && year === minYear && m.value < minMonth) || (!!maxYear && year === maxYear && m.value > maxMonth)}>
+              {m.label}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      <Choice value={year} options={years} onChange={(y) => set(y, month)} />
+      <Choice value={year} options={years} onChange={(y) => set(y, month)} invalid={invalid} />
     </div>
   )
 }
@@ -356,13 +402,16 @@ export function ExperienceFields({
               <Choice value={e.contractType} options={CONTRACT_TYPES} onChange={(v) => update(e.id, { contractType: v })} />
             </Field>
             <Field label="Start date" className="col-span-6">
-              <MonthYearPicker value={e.start} onChange={(start) => update(e.id, { start })} />
+              <MonthYearPicker value={e.start} onChange={(start) => update(e.id, { start })} max={e.current ? "" : e.end} />
             </Field>
             <Field label="End date" className="col-span-6">
               {e.current ? (
                 <div className="flex h-9 items-center text-sm text-muted-foreground">Present</div>
               ) : (
-                <MonthYearPicker value={e.end} onChange={(end) => update(e.id, { end })} />
+                <>
+                  <MonthYearPicker value={e.end} onChange={(end) => update(e.id, { end })} min={e.start} invalid={endsBeforeStart(e.start, e.end)} />
+                  {endsBeforeStart(e.start, e.end) && <EndBeforeStart what="A job" />}
+                </>
               )}
             </Field>
             <div className="col-span-12 flex items-center justify-between gap-3 text-sm">
@@ -569,14 +618,22 @@ export function DegreeFields({
             {d.status && (
               <>
                 <Field label="Year started">
-                  <Choice value={d.startYear} options={years(thisYear, thisYear - 60)} onChange={(startYear) => update({ startYear })} />
+                  <Choice
+                    value={d.startYear}
+                    options={years(thisYear, thisYear - 60).filter((y) => !d.endYear || y <= d.endYear)}
+                    onChange={(startYear) => update({ startYear })}
+                  />
                 </Field>
                 <Field label={studying ? "Expected year of graduation" : "Year finished"}>
                   <Choice
                     value={d.endYear}
-                    options={studying ? years(thisYear + 10, thisYear) : years(thisYear, thisYear - 60)}
+                    options={(studying ? years(thisYear + 10, thisYear) : years(thisYear, thisYear - 60)).filter(
+                      (y) => !d.startYear || y >= d.startYear
+                    )}
                     onChange={(endYear) => update({ endYear })}
+                    invalid={degreeEndsTooEarly(d)}
                   />
+                  {degreeEndsTooEarly(d) && <EndBeforeStart what="A degree" />}
                 </Field>
               </>
             )}
