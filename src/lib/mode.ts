@@ -10,5 +10,8 @@ export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
 export const BACKEND_READY = !IS_DEMO && !!SUPABASE_URL && !!SUPABASE_ANON_KEY
 
+/** "Continue with Google" is shown once Google is set up in Supabase (NEXT_PUBLIC_GOOGLE_SIGN_IN=1). */
+export const GOOGLE_SIGN_IN = process.env.NEXT_PUBLIC_GOOGLE_SIGN_IN === "1"
+
 /** Where the app lives: "/hireme" (real) or "/hireme/demo". */
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ""

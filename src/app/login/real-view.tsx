@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useT } from "@/i18n/provider"
-import { BACKEND_READY, BASE_PATH } from "@/lib/mode"
+import { BACKEND_READY, BASE_PATH, GOOGLE_SIGN_IN } from "@/lib/mode"
 import { homeFor } from "@/lib/options"
 import { startRealSync, useBackend } from "@/lib/real-sync"
 import { useCurrentUser } from "@/lib/store"
@@ -96,7 +96,7 @@ export function RealLoginView() {
       </h1>
 
       <form onSubmit={submit} className="mt-6 w-full max-w-sm space-y-4 rounded-2xl border bg-card p-6 shadow-sm">
-        {mode !== "forgot" && (
+        {GOOGLE_SIGN_IN && mode !== "forgot" && (
           <>
             <Button type="button" variant="outline" className="h-10 w-full" onClick={google}>
               <GoogleIcon /> {t("auth.google")}
