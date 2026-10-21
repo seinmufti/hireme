@@ -423,7 +423,7 @@ const ckb: DeepPartial<Messages> = {
     contents: "ناوەڕۆک",
     sections: {
       personal: "زانیاری کەسی و پەیوەندی",
-      about: "دەربارەی من",
+      about: "پرۆفایل",
       work: "ئەزموونی کار",
       education: "خوێندن",
       skills: "توانا سەرەکییەکان",

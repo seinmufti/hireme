@@ -424,7 +424,7 @@ const en = {
     contents: "Contents",
     sections: {
       personal: "Personal details & contact",
-      about: "About me",
+      about: "Profile",
       work: "Work experience",
       education: "Education",
       skills: "Core competencies",
@@ -662,7 +662,7 @@ const en = {
       country: "Country",
       city: "City",
       address: "Address",
-      summary: "About me",
+      summary: "Profile",
       gender: "Gender",
       dateOfBirth: "Date of birth",
       hardSkills: "Hard skills",

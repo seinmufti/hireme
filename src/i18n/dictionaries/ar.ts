@@ -423,7 +423,7 @@ const ar: DeepPartial<Messages> = {
     contents: "المحتويات",
     sections: {
       personal: "البيانات الشخصية والتواصل",
-      about: "نبذة عني",
+      about: "الملف الشخصي",
       work: "الخبرة العملية",
       education: "التعليم",
       skills: "الكفاءات الأساسية",
