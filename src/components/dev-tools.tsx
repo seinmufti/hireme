@@ -123,12 +123,12 @@ function DesktopDevTools({ user }: { user: User | null }) {
         )}
       >
         {/* Always clipped (its dropdowns and tooltips open outside it), so nothing pops in mid-animation; the
-            tools fade and slide in a little after the oval starts growing. Not reachable while folded away. */}
+            tools fade in a little after the oval starts growing (no slide of their own, so they move only with the oval). Not reachable while folded away. */}
         <div
           inert={!open}
           className={cn(
-            "flex items-center gap-3 overflow-hidden transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            open ? "translate-x-0 opacity-100 delay-100" : "-translate-x-3 opacity-0"
+            "flex items-center gap-3 overflow-hidden transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            open ? "opacity-100 delay-100" : "opacity-0"
           )}
         >
           <span className="ms-2 h-7 w-px shrink-0 bg-white/15" aria-hidden />
