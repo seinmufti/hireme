@@ -132,13 +132,14 @@ function DesktopDevTools({ user }: { user: User | null }) {
           )}
         >
           <span className="ms-2 h-7 w-px shrink-0 bg-white/15" aria-hidden />
-          <HeaderAccounts />
+          {/* The crown first, next to the wrench: toasts pop up at the bottom right, over the bar's far end */}
           {user?.role === "SEEKER" && (
             <>
-              <span className="h-7 w-px shrink-0 bg-white/15" aria-hidden />
               <PremiumToggle user={user} />
+              <span className="h-7 w-px shrink-0 bg-white/15" aria-hidden />
             </>
           )}
+          <HeaderAccounts />
         </div>
       </div>
     </div>
