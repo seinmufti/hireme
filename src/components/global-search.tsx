@@ -11,7 +11,7 @@ import type { Role } from "@/lib/options"
 import type { User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-// A keyword search over everything: the app's pages and CV sections, job listings and companies.
+// A keyword search over everything: the app's pages and CV sections, jobs and companies.
 // With nothing typed it offers recent searches (this browser) and popular searches (the skills and job
 // categories that come up most in open jobs).
 
@@ -20,11 +20,12 @@ type Group = { title: string; items: Item[] }
 
 /** Pages and CV sections, with extra words they can be found by (any language's label also works). */
 const PLACES: { key: MessageKey; href: string; words: string; roles?: Role[] }[] = [
-  { key: "nav.home", href: "/home", words: "home dashboard overview", roles: ["SEEKER"] },
+  { key: "nav.home", href: "/home", words: "home dashboard matching jobs", roles: ["SEEKER"] },
+  { key: "nav.profile", href: "/overview", words: "profile overview stats actions cv strength", roles: ["SEEKER"] },
   { key: "nav.inbox", href: "/inbox", words: "inbox messages chat conversations", roles: ["SEEKER", "EMPLOYER"] },
   { key: "nav.jobs", href: "/jobs", words: "jobs vacancies openings work listings", roles: ["SEEKER", "RECRUITER", "GUEST"] },
   { key: "nav.companies", href: "/companies", words: "companies employers businesses contact", roles: ["RECRUITER"] },
-  { key: "nav.cvPreview", href: "/profile", words: "cv resume profile details edit", roles: ["SEEKER"] },
+  { key: "nav.cvPreview", href: "/overview", words: "cv resume profile details edit", roles: ["SEEKER"] },
   { key: "seeker.previewCv", href: "/profile/cv", words: "cv resume preview download pdf", roles: ["SEEKER"] },
   { key: "nav.pool", href: "/pool", words: "pool candidates talent job seekers", roles: ["EMPLOYER", "RECRUITER"] },
   { key: "applications.myTitle", href: "/jobs/applied", words: "applications applied", roles: ["SEEKER"] },
@@ -32,14 +33,14 @@ const PLACES: { key: MessageKey; href: string; words: string; roles?: Role[] }[]
   { key: "jobs.postJob", href: "/jobs/new", words: "post job new vacancy hire", roles: ["EMPLOYER"] },
   { key: "jobs.myPosts", href: "/jobs/mine", words: "my jobs posts vacancies listings", roles: ["EMPLOYER"] },
   { key: "nav.profile", href: "/profile", words: "profile account settings", roles: ["EMPLOYER", "RECRUITER"] },
-  { key: "seeker.sections.personal", href: "/profile?edit=personal", words: "personal contact phone email address photo location", roles: ["SEEKER"] },
-  { key: "seeker.sections.about", href: "/profile?edit=about", words: "about summary bio", roles: ["SEEKER"] },
-  { key: "seeker.sections.work", href: "/profile?edit=work", words: "work experience jobs employment references", roles: ["SEEKER"] },
-  { key: "seeker.sections.education", href: "/profile?edit=education", words: "education degree university college school", roles: ["SEEKER"] },
-  { key: "seeker.sections.skills", href: "/profile?edit=skills", words: "skills competencies hard soft", roles: ["SEEKER"] },
-  { key: "seeker.sections.languages", href: "/profile?edit=languages", words: "languages english arabic kurdish", roles: ["SEEKER"] },
-  { key: "seeker.sections.certifications", href: "/profile?edit=certifications", words: "licenses certifications certificates", roles: ["SEEKER"] },
-  { key: "seeker.sections.projects", href: "/profile?edit=projects", words: "projects activities volunteering", roles: ["SEEKER"] },
+  { key: "seeker.sections.personal", href: "/overview?edit=personal", words: "personal contact phone email address photo location", roles: ["SEEKER"] },
+  { key: "seeker.sections.about", href: "/overview?edit=about", words: "about summary bio", roles: ["SEEKER"] },
+  { key: "seeker.sections.work", href: "/overview?edit=work", words: "work experience jobs employment references", roles: ["SEEKER"] },
+  { key: "seeker.sections.education", href: "/overview?edit=education", words: "education degree university college school", roles: ["SEEKER"] },
+  { key: "seeker.sections.skills", href: "/overview?edit=skills", words: "skills competencies hard soft", roles: ["SEEKER"] },
+  { key: "seeker.sections.languages", href: "/overview?edit=languages", words: "languages english arabic kurdish", roles: ["SEEKER"] },
+  { key: "seeker.sections.certifications", href: "/overview?edit=certifications", words: "licenses certifications certificates", roles: ["SEEKER"] },
+  { key: "seeker.sections.projects", href: "/overview?edit=projects", words: "projects activities volunteering", roles: ["SEEKER"] },
   { key: "seeker.sections.preference", href: "/jobs", words: "work type remote local international preference", roles: ["SEEKER"] },
 ]
 

@@ -81,7 +81,8 @@ function DesktopDevTools({ user }: { user: User | null }) {
   useEffect(() => stopClosing, [])
 
   return (
-    // "dark" so the accounts and crown use the dark colours on black
+    // "dark" so the accounts and crown use the dark colours on black. w-max: centred with left-1/2, it would
+    // otherwise be squeezed into the right half of the screen and cut off the last account types
     <div
       ref={root}
       dir="ltr"
@@ -90,7 +91,7 @@ function DesktopDevTools({ user }: { user: User | null }) {
         setHovered(true)
       }}
       onMouseLeave={closeSoon}
-      className="dark fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-50 hidden h-14 lg:flex -translate-x-1/2 items-center rounded-full bg-black ps-1.5 pe-4 text-white shadow-2xl ring-1 ring-white/10"
+      className="dark fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-50 hidden h-14 w-max max-w-[calc(100vw-2rem)] lg:flex -translate-x-1/2 items-center rounded-full bg-black ps-1.5 pe-4 text-white shadow-2xl ring-1 ring-white/10"
     >
       <button
         type="button"
@@ -127,19 +128,22 @@ function DesktopDevTools({ user }: { user: User | null }) {
         <div
           inert={!open}
           className={cn(
-            "flex items-center gap-3 overflow-hidden transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            "overflow-hidden transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
             open ? "opacity-100 delay-100" : "opacity-0"
           )}
         >
-          <span className="ms-2 h-7 w-px shrink-0 bg-white/15" aria-hidden />
-          {/* The crown first, next to the wrench: toasts pop up at the bottom right, over the bar's far end */}
-          {user?.role === "SEEKER" && (
-            <>
-              <PremiumToggle user={user} />
-              <span className="h-7 w-px shrink-0 bg-white/15" aria-hidden />
-            </>
-          )}
-          <HeaderAccounts />
+          {/* Full width from the start (w-max), so the bar only uncovers it: nothing inside squeezes and shifts while it grows */}
+          <div className="flex w-max items-center gap-3">
+            <span className="ms-2 h-7 w-px shrink-0 bg-white/15" aria-hidden />
+            {/* The crown first, next to the wrench: toasts pop up at the bottom right, over the bar's far end */}
+            {user?.role === "SEEKER" && (
+              <>
+                <PremiumToggle user={user} />
+                <span className="h-7 w-px shrink-0 bg-white/15" aria-hidden />
+              </>
+            )}
+            <HeaderAccounts />
+          </div>
         </div>
       </div>
     </div>

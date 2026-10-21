@@ -65,6 +65,8 @@ type Actions = {
   toggleSavedTalent: (seekerId: string) => void
   toggleFollow: (employerId: string) => void
   resetDemo: () => void
+  /** Adds the demo companies (with their jobs) and 20 demo job seekers that aren't there yet; returns how many accounts it added. */
+  loadDemoData: () => number
 }
 
 /**
@@ -494,6 +496,12 @@ export const useStore = create<Data & Actions>()(
         },
 
         resetDemo: () => replaceAllOnce(() => set(initialData())),
+
+        loadDemoData: () => {
+          const before = get().users.length
+          set((s) => withDemoData(s))
+          return get().users.length - before
+        },
       }
     },
     {
@@ -858,5 +866,33 @@ if (typeof window !== "undefined") {
     window.addEventListener("storage", (e) => {
       if (e.key === "hireme-demo") useStore.persist.rehydrate()
     })
+  }
+}
+
+/** How many of the generated job seekers "Load demo data" adds. */
+const DEMO_SEEKER_COUNT = 20
+
+/**
+ * "Load demo data": the other demo companies with their jobs, and the first 20 generated job seekers, plus
+ * the demo applications between them. Only what isn't there yet is added; everything saved stays as it is.
+ */
+function withDemoData(data: Data): Data {
+  const seekers = DEMO_USERS.filter((u) => u.id.startsWith("u-seeker-")).slice(0, DEMO_SEEKER_COUNT)
+  const newUsers = [...EMPLOYER_USERS, ...seekers].filter((u) => !data.users.some((x) => x.id === u.id))
+  const users = [...data.users, ...newUsers]
+  const userIds = new Set(users.map((u) => u.id))
+  const newTalents = DEMO_TALENTS.filter((t) => seekers.some((u) => u.id === t.userId) && !data.talents.some((x) => x.id === t.id))
+  const newJobs = DEMO_JOBS.filter((j) => userIds.has(j.employerId) && !data.jobs.some((x) => x.id === j.id))
+  const jobs = [...data.jobs, ...newJobs]
+  const jobIds = new Set(jobs.map((j) => j.id))
+  const newApplications = DEMO_APPLICATIONS.filter(
+    (a) => userIds.has(a.seekerId) && jobIds.has(a.jobId) && !data.applications.some((x) => x.id === a.id)
+  )
+  return {
+    ...data,
+    users,
+    talents: [...data.talents, ...newTalents],
+    jobs,
+    applications: [...data.applications, ...newApplications],
   }
 }

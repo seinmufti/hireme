@@ -130,7 +130,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                     </ul>
                   ) : (
                     <p className="text-xs">
-                      <Link href="/profile" className="underline">{t("jobs.editProfile")}</Link>
+                      <Link href="/overview" className="underline">{t("jobs.editProfile")}</Link>
                     </p>
                   )}
                 </div>

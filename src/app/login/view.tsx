@@ -2,7 +2,7 @@
 
 import { Fragment, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon, UploadIcon } from "lucide-react"
+import { DatabaseIcon, DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon, UploadIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Logo } from "@/components/logo"
 import { StoreGate } from "@/components/store-gate"
@@ -143,7 +143,7 @@ function Accounts() {
         onCreated={(role) => {
           setCreating(null)
           // New job seekers go straight to editing their portfolio
-          router.push(role === "SEEKER" ? "/profile?edit=1" : homeFor(role))
+          router.push(role === "SEEKER" ? "/overview?edit=1" : homeFor(role))
         }}
       />
     </main>
@@ -169,6 +169,13 @@ function BackupButtons() {
     else toast.error(res.error)
   }
 
+  const loadDemoData = useStore((s) => s.loadDemoData)
+  const loadDemo = () => {
+    const added = loadDemoData()
+    if (added > 0) toast.success(t("login.demoLoaded", { count: added }))
+    else toast(t("login.demoAlreadyLoaded"))
+  }
+
   const resetDemo = useStore((s) => s.resetDemo)
   const reset = () => {
     resetDemo()
@@ -185,18 +192,26 @@ function BackupButtons() {
   }
 
   return (
-    <div dir="ltr" className="mb-5 flex flex-wrap justify-center gap-2 md:absolute md:top-5 md:right-8 md:mb-0">
-      <LanguageSwitcher wide />
-      <Button variant="outline" size="sm" onClick={() => setAsking({ kind: "reset" })}>
-        <RotateCcwIcon /> {t("login.resetDemo")}
-      </Button>
-      <input ref={fileInput} type="file" accept="application/json,.json" className="hidden" onChange={upload} />
-      <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
-        <UploadIcon /> {t("login.uploadBackup")}
-      </Button>
-      <Button variant="outline" size="sm" onClick={downloadBackup}>
-        <DownloadIcon /> {t("login.demoDownload")}
-      </Button>
+    // Wide screens: language and demo data in the top left corner, backups in the top right, clear of the logo
+    <div dir="ltr" className="mb-5 flex flex-wrap justify-center gap-2 lg:absolute lg:inset-x-8 lg:top-5 lg:mb-0 lg:justify-between">
+      <div className="flex flex-wrap justify-center gap-2">
+        <LanguageSwitcher wide />
+        <Button variant="outline" size="sm" onClick={() => setAsking({ kind: "reset" })}>
+          <RotateCcwIcon /> {t("login.resetDemo")}
+        </Button>
+        <Button variant="outline" size="sm" onClick={loadDemo}>
+          <DatabaseIcon /> {t("login.loadDemo")}
+        </Button>
+      </div>
+      <div className="flex flex-wrap justify-center gap-2">
+        <input ref={fileInput} type="file" accept="application/json,.json" className="hidden" onChange={upload} />
+        <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
+          <UploadIcon /> {t("login.uploadBackup")}
+        </Button>
+        <Button variant="outline" size="sm" onClick={downloadBackup}>
+          <DownloadIcon /> {t("login.demoDownload")}
+        </Button>
+      </div>
 
       <Dialog open={asking !== null} onOpenChange={(open) => !open && setAsking(null)}>
         <DialogContent className="sm:max-w-sm">
