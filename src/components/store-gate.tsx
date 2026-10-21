@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react"
 import { PageSkeleton } from "@/components/page-skeleton"
-import { ChooseRole, NotSetUp } from "@/components/real-screens"
+import { AwaitingApproval, ChooseRole, NotSetUp } from "@/components/real-screens"
 import { BACKEND_READY, IS_DEMO } from "@/lib/mode"
 import { startRealSync, useBackend } from "@/lib/real-sync"
 import { useStore } from "@/lib/store"
@@ -19,6 +19,7 @@ export function StoreGate({ children }: { children: React.ReactNode }) {
   )
   const backend = useBackend((s) => s.status)
   const onboarded = useBackend((s) => s.onboarded)
+  const approved = useBackend((s) => s.approved)
   useEffect(() => {
     if (!IS_DEMO) startRealSync()
   }, [])
@@ -34,5 +35,6 @@ export function StoreGate({ children }: { children: React.ReactNode }) {
     )
   }
   if (!IS_DEMO && backend === "signedIn" && !onboarded) return <ChooseRole />
+  if (!IS_DEMO && backend === "signedIn" && !approved) return <AwaitingApproval />
   return children
 }

@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { IS_DEMO } from "@/lib/mode"
 
-// Real version, admins only: every account, and its role. Giving someone the recruiter role happens here.
+// Real version, admins only: every account and its role. Giving someone the recruiter role, and approving
+// employers (before that they can't see the Pool or post jobs), happen here.
 // (Not translated: it's for HireMe's own staff.)
 
-type Account = { id: string; role: string; name: string; email: string; company: string; createdAt: string }
+type Account = { id: string; role: string; name: string; email: string; company: string; approved: boolean; createdAt: string }
 
 export default function AdminPage() {
   const [accounts, setAccounts] = useState<Account[] | null>(null)
@@ -27,30 +29,36 @@ export default function AdminPage() {
       .catch((e) => setError(e.message || "Couldn't load the accounts."))
   }, [base])
 
-  const setRole = async (account: Account, role: string) => {
+  const change = async (account: Account, update: { role: string } | { approved: boolean }, done: string) => {
     const res = await fetch(`${base}/api/admin/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: account.id, role }),
+      body: JSON.stringify({ userId: account.id, ...update }),
     })
-    if (!res.ok) return toast.error((await res.json()).error ?? "Couldn't change the role.")
-    setAccounts((list) => list?.map((a) => (a.id === account.id ? { ...a, role } : a)) ?? null)
-    toast.success(`${account.name || account.email} is now ${role.toLowerCase()}`)
+    if (!res.ok) return toast.error((await res.json()).error ?? "Couldn't change that.")
+    setAccounts((list) => list?.map((a) => (a.id === account.id ? { ...a, ...update, ...("role" in update && { approved: true }) } : a)) ?? null)
+    toast.success(`${account.name || account.email} ${done}`)
   }
+  const setRole = (account: Account, role: string) => change(account, { role }, `is now ${role.toLowerCase()}`)
+  const approve = (account: Account, approved: boolean) => change(account, { approved }, approved ? "is approved" : "is no longer approved")
+  const waiting = accounts?.filter((a) => a.role === "EMPLOYER" && !a.approved).length ?? 0
 
   if (IS_DEMO) return <p className="text-sm text-muted-foreground">The demo has no admin page.</p>
   if (error) return <p className="text-sm text-muted-foreground">{error}</p>
   if (!accounts) return <p className="text-sm text-muted-foreground">Loading…</p>
 
   const q = query.trim().toLowerCase()
-  const shown = accounts.filter((a) => !q || `${a.name} ${a.email} ${a.company}`.toLowerCase().includes(q))
+  // Employers waiting for approval first
+  const shown = accounts
+    .filter((a) => !q || `${a.name} ${a.email} ${a.company}`.toLowerCase().includes(q))
+    .sort((a, b) => Number(b.role === "EMPLOYER" && !b.approved) - Number(a.role === "EMPLOYER" && !a.approved))
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Accounts</h1>
-          <p className="text-sm text-muted-foreground">{accounts.length} accounts · give or take away the recruiter role here</p>
+          <p className="text-sm text-muted-foreground">{accounts.length} accounts{waiting > 0 && ` · ${waiting} waiting for approval`} · approve employers and give the recruiter role here</p>
         </div>
         <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name, email or company" className="h-9 w-full sm:w-72" />
       </div>
@@ -61,6 +69,11 @@ export default function AdminPage() {
               <p className="truncate font-medium">{a.name || "—"}</p>
               <p className="truncate text-sm text-muted-foreground">{[a.email, a.company].filter(Boolean).join(" · ")}</p>
             </div>
+            {a.role === "EMPLOYER" && (
+              <Button variant={a.approved ? "outline" : "default"} size="sm" onClick={() => approve(a, !a.approved)}>
+                {a.approved ? "Approved · undo" : "Approve"}
+              </Button>
+            )}
             <select
               value={a.role}
               onChange={(e) => setRole(a, e.target.value)}

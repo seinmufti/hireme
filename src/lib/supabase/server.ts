@@ -47,3 +47,14 @@ export const isAdminEmail = (email: string | undefined | null) =>
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
     .includes(email.toLowerCase())
+
+/**
+ * Real version: may the signed-in user make one more AI request of this kind today? Each request costs
+ * money, so every user has a daily limit per feature (counted in the database, see take_ai_credit).
+ */
+export async function aiAccess(kind: string, dailyLimit: number): Promise<"ok" | "signedOut" | "limit"> {
+  const db = await serverSupabase()
+  if (!db || !(await db.auth.getUser()).data.user) return "signedOut"
+  const { data, error } = await db.rpc("take_ai_credit", { kind, daily_limit: dailyLimit })
+  return !error && data === true ? "ok" : "limit"
+}

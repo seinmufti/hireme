@@ -41,6 +41,23 @@ const nextConfig: NextConfig = {
       { source: "/accounts", destination: "/login", permanent: false },
     ]
   },
+  async headers() {
+    return [
+      {
+        // Basic protection on every page: no framing by other sites, no guessing file types, no leaking
+        // full addresses to other sites, and no camera/microphone/location unless a page asks for them
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+        ],
+      },
+    ]
+  },
   async rewrites() {
     if (isDemo) return []
     return [

@@ -28,6 +28,14 @@ async function makeUser(label, meta) {
     const E = await makeUser("employer", { name: "Karwan Test", role: "EMPLOYER", company: "Test Co" }); ids.push(E.id)
     const anon = createClient(URL, ANON, { auth: { persistSession: false } })
 
+    // A new employer waits for approval: no Pool, no job posts
+    const early = await E.client.from("jobs").insert({ id: `j0-${tag}`, employer_id: E.id, data: { title: "Too early" } })
+    check("an employer can't post jobs before HireMe approves them", !!early.error)
+    const approve = await E.client.from("profiles").update({ approved: true }).eq("id", E.id)
+    const selfApproved = (await admin.from("profiles").select("approved").eq("id", E.id).single()).data.approved
+    check("an employer can't approve themselves", selfApproved === false, approve.error ? "refused" : "no error, but unchanged")
+    await admin.from("profiles").update({ approved: true }).eq("id", E.id)
+
     // Sign-up created the profiles
     const prof = await admin.from("profiles").select("id, role, display_name, onboarded").in("id", ids)
     const pA = prof.data.find((p) => p.id === A.id), pE = prof.data.find((p) => p.id === E.id)
@@ -50,6 +58,9 @@ async function makeUser(label, meta) {
 
     const bTalents = await B.client.from("talents").select("id").eq("user_id", A.id)
     check("another job seeker can't read a CV", bTalents.data?.length === 0)
+    const U = await makeUser("employer-new", { name: "Unapproved Test", role: "EMPLOYER", company: "New Co" }); ids.push(U.id)
+    const uTalents = await U.client.from("talents").select("id").eq("user_id", A.id)
+    check("an employer HireMe hasn't approved can't read CVs", uTalents.data?.length === 0)
     const eTalents = await E.client.from("talents").select("id").eq("user_id", A.id)
     check("an employer can read a CV (the Pool)", eTalents.data?.length === 1)
     const anonTalents = await anon.from("talents").select("id")
@@ -79,6 +90,17 @@ async function makeUser(label, meta) {
     check("the employer sees the application", eApps.data?.some((a) => a.id === `a-${tag}`))
     const bApps = await B.client.from("applications").select("id")
     check("another job seeker can't see it", bApps.data?.length === 0)
+    const sneaky = await A.client.from("applications").update({ data: { id: `a-${tag}`, status: "Shortlisted" } }).eq("id", `a-${tag}`)
+    let appNow = (await admin.from("applications").select("data").eq("id", `a-${tag}`).single()).data.data
+    check("a job seeker can't shortlist themselves", appNow.status === "Applied", sneaky.error ? "refused" : "")
+    const decide = await E.client.from("applications").update({ data: { ...appNow, status: "Shortlisted" } }).eq("id", `a-${tag}`)
+    appNow = (await admin.from("applications").select("data").eq("id", `a-${tag}`).single()).data.data
+    check("the employer sets the application's status", !decide.error && appNow.status === "Shortlisted", decide.error?.message)
+    const reword = await E.client.from("applications").update({ data: { ...appNow, note: "edited by employer" } }).eq("id", `a-${tag}`)
+    check("the employer can't rewrite the job seeker's note", !!reword.error)
+    const pre = await A.client.from("applications").insert({ id: `a3-${tag}`, job_id: `j-${tag}`, seeker_id: A.id, data: { status: "Shortlisted" } })
+    const preNow = (await admin.from("applications").select("data").eq("id", `a3-${tag}`).single()).data?.data
+    check("a new application always starts as Applied", !pre.error && preNow?.status === "Applied", pre.error?.message)
     const fake = await B.client.from("applications").insert({ id: `a2-${tag}`, job_id: `j-${tag}`, seeker_id: A.id, data: {} })
     check("nobody can apply in someone else's name", !!fake.error)
 
@@ -86,10 +108,19 @@ async function makeUser(label, meta) {
     const conv = await E.client.from("conversations").insert({ id: `c-${tag}`, employer_id: E.id, seeker_id: A.id, data: { id: `c-${tag}` } })
     const msg = await E.client.from("messages").insert({ id: `m-${tag}`, conversation_id: `c-${tag}`, sender_id: E.id, data: { body: "hello" } })
     check("an employer messages a job seeker", !conv.error && !msg.error, conv.error?.message || msg.error?.message)
+    const spoof = await E.client.from("messages").insert({ id: `m2-${tag}`, conversation_id: `c-${tag}`, sender_id: E.id, data: { body: "hi", senderId: A.id } })
+    const spoofed = (await admin.from("messages").select("data").eq("id", `m2-${tag}`).single()).data?.data
+    check("a message can't pretend to come from someone else", !spoof.error && spoofed?.senderId === E.id, spoof.error?.message)
+    const rewrite = await A.client.from("messages").update({ data: { body: "changed", readAt: null } }).eq("id", `m-${tag}`)
+    const bodyNow = (await admin.from("messages").select("data").eq("id", `m-${tag}`).single()).data.data.body
+    check("nobody can rewrite someone else's message", bodyNow === "hello", rewrite.error ? "refused" : "")
+    const msgRow = (await admin.from("messages").select("data").eq("id", `m-${tag}`).single()).data.data
+    const read = await A.client.from("messages").update({ data: { ...msgRow, readAt: new Date().toISOString() } }).eq("id", `m-${tag}`)
+    check("the recipient marks a message read", !read.error, read.error?.message)
     const aMsgs = await A.client.from("messages").select("id")
-    check("the job seeker reads it", aMsgs.data?.length === 1)
     const bMsgs = await B.client.from("messages").select("id")
     check("nobody else can read it", bMsgs.data?.length === 0)
+    check("the job seeker has both messages", aMsgs.data?.length === 2)
     const bConv = await B.client.from("conversations").select("id")
     check("nobody else sees the conversation", bConv.data?.length === 0)
 
@@ -117,7 +148,23 @@ async function makeUser(label, meta) {
     check("a user uploads to their own folder", !file.error, file.error?.message)
     const intoOthers = await B.client.storage.from("files").upload(`${A.id}/y/evil.txt`, new Blob(["x"], { type: "text/plain" }))
     check("nobody uploads into another's folder", !!intoOthers.error)
-    await admin.storage.from("files").remove([`${A.id}/x/photo.txt`])
+    const bReads = await B.client.storage.from("files").download(`${A.id}/x/photo.txt`)
+    check("another job seeker can't open a job seeker's files", !!bReads.error)
+    const bLists = await B.client.storage.from("files").list(A.id)
+    check("another job seeker can't list a job seeker's files", (bLists.data ?? []).length === 0)
+    const eReads = await E.client.storage.from("files").download(`${A.id}/x/photo.txt`)
+    check("an approved employer opens a job seeker's CV files", !eReads.error, eReads.error?.message)
+    const uReads = await U.client.storage.from("files").download(`${A.id}/x/photo.txt`)
+    check("an unapproved employer can't open them", !!uReads.error)
+    await E.client.storage.from("files").upload(`${E.id}/x/logo.txt`, new Blob(["logo"], { type: "text/plain" }))
+    const logo = await A.client.storage.from("files").download(`${E.id}/x/logo.txt`)
+    check("anyone signed in opens a company's files (logos)", !logo.error, logo.error?.message)
+    await admin.storage.from("files").remove([`${A.id}/x/photo.txt`, `${E.id}/x/logo.txt`])
+
+    // AI limits
+    const tries = []
+    for (let i = 0; i < 3; i++) tries.push((await A.client.rpc("take_ai_credit", { kind: `test-${tag}`, daily_limit: 2 })).data)
+    check("AI features stop at the daily limit", tries.join(",") === "true,true,false", tries.join(","))
   } catch (e) {
     results.push("ERROR  " + e.message)
   } finally {

@@ -92,6 +92,19 @@ export function ChooseRole() {
   )
 }
 
+/** A new employer, until HireMe approves them (they can't see the Pool or post jobs before that). */
+export function AwaitingApproval() {
+  const t = useT()
+  return (
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-3 px-6 text-center">
+      <Logo size={64} />
+      <h1 className="text-2xl font-semibold">{t("auth.awaitingTitle")}</h1>
+      <p className="max-w-md text-sm text-muted-foreground">{t("auth.awaitingBody")}</p>
+      <SignOutButton className="mt-2" />
+    </main>
+  )
+}
+
 /** Signs out of the real version (back to browsing as a visitor). */
 export function SignOutButton({ className }: { className?: string }) {
   const t = useT()

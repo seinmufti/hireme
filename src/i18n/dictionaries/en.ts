@@ -728,6 +728,8 @@ const en = {
     failed: "Something went wrong. Please try again.",
     signOut: "Sign out",
     chooseRole: "One last step: how will you use HireMe?",
+    awaitingTitle: "Your company account is being reviewed",
+    awaitingBody: "HireMe checks every employer before they can see job seekers' CVs or post job listings. Sign in again once you're approved, usually within a day.",
     continue: "Continue",
     notSetUpTitle: "HireMe isn't connected yet",
     notSetUpBody: "The real version needs its database. Meanwhile, try the demo.",

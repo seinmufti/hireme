@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { IS_DEMO } from "@/lib/mode"
-import { serverSupabase } from "@/lib/supabase/server"
+import { aiAccess } from "@/lib/supabase/server"
 
 // POST { title, description } and get back { description } with the wording improved.
 // The employer's "Improve wording" button on the job form.
@@ -19,8 +19,12 @@ Reply with the rewritten description only.`
 const fail = (status: number, error: string) => Response.json({ error }, { status })
 
 export async function POST(request: Request) {
-  // Real version: only signed-in people (each request costs money)
-  if (!IS_DEMO && !(await (await serverSupabase())?.auth.getUser())?.data.user) return fail(401, "Please sign in first.")
+  // Real version: only signed-in people, up to a daily limit (each request costs money)
+  if (!IS_DEMO) {
+    const access = await aiAccess("refine-job", 30)
+    if (access === "signedOut") return fail(401, "Please sign in first.")
+    if (access === "limit") return fail(429, "You've reached today's limit for this. Please try again tomorrow.")
+  }
   const body = await request.json().catch(() => null)
   const title = typeof body?.title === "string" ? body.title.trim() : ""
   const description = typeof body?.description === "string" ? body.description.trim() : ""
