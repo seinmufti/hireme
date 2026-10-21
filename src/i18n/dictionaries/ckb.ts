@@ -211,7 +211,7 @@ const ckb: DeepPartial<Messages> = {
     noLocation: "هیچ شوێنێک زیاد نەکراوە",
     education: "بەرزترین بڕوانامە",
     yourCv: "CV ـەکەت",
-    previewCv: "پێشبینینی CV",
+    previewCv: "پێشبینین و داگرتنی CV",
     editCv: "دەستکاری CV",
     noTitle: "پیشەکەت زیاد بکە",
     latestJob: "دوایین کار",

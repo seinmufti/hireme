@@ -212,7 +212,7 @@ const en = {
     noLocation: "No location added",
     education: "Highest education",
     yourCv: "Your CV",
-    previewCv: "Preview CV",
+    previewCv: "Preview CV & Download",
     editCv: "Edit CV",
     noTitle: "Add your profession",
     latestJob: "Latest job",

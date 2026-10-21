@@ -211,7 +211,7 @@ const ar: DeepPartial<Messages> = {
     noLocation: "لم يُضف موقع",
     education: "أعلى مؤهل",
     yourCv: "سيرتك الذاتية",
-    previewCv: "معاينة السيرة الذاتية",
+    previewCv: "معاينة السيرة الذاتية وتنزيلها",
     editCv: "تعديل السيرة الذاتية",
     noTitle: "أضف مهنتك",
     latestJob: "آخر وظيفة",
