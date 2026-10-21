@@ -92,7 +92,7 @@ export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
         </Button>
         <p className="text-xs text-muted-foreground">
           {t("applications.finishCvFirst")}{" "}
-          <Link href="/profile" className="underline">{t("applications.finishCv")}</Link>
+          <Link href="/overview" className="underline">{t("applications.finishCv")}</Link>
         </p>
       </div>
     )

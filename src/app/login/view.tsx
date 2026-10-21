@@ -143,7 +143,7 @@ function Accounts() {
         onCreated={(role) => {
           setCreating(null)
           // New job seekers go straight to editing their portfolio
-          router.push(role === "SEEKER" ? "/profile?edit=1" : homeFor(role))
+          router.push(role === "SEEKER" ? "/overview?edit=1" : homeFor(role))
         }}
       />
     </main>

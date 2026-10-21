@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation"
 import { SearchIcon } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { UserAvatar } from "@/components/user-avatar"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { firstName } from "@/lib/format"
 import { homeFor, ROLE_COLOR, type Role } from "@/lib/options"
 import { recentLogins } from "@/lib/recent-accounts"
@@ -48,10 +47,7 @@ function MoreAccounts({
         if (next) setQuery("")
       }}
     >
-      {/* Opens on hover too (click still works) */}
       <PopoverTrigger
-        openOnHover
-        delay={100}
         render={
           <button
             type="button"
@@ -164,37 +160,26 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
                 {group.map((a) => {
                   const active = a.id === currentId
                   return (
-                    <Tooltip key={a.id}>
-                      <TooltipTrigger
-                        render={
-                          <button
-                            type="button"
-                            aria-label={t("accounts.signInAs", { name: a.name })}
-                            aria-pressed={active}
-                            onClick={() => {
-                              if (active) return
-                              switchAccount(a.id)
-                              router.push(destinationFor(a))
-                              onPicked?.()
-                            }}
-                            className={cn(
-                              "flex items-center gap-1.5 rounded-full border pr-3 pl-0.5 text-sm whitespace-nowrap text-white transition",
-                              stacked ? "py-0.5" : "py-px",
-                              active ? "border-white/70 bg-white/25 font-medium" : "border-transparent hover:bg-white/15"
-                            )}
-                          />
-                        }
-                      >
-                        <UserAvatar name={a.name} color={ROLE_COLOR[a.role].base} size={stacked ? 24 : 20} className="brightness-75" />
-                        {firstName(a.name)}
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <div>
-                          <div className="font-medium">{a.name}{active && ` ${t("accounts.signedIn")}`}</div>
-                          <div className="opacity-70">{subtitle(a.id)}</div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
+                    <button
+                      key={a.id}
+                      type="button"
+                      aria-label={t("accounts.signInAs", { name: a.name })}
+                      aria-pressed={active}
+                      onClick={() => {
+                        if (active) return
+                        switchAccount(a.id)
+                        router.push(destinationFor(a))
+                        onPicked?.()
+                      }}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full border pr-3 pl-0.5 text-sm whitespace-nowrap text-white transition",
+                        stacked ? "py-0.5" : "py-px",
+                        active ? "border-white/70 bg-white/25 font-medium" : "border-transparent hover:bg-white/15"
+                      )}
+                    >
+                      <UserAvatar name={a.name} color={ROLE_COLOR[a.role].base} size={stacked ? 24 : 20} className="brightness-75" />
+                      {firstName(a.name)}
+                    </button>
                   )
                 })}
                 {hidden > 0 && (

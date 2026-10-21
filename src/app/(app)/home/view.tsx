@@ -52,7 +52,7 @@ export function HomeView() {
           <div className="flex flex-col items-center gap-3 rounded-xl border bg-card px-6 py-10 text-center text-muted-foreground">
             <TargetIcon className="size-6" />
             <p className="max-w-md text-sm">{t("home.noJobs")}</p>
-            <Link href="/profile" className={buttonVariants({ size: "sm" })}>
+            <Link href="/overview" className={buttonVariants({ size: "sm" })}>
               {t("jobs.editProfile")}
             </Link>
           </div>

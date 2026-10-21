@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BriefcaseIcon, Building2Icon, FileUserIcon, HomeIcon, LogInIcon, MailIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
+import { BriefcaseIcon, Building2Icon, HomeIcon, LogInIcon, MailIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
 import { BottomNav } from "@/components/bottom-nav"
 import { GlobalSearch } from "@/components/global-search"
 import { DevTools } from "@/components/dev-tools"
@@ -31,13 +31,11 @@ function Shell({ children }: { children: React.ReactNode }) {
   const role = user?.role
 
   const home = { href: "/home", label: t("nav.home"), icon: HomeIcon }
-  // What used to be Home: the CV at a glance, stats, notifications and actions
+  // The whole CV (view and edit), with stats, notifications and actions around it
   const overview = { href: "/overview", label: t("nav.profile"), icon: UserIcon }
   const jobs = { href: "/jobs", label: t("nav.jobs"), icon: BriefcaseIcon }
   // Employers don't search jobs; their Jobs tab is their own posts
   const myJobs = { href: "/jobs/mine", label: t("nav.jobs"), icon: BriefcaseIcon }
-  // The CV page: your details, with Edit and the Preview CV button
-  const cv = { href: "/profile", label: t("nav.cvPreview"), icon: FileUserIcon }
   // The list of all companies is for recruiters only; everyone can still open a company from its jobs
   // The jobs a job seeker applied to
   const applications = { href: "/jobs/applied", label: t("nav.applications"), icon: SendIcon }
@@ -50,7 +48,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, overview, cv, jobs, applications]
+          ? [home, overview, jobs, applications]
           : role === "GUEST"
             ? [jobs]
             : []

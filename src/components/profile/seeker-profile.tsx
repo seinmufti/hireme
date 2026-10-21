@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   AwardIcon,
   BriefcaseIcon,
@@ -70,14 +70,16 @@ const sectionTitle = (t: Translate, id: SectionId) => t(`seeker.sections.${id}`)
 
 // Job seeker profile = their CV: personal and contact details, about me, work experience, education,
 // skills, languages, licenses, projects, and the kind of work they want (for matching only).
-export function SeekerProfile({ user }: { user: User }) {
+// `embedded`: shown inside the Profile tab, which has its own title and side panels (no Categories list)
+export function SeekerProfile({ user, embedded = false }: { user: User; embedded?: boolean }) {
   const talent = useStore((s) => s.talents.find((x) => x.userId === user.id)) ?? null
   const router = useRouter()
+  const pathname = usePathname()
   const t = useT()
   // For job seekers this page is their CV (the same route is "Profile" for employers and recruiters)
   useEffect(() => {
-    document.title = `${t("nav.cvPreview")} · HireMe`
-  }, [t])
+    if (!embedded) document.title = `${t("nav.cvPreview")} · HireMe`
+  }, [t, embedded])
   // "?edit=1" (right after creating an account, or from the CV preview's Edit button) opens the form straight away
   const params = useSearchParams()
   const startEditing = params.has("edit")
@@ -86,20 +88,31 @@ export function SeekerProfile({ user }: { user: User }) {
   // Which form section to scroll to when editing starts from a section's Edit button or a link (?edit=work)
   const [jumpTo, setJumpTo] = useState<EditTarget | null>(startAt)
   const [imported, setImported] = useState<Imported | null>(null)
+  // A link with ?edit while the CV is already open (e.g. Edit in the Profile tab's Actions) opens the form too
+  const editParam = params.get("edit")
+  const [seenEditParam, setSeenEditParam] = useState(editParam)
+  if (editParam !== seenEditParam) {
+    setSeenEditParam(editParam)
+    if (editParam !== null) {
+      setJumpTo(startAt)
+      setEditing(true)
+    }
+  }
   const edit = (section: SectionId) => {
     setJumpTo(section)
     setEditing(true)
   }
   useEffect(() => {
     // Keep the scroll position: the form may be scrolling to a section (?edit=work)
-    if (startEditing) router.replace("/profile", { scroll: false })
-  }, [startEditing, router])
+    if (startEditing) router.replace(pathname, { scroll: false })
+  }, [startEditing, router, pathname])
 
   const location = [user.city, countryName(user.country)].filter(Boolean).join(", ")
+  // In the Profile tab, reading the CV: one card, its parts split by lines. Editing keeps a card per section.
+  const flat = embedded && !editing
 
-  return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <Contents editing={editing} />
+  const header = (
+    <>
       <div className="flex items-center gap-5">
         <PhotoWithPencil user={user} />
         <div className="min-w-0 flex-1">
@@ -116,46 +129,43 @@ export function SeekerProfile({ user }: { user: User }) {
           )}
         </div>
       </div>
-
-      {/* Preview CV: a round floating button with an eye, bottom corner (Dev tools sits in the middle) */}
-      {!editing && (
-        <Link
-          href="/profile/cv"
-          aria-label={t("seeker.previewCv")}
-          title={t("seeker.previewCv")}
-          className="fixed end-4 bottom-[calc(9rem+env(safe-area-inset-bottom))] z-40 flex size-14 lg:end-6 lg:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
-        >
-          <EyeIcon className="size-6" />
-        </Link>
-      )}
-
       <PoolStatus user={user} talent={talent} />
+    </>
+  )
+  // CV strength: the next thing to add opens the form there
+  const strength = <CvStrengthBar user={user} talent={talent} skipPhoto />
+  // Preview CV: a round floating button with an eye, bottom corner (Dev tools sits in the middle)
+  const preview = !editing && (
+    <Link
+      href="/profile/cv"
+      aria-label={t("seeker.previewCv")}
+      title={t("seeker.previewCv")}
+      className="fixed end-4 bottom-[calc(9rem+env(safe-area-inset-bottom))] z-40 flex size-14 lg:end-6 lg:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
+    >
+      <EyeIcon className="size-6" />
+    </Link>
+  )
 
-      {/* Import from a CV file, under the status: the form opens with what was read */}
-      {!editing && (
-        <div className="flex justify-center rounded-xl border bg-card px-5 py-4">
-          <CvImportButton
-            profile={contactOf(user)}
-            portfolio={talent ? toPortfolioInput(talent) : EMPTY_PORTFOLIO}
-            onApply={(next, paths) => {
-              setImported({ ...next, paths })
-              setJumpTo(null)
-              setEditing(true)
-            }}
-          />
+  // Import from a CV file lives in the form (see PortfolioForm), not on the CV itself
+  if (flat) {
+    return (
+      <>
+        {preview}
+        <div className="mx-auto max-w-3xl divide-y rounded-xl border bg-card">
+          <div className="space-y-4 p-6">{header}</div>
+          <div className="px-6 py-5">{strength}</div>
+          <PortfolioView user={user} talent={talent} onEdit={edit} flat />
         </div>
-      )}
+      </>
+    )
+  }
 
-      {/* CV strength: the next thing to add opens the form there */}
-      {!editing && (
-        <div className="rounded-xl border bg-card px-5 py-4">
-          <CvStrengthBar
-            user={user}
-            talent={talent}
-            skipPhoto
-          />
-        </div>
-      )}
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      {!embedded && <Contents editing={editing} />}
+      {header}
+      {preview}
+      {!editing && <div className="rounded-xl border bg-card px-5 py-4">{strength}</div>}
 
       {editing ? (
         <PortfolioForm
@@ -228,19 +238,28 @@ function Card({
   id,
   onEdit,
   needsDetails,
+  flat = false,
   note,
   children,
 }: {
   id: SectionId
   onEdit: (section: SectionId) => void
   needsDetails?: boolean
+  /** Inside the one CV card: no border of its own (the card draws lines between sections) */
+  flat?: boolean
   note?: React.ReactNode
   children: React.ReactNode
 }) {
   const t = useT()
   const title = sectionTitle(t, id)
   return (
-    <section id={`cv-${id}`} className={cn("scroll-mt-20 rounded-xl border p-6", needsDetails ? NEEDS_DETAILS : "bg-card")}>
+    <section
+      id={`cv-${id}`}
+      className={cn(
+        "scroll-mt-20 p-6",
+        flat ? cn("last:rounded-b-xl", needsDetails && "bg-amber-50") : cn("rounded-xl border", needsDetails ? NEEDS_DETAILS : "bg-card")
+      )}
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className={cn("text-sm font-medium", needsDetails ? "text-amber-900" : "text-muted-foreground")}>
           {title}
@@ -269,7 +288,7 @@ function Attachments({ ids }: { ids: string[] }) {
   )
 }
 
-function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | null; onEdit: (section: SectionId) => void }) {
+function PortfolioView({ user, talent, onEdit, flat = false }: { user: User; talent: Talent | null; onEdit: (section: SectionId) => void; flat?: boolean }) {
   const t = useT()
   // A whole section is yellow only when it needs an entry it doesn't have (no degree, no language);
   // otherwise just the incomplete job, degree, license, project or detail is
@@ -297,8 +316,8 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
   ]
 
   return (
-    <div className="space-y-4">
-      <Card id="personal" onEdit={onEdit}>
+    <div className={flat ? "divide-y" : "space-y-4"}>
+      <Card id="personal" flat={flat} onEdit={onEdit}>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
           {details.map((d) => (
             <div key={d.label} className={cn("flex min-w-0 items-center gap-2.5", item(!!d.required && !d.value))} title={d.label}>
@@ -326,11 +345,11 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         </dl>
       </Card>
 
-      <Card id="about" onEdit={onEdit}>
+      <Card id="about" flat={flat} onEdit={onEdit}>
         {p.summary ? <p className="text-sm whitespace-pre-line">{p.summary}</p> : <Empty>{t("seeker.aboutEmpty")}</Empty>}
       </Card>
 
-      <Card id="work" onEdit={onEdit} note={months > 0 && t("seeker.inTotal", { duration: formatDuration(months) })}>
+      <Card id="work" flat={flat} onEdit={onEdit} note={months > 0 && t("seeker.inTotal", { duration: formatDuration(months) })}>
         {p.experiences.length === 0 ? (
           <Empty>{t("seeker.noJobs")}</Empty>
         ) : (
@@ -357,7 +376,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         )}
       </Card>
 
-      <Card id="education" onEdit={onEdit} needsDetails={needs.has("education")}>
+      <Card id="education" flat={flat} onEdit={onEdit} needsDetails={needs.has("education")}>
         <div className="space-y-3">
           {p.degrees.length === 0 && <DegreeList degrees={[]} />}
           {p.degrees.map((d) => (
@@ -369,7 +388,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         </div>
       </Card>
 
-      <Card id="skills" onEdit={onEdit}>
+      <Card id="skills" flat={flat} onEdit={onEdit}>
         {p.hardSkills.length + p.softSkills.length === 0 ? (
           <Empty>{t("seeker.skillsEmpty")}</Empty>
         ) : (
@@ -395,7 +414,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         )}
       </Card>
 
-      <Card id="languages" onEdit={onEdit} needsDetails={needs.has("languages")}>
+      <Card id="languages" flat={flat} onEdit={onEdit} needsDetails={needs.has("languages")}>
         <LanguageList languages={p.languages} />
         {p.languages.some((l) => l.attachmentIds.length) && (
           <div className="mt-3 space-y-2 border-t pt-3">
@@ -411,7 +430,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         )}
       </Card>
 
-      <Card id="certifications" onEdit={onEdit}>
+      <Card id="certifications" flat={flat} onEdit={onEdit}>
         <div className="space-y-3">
           {p.certifications.length === 0 && <CertificationList certifications={[]} />}
           {p.certifications.map((c) => (
@@ -423,7 +442,7 @@ function PortfolioView({ user, talent, onEdit }: { user: User; talent: Talent | 
         </div>
       </Card>
 
-      <Card id="projects" onEdit={onEdit}>
+      <Card id="projects" flat={flat} onEdit={onEdit}>
         {p.projects.length === 0 ? (
           <Empty>{t("seeker.projectsEmpty")}</Empty>
         ) : (
