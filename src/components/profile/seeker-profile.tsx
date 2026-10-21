@@ -91,6 +91,7 @@ export function SeekerProfile({ user }: { user: User }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <Contents editing={editing} />
       <div className="flex items-center gap-5">
         <PhotoWithPencil user={user} />
         <div className="min-w-0 flex-1">
@@ -231,7 +232,7 @@ function Card({
   const t = useT()
   const title = sectionTitle(t, id)
   return (
-    <section className={cn("rounded-xl border p-6", needsDetails ? NEEDS_DETAILS : "bg-card")}>
+    <section id={`cv-${id}`} className={cn("scroll-mt-20 rounded-xl border p-6", needsDetails ? NEEDS_DETAILS : "bg-card")}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className={cn("text-sm font-medium", needsDetails ? "text-amber-900" : "text-muted-foreground")}>
           {title}
@@ -731,5 +732,54 @@ function PhotoWithPencil({ user }: { user: User }) {
         {busy ? <LoaderCircleIcon className="size-3.5 animate-spin" /> : <PencilIcon className="size-3.5" />}
       </button>
     </div>
+  )
+}
+
+const CONTENTS: ListingSection[] = ["personal", "about", "work", "education", "skills", "languages", "certifications", "projects"]
+
+/**
+ * Wide screens: the CV's sections listed beside the page (on the start side), to jump to any of them.
+ * The section in view is highlighted. Works on the CV page and in the form (whose sections are edit-<id>).
+ */
+function Contents({ editing }: { editing: boolean }) {
+  const t = useT()
+  const [current, setCurrent] = useState<ListingSection>("personal")
+  const idOf = (s: ListingSection) => (editing ? `edit-${s}` : `cv-${s}`)
+
+  useEffect(() => {
+    const update = () => {
+      // The last section whose top has passed just under the header
+      let seen: ListingSection = "personal"
+      for (const s of CONTENTS) {
+        const el = document.getElementById(editing ? `edit-${s}` : `cv-${s}`)
+        if (el && el.getBoundingClientRect().top < 140) seen = s
+      }
+      setCurrent(seen)
+    }
+    update()
+    window.addEventListener("scroll", update, { passive: true })
+    return () => window.removeEventListener("scroll", update)
+  }, [editing])
+
+  return (
+    <nav aria-label={t("seeker.contents")} className="fixed top-28 hidden w-48 min-[1200px]:block" style={{ insetInlineStart: "calc(50% - 24rem - 13.5rem)" }}>
+      <p className="mb-2 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("seeker.contents")}</p>
+      <ul className="space-y-0.5 border-s">
+        {CONTENTS.map((s) => (
+          <li key={s}>
+            <button
+              type="button"
+              onClick={() => document.getElementById(idOf(s))?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className={cn(
+                "-ms-px block w-full border-s-2 px-3 py-1 text-start text-sm transition-colors",
+                current === s ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {sectionTitle(t, s)}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </nav>
   )
 }
