@@ -7,6 +7,7 @@ import { GlobalSearch } from "@/components/global-search"
 import { DevTools } from "@/components/dev-tools"
 import { SignOutButton } from "@/components/real-screens"
 import { IS_DEMO } from "@/lib/mode"
+import { homeFor } from "@/lib/options"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Logo } from "@/components/logo"
 import { NavLinks, type NavLink } from "@/components/nav-links"
@@ -60,7 +61,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b bg-card/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         {/* Follows the language: logo on the left in English, on the right in Arabic and Kurdish */}
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:gap-6 lg:px-8">
-          <Link href="/login" title={t("nav.goLogin")} className="flex shrink-0 items-center gap-2.5">
+          <Link href={role ? homeFor(role) : "/login"} title={t("nav.home")} className="flex shrink-0 items-center gap-2.5">
             <Logo size={32} />
             <BrandName className="text-lg font-semibold tracking-tight" />
           </Link>
