@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import type { NavLink } from "@/components/nav-links"
+import { activeHref, type NavLink } from "@/components/nav-links"
 import { cn } from "@/lib/utils"
 
 /** Phones and tablets: the navbar's links as a tab bar along the bottom of the screen, like most job apps. */
@@ -15,7 +15,7 @@ export function BottomNav({ links }: { links: NavLink[] }) {
       style={{ gridTemplateColumns: `repeat(${links.length}, minmax(0, 1fr))` }}
     >
       {links.map((l) => {
-        const active = pathname === l.href || pathname.startsWith(l.href + "/")
+        const active = l.href === activeHref(pathname, links)
         return (
           <Link
             key={l.href}

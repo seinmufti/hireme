@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
-import { BanknoteIcon, BriefcaseIcon, HeartIcon, PartyPopperIcon, PlusIcon, SearchIcon, SendIcon, TargetIcon, XIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, HeartIcon, PartyPopperIcon, PlusIcon, SearchIcon, TargetIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
@@ -157,12 +157,6 @@ export function JobBrowser({
             {isSeeker && talent && <> · {t("jobs.matchProfile", { count: matches.length })}</>}
           </p>
         </div>
-        {isSeeker && (
-          <Link href="/jobs/applied" className={buttonVariants({ variant: "outline" })}>
-            <SendIcon /> {t("jobs.myApplications")}
-            {applied.size > 0 && <span className="text-muted-foreground">{applied.size}</span>}
-          </Link>
-        )}
         {role === "EMPLOYER" && (
           <div className="flex gap-2">
             <Link href="/jobs/mine" className={buttonVariants({ variant: "outline" })}>

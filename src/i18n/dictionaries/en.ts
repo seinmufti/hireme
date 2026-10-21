@@ -30,6 +30,7 @@ const en = {
     GUEST: "Guest",
   },
   nav: {
+    applications: "Applications",
     signIn: "Sign in",
     home: "Home",
     jobs: "Jobs",

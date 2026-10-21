@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BriefcaseIcon, Building2Icon, FileUserIcon, HomeIcon, InboxIcon, LogInIcon, UserIcon, UsersIcon } from "lucide-react"
+import { BriefcaseIcon, Building2Icon, FileUserIcon, HomeIcon, InboxIcon, LogInIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
 import { BottomNav } from "@/components/bottom-nav"
 import { GlobalSearch } from "@/components/global-search"
 import { DevTools } from "@/components/dev-tools"
@@ -35,6 +35,8 @@ function Shell({ children }: { children: React.ReactNode }) {
   // The CV page: your details, with Edit and the Preview CV button
   const cv = { href: "/profile", label: t("nav.cvPreview"), icon: FileUserIcon }
   // The list of all companies is for recruiters only; everyone can still open a company from its jobs
+  // The jobs a job seeker applied to
+  const applications = { href: "/jobs/applied", label: t("nav.applications"), icon: SendIcon }
   const companies = { href: "/companies", label: t("nav.companies"), icon: Building2Icon }
   const pool = { href: "/pool", label: t("nav.pool"), icon: UsersIcon }
   const inbox = { href: "/inbox", label: t("nav.inbox"), icon: InboxIcon, badge: unread }
@@ -45,7 +47,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, cv, jobs, inbox]
+          ? [home, cv, jobs, applications, inbox]
           : role === "GUEST"
             ? [jobs]
             : []

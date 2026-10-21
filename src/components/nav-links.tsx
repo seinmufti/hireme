@@ -5,6 +5,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
+/** The link for the current page: the longest match, so /jobs/applied lights up Applications, not Jobs. */
+export const activeHref = (pathname: string, links: NavLink[]) =>
+  links
+    .filter((l) => pathname === l.href || pathname.startsWith(l.href + "/"))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href
+
 export type NavLink = { href: string; label: string; icon: ComponentType<{ className?: string }>; badge?: number }
 
 /** Laptops and desktops: the links along the top. Smaller screens get them at the bottom (BottomNav). */
@@ -13,7 +19,7 @@ export function NavLinks({ links }: { links: NavLink[] }) {
   return (
     <nav className="flex h-full items-stretch gap-1">
       {links.map((l) => {
-        const active = pathname === l.href || pathname.startsWith(l.href + "/")
+        const active = l.href === activeHref(pathname, links)
         return (
           <Link
             key={l.href}
