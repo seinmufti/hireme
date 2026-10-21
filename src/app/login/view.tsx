@@ -2,7 +2,7 @@
 
 import { Fragment, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon, UploadIcon } from "lucide-react"
+import { DatabaseIcon, DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon, UploadIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Logo } from "@/components/logo"
 import { StoreGate } from "@/components/store-gate"
@@ -169,6 +169,13 @@ function BackupButtons() {
     else toast.error(res.error)
   }
 
+  const loadDemoData = useStore((s) => s.loadDemoData)
+  const loadDemo = () => {
+    const added = loadDemoData()
+    if (added > 0) toast.success(t("login.demoLoaded", { count: added }))
+    else toast(t("login.demoAlreadyLoaded"))
+  }
+
   const resetDemo = useStore((s) => s.resetDemo)
   const reset = () => {
     resetDemo()
@@ -189,6 +196,9 @@ function BackupButtons() {
       <LanguageSwitcher wide />
       <Button variant="outline" size="sm" onClick={() => setAsking({ kind: "reset" })}>
         <RotateCcwIcon /> {t("login.resetDemo")}
+      </Button>
+      <Button variant="outline" size="sm" onClick={loadDemo}>
+        <DatabaseIcon /> {t("login.loadDemo")}
       </Button>
       <input ref={fileInput} type="file" accept="application/json,.json" className="hidden" onChange={upload} />
       <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
