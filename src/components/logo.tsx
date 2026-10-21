@@ -11,7 +11,7 @@ export function Logo({ size = 36, className }: { size?: number; className?: stri
       alt="HireMe"
       width={size}
       height={size}
-      className={cn("rounded-md bg-white object-contain ring-1 ring-black/5", className)}
+      className={cn("object-contain", className)}
     />
   )
 }

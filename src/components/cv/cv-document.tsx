@@ -184,7 +184,7 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
 
       {/* Always at the bottom of every page, also on premium CVs */}
       <div className="absolute bottom-[5mm] left-1/2 flex -translate-x-1/2 items-center gap-2.5 text-[14pt] font-semibold" style={{ color: MUTED }}>
-        <Logo size={42} className="rounded-none ring-0" />
+        <Logo size={42} />
         <BrandName />
       </div>
 
