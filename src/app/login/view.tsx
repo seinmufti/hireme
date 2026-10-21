@@ -192,21 +192,26 @@ function BackupButtons() {
   }
 
   return (
-    <div dir="ltr" className="mb-5 flex flex-wrap justify-center gap-2 md:absolute md:top-5 md:right-8 md:mb-0">
-      <LanguageSwitcher wide />
-      <Button variant="outline" size="sm" onClick={() => setAsking({ kind: "reset" })}>
-        <RotateCcwIcon /> {t("login.resetDemo")}
-      </Button>
-      <Button variant="outline" size="sm" onClick={loadDemo}>
-        <DatabaseIcon /> {t("login.loadDemo")}
-      </Button>
-      <input ref={fileInput} type="file" accept="application/json,.json" className="hidden" onChange={upload} />
-      <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
-        <UploadIcon /> {t("login.uploadBackup")}
-      </Button>
-      <Button variant="outline" size="sm" onClick={downloadBackup}>
-        <DownloadIcon /> {t("login.demoDownload")}
-      </Button>
+    // Wide screens: language and demo data in the top left corner, backups in the top right, clear of the logo
+    <div dir="ltr" className="mb-5 flex flex-wrap justify-center gap-2 lg:absolute lg:inset-x-8 lg:top-5 lg:mb-0 lg:justify-between">
+      <div className="flex flex-wrap justify-center gap-2">
+        <LanguageSwitcher wide />
+        <Button variant="outline" size="sm" onClick={() => setAsking({ kind: "reset" })}>
+          <RotateCcwIcon /> {t("login.resetDemo")}
+        </Button>
+        <Button variant="outline" size="sm" onClick={loadDemo}>
+          <DatabaseIcon /> {t("login.loadDemo")}
+        </Button>
+      </div>
+      <div className="flex flex-wrap justify-center gap-2">
+        <input ref={fileInput} type="file" accept="application/json,.json" className="hidden" onChange={upload} />
+        <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
+          <UploadIcon /> {t("login.uploadBackup")}
+        </Button>
+        <Button variant="outline" size="sm" onClick={downloadBackup}>
+          <DownloadIcon /> {t("login.demoDownload")}
+        </Button>
+      </div>
 
       <Dialog open={asking !== null} onOpenChange={(open) => !open && setAsking(null)}>
         <DialogContent className="sm:max-w-sm">
