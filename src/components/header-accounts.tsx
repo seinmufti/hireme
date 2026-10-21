@@ -106,8 +106,9 @@ function MoreAccounts({
   )
 }
 
-// Demo login: every account, grouped by role, one click to sign in as them. Shown on the black Dev tools bar.
-export function HeaderAccounts() {
+// Demo login: every account, grouped by role, one click to sign in as them. Shown on the black Dev tools bar;
+// `stacked` (the phone panel) puts the roles in a grid instead of one row.
+export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPicked?: () => void }) {
   const t = useT()
   const router = useRouter()
   const users = useStore((s) => s.users)
@@ -134,7 +135,7 @@ export function HeaderAccounts() {
   }
 
   return (
-    <div className="flex items-center">
+    <div className={stacked ? "grid grid-cols-2 gap-x-3 gap-y-4" : "flex items-center"}>
       {ORDER.map((role, i) => {
         const all = users.filter((u) => u.role === role)
         // Only the account signed in to most recently is shown (the signed-in account, when it has this role);
@@ -149,8 +150,8 @@ export function HeaderAccounts() {
         const hidden = all.length - group.length
         return (
           <Fragment key={role}>
-            {i > 0 && <span className="mx-3 h-10 w-px bg-white/15" aria-hidden />}
-            <div className="flex flex-col items-center gap-1">
+            {i > 0 && !stacked && <span className="mx-3 h-10 w-px bg-white/15" aria-hidden />}
+            <div className={cn("flex flex-col gap-1", stacked ? "items-start" : "items-center")}>
               <span className="text-[10px] leading-none font-medium tracking-wide text-white/50 uppercase">
                 {t(`roles.${role}`)}
               </span>
@@ -170,6 +171,7 @@ export function HeaderAccounts() {
                               if (active) return
                               switchAccount(a.id)
                               router.push(destinationFor(a))
+                              onPicked?.()
                             }}
                             className={cn(
                               "flex items-center gap-1.5 rounded-full border py-0.5 pr-3 pl-0.5 text-sm whitespace-nowrap transition",
@@ -201,6 +203,7 @@ export function HeaderAccounts() {
                     onPick={(a) => {
                       switchAccount(a.id)
                       router.push(destinationFor(a))
+                      onPicked?.()
                     }}
                   />
                 )}

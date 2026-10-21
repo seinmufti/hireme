@@ -13,6 +13,52 @@ import { cn } from "@/lib/utils"
  * shortly after the pointer leaves. Clicking the wrench keeps it open (or lets it close).
  */
 export function DevTools({ user }: { user: User | null }) {
+  return (
+    <>
+      <PhoneDevTools user={user} />
+      <DesktopDevTools user={user} />
+    </>
+  )
+}
+
+/**
+ * Phones and tablets (no hover, no room for the long bar): a round wrench above the tab bar that opens
+ * a panel with the accounts in a grid and the Premium crown. Tapping outside, or picking an account, closes it.
+ */
+function PhoneDevTools({ user }: { user: User | null }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div dir="ltr" className="dark lg:hidden">
+      {open && <button type="button" aria-label="Close dev tools" className="fixed inset-0 z-50 cursor-default" onClick={() => setOpen(false)} />}
+      {open && (
+        <div className="fixed inset-x-2 bottom-[calc(8.25rem+env(safe-area-inset-bottom))] z-50 max-h-[60dvh] space-y-4 overflow-y-auto rounded-2xl bg-black p-4 text-white shadow-2xl ring-1 ring-white/10">
+          <HeaderAccounts stacked onPicked={() => setOpen(false)} />
+          {user?.role === "SEEKER" && (
+            <div className="flex items-center justify-between border-t border-white/15 pt-3">
+              <span className="text-xs font-medium tracking-wide text-white/50 uppercase">Premium</span>
+              <PremiumToggle user={user} />
+            </div>
+          )}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label="Dev tools"
+        className={cn(
+          "fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex size-11 -translate-x-1/2 items-center justify-center rounded-full bg-black text-white shadow-2xl ring-1 ring-white/10",
+          open && "bg-neutral-800"
+        )}
+      >
+        <WrenchIcon className="size-4" />
+      </button>
+    </div>
+  )
+}
+
+/** Laptops and desktops: the black oval described above. */
+function DesktopDevTools({ user }: { user: User | null }) {
   const [hovered, setHovered] = useState(false)
   const [pinned, setPinned] = useState(false)
   const root = useRef<HTMLDivElement>(null)
@@ -44,7 +90,7 @@ export function DevTools({ user }: { user: User | null }) {
         setHovered(true)
       }}
       onMouseLeave={closeSoon}
-      className="dark fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 max-w-[calc(100vw-1rem)] lg:bottom-[calc(1.25rem+env(safe-area-inset-bottom))] z-50 flex h-12 -translate-x-1/2 items-center rounded-full bg-black ps-1.5 pe-4 text-white shadow-2xl ring-1 ring-white/10"
+      className="dark fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-50 hidden h-12 lg:flex -translate-x-1/2 items-center rounded-full bg-black ps-1.5 pe-4 text-white shadow-2xl ring-1 ring-white/10"
     >
       <button
         type="button"
