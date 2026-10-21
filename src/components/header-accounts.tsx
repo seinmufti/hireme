@@ -55,7 +55,7 @@ function MoreAccounts({
         render={
           <button
             type="button"
-            className="rounded-full px-2 py-1 text-xs whitespace-nowrap text-white/60 hover:bg-white/10 hover:text-white"
+            className="rounded-full px-2 py-1 text-xs whitespace-nowrap text-white/80 hover:bg-white/15 hover:text-white"
           />
         }
       >
@@ -135,8 +135,8 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
   }
 
   return (
-    <div className={stacked ? "grid grid-cols-2 gap-x-3 gap-y-4" : "flex items-center"}>
-      {ORDER.map((role, i) => {
+    <div className={stacked ? "grid grid-cols-2 gap-2" : "flex items-center gap-2"}>
+      {ORDER.map((role) => {
         const all = users.filter((u) => u.role === role)
         // Only the account signed in to most recently is shown (the signed-in account, when it has this role);
         // the full list is under "more".
@@ -150,9 +150,12 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
         const hidden = all.length - group.length
         return (
           <Fragment key={role}>
-            {i > 0 && !stacked && <span className="mx-3 h-10 w-px bg-white/15" aria-hidden />}
-            <div className={cn("flex flex-col gap-1", stacked ? "items-start" : "items-center")}>
-              <span className="text-[10px] leading-none font-semibold tracking-wide uppercase" style={{ color: ROLE_COLOR[role].light }}>
+            {/* Each role's section filled with its colour */}
+            <div
+              className={cn("flex flex-col gap-1 rounded-xl px-2 py-1.5", stacked ? "items-start" : "items-center")}
+              style={{ backgroundColor: ROLE_COLOR[role].base }}
+            >
+              <span className="text-[10px] leading-none font-semibold tracking-wide text-white/80 uppercase">
                 {t(`roles.${role}`)}
               </span>
               <div className="flex items-center gap-1">
@@ -173,11 +176,9 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
                               router.push(destinationFor(a))
                               onPicked?.()
                             }}
-                            // Filled with the role's colour: solid for the signed-in account, see-through for the rest
-                            style={{ backgroundColor: active ? ROLE_COLOR[role].base : `${ROLE_COLOR[role].base}66` }}
                             className={cn(
-                              "flex items-center gap-1.5 rounded-full border py-0.5 pr-3 pl-0.5 text-sm whitespace-nowrap text-white transition hover:brightness-125",
-                              active ? "border-white/70 font-medium" : "border-transparent"
+                              "flex items-center gap-1.5 rounded-full border py-0.5 pr-3 pl-0.5 text-sm whitespace-nowrap text-white transition",
+                              active ? "border-white/70 bg-white/25 font-medium" : "border-transparent hover:bg-white/15"
                             )}
                           />
                         }
