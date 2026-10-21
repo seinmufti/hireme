@@ -754,7 +754,9 @@ function Contents({ editing }: { editing: boolean }) {
         const el = document.getElementById(editing ? `edit-${s}` : `cv-${s}`)
         if (el && el.getBoundingClientRect().top < 140) seen = s
       }
-      setCurrent(seen)
+      // At the very bottom the last sections can't reach the top: the last one counts as in view
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4
+      setCurrent(atBottom ? CONTENTS[CONTENTS.length - 1] : seen)
     }
     update()
     window.addEventListener("scroll", update, { passive: true })
@@ -769,7 +771,10 @@ function Contents({ editing }: { editing: boolean }) {
           <li key={s}>
             <button
               type="button"
-              onClick={() => document.getElementById(idOf(s))?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              onClick={() => {
+                document.getElementById(idOf(s))?.scrollIntoView({ behavior: "smooth", block: "start" })
+                setCurrent(s)
+              }}
               className={cn(
                 "-ms-px block w-full border-s-2 px-3 py-1 text-start text-sm transition-colors",
                 current === s ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
