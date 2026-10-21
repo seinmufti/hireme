@@ -64,7 +64,7 @@ export function InboxShell({ children }: { children: React.ReactNode }) {
             ? t("inbox.employerEmpty")
             : t("inbox.seekerEmpty")
         }
-        emptyAction={user.role === "EMPLOYER" ? { href: "/pool", label: t("nav.pool") } : { href: "/profile", label: t("nav.cvPreview") }}
+        emptyAction={user.role === "EMPLOYER" ? { href: "/pool", label: t("nav.pool") } : { href: "/jobs", label: t("nav.jobs") }}
       />
       <div className={cn("min-h-0 flex-col lg:flex lg:border-s", inThread ? "flex" : "hidden")}>{children}</div>
     </div>
