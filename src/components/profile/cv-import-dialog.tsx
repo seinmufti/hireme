@@ -27,12 +27,44 @@ type Step = { kind: "pick" } | { kind: "reading"; fileName: string; estimateMs: 
  * How long reading a CV usually takes, from the file alone (the AI doesn't report its progress):
  * plain text is quickest, PDFs take longer the bigger they are, photos are read as images.
  */
-function estimateReadingMs(file: File) {
+type FileKind = "pdf" | "image" | "docx" | "text"
+const kindOf = (file: File): FileKind => {
   const name = file.name.toLowerCase()
-  if (file.type.startsWith("image/")) return 35_000
-  if (name.endsWith(".pdf")) return Math.min(75_000, 25_000 + (file.size / 50_000) * 3_000)
-  if (name.endsWith(".docx")) return 25_000
-  return 15_000
+  if (file.type.startsWith("image/")) return "image"
+  if (name.endsWith(".pdf")) return "pdf"
+  if (name.endsWith(".docx")) return "docx"
+  return "text"
+}
+
+// Starting guesses; after a few imports the real times on this browser take over (see rememberReadingMs)
+const DEFAULT_MS: Record<FileKind, number> = { pdf: 15_000, image: 20_000, docx: 12_000, text: 8_000 }
+const TIMES_KEY = "hireme-cv-import-times"
+
+const readTimes = (): Partial<Record<FileKind, number[]>> => {
+  try {
+    return JSON.parse(localStorage.getItem(TIMES_KEY) ?? "{}")
+  } catch {
+    return {}
+  }
+}
+
+/** How long reading this file will likely take: the average of the last imports of its kind, or the guess. */
+function estimateReadingMs(file: File) {
+  const kind = kindOf(file)
+  const past = readTimes()[kind] ?? []
+  const base = past.length ? past.reduce((a, b) => a + b, 0) / past.length : DEFAULT_MS[kind]
+  // Long PDFs take a little longer
+  return kind === "pdf" ? base + Math.min(20_000, (file.size / 200_000) * 1_000) : base
+}
+
+/** Keeps the last 5 real reading times per kind of file, so the countdown matches this connection. */
+function rememberReadingMs(file: File, ms: number) {
+  try {
+    const all = readTimes()
+    const kind = kindOf(file)
+    all[kind] = [...(all[kind] ?? []), ms].slice(-5)
+    localStorage.setItem(TIMES_KEY, JSON.stringify(all))
+  } catch {}
 }
 
 /** The steps shown while a CV is read, from the share of the estimated time that has passed. */
@@ -170,9 +202,11 @@ export function CvImportButton<P extends object, T extends object>({
       const file = await shrinkImage(picked)
       const body = new FormData()
       body.append("file", file)
+      const started = Date.now()
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/cv-import`, { method: "POST", body })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.cv) throw new Error(data?.error ?? t("cvImport.failed"))
+      rememberReadingMs(picked, Date.now() - started)
       const cv = data.cv as CvImport
       const conflicts = findConflicts(profile as Record<string, unknown>, portfolio as Record<string, unknown>, cv)
       if (conflicts.length) {
