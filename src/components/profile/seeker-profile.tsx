@@ -537,13 +537,8 @@ function PortfolioForm({
 
   return (
     <form onSubmit={save} className="space-y-4">
-      {/* CV strength as it's being filled in; the next thing to add scrolls to its section */}
-      <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-card px-5 py-4">
-        <CvStrengthBar
-          user={contact}
-          talent={portfolio}
-          className="min-w-48 flex-1"
-        />
+      {/* Import from a CV file, in its own section above the bars */}
+      <div className="flex justify-center rounded-xl border bg-card px-5 py-4">
         <CvImportButton
           profile={contact}
           portfolio={portfolio}
@@ -553,6 +548,10 @@ function PortfolioForm({
             setToCheck(paths)
           }}
         />
+      </div>
+      {/* CV completeness and strength as it's being filled in */}
+      <div className="rounded-xl border bg-card px-5 py-4">
+        <CvStrengthBar user={contact} talent={portfolio} />
       </div>
       <section id="edit-personal" className={sectionClass("personal")}>
         {heading("personal")}
