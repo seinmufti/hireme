@@ -22,6 +22,8 @@ export function BottomNav({ links }: { links: NavLink[] }) {
             href={l.href}
             // The whole page loads in the background, so switching tabs is instant
             prefetch
+            // Already on this tab: back to the top of the page
+            onClick={() => active && window.scrollTo({ top: 0, behavior: "smooth" })}
             className={cn(
               "relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
               active ? "text-primary" : "text-muted-foreground hover:text-foreground"

@@ -26,6 +26,8 @@ export function NavLinks({ links }: { links: NavLink[] }) {
             href={l.href}
             // The whole page loads in the background, so switching tabs is instant
             prefetch
+            // Already on this tab: back to the top of the page
+            onClick={() => active && window.scrollTo({ top: 0, behavior: "smooth" })}
             className={cn(
               "flex items-center gap-2 border-b-2 px-3 whitespace-nowrap text-sm font-medium transition-colors",
               active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
