@@ -165,6 +165,9 @@ async function makeUser(label, meta) {
     const tries = []
     for (let i = 0; i < 3; i++) tries.push((await A.client.rpc("take_ai_credit", { kind: `test-${tag}`, daily_limit: 2 })).data)
     check("AI features stop at the daily limit", tries.join(",") === "true,true,false", tries.join(","))
+    const imports = []
+    for (let i = 0; i < 4; i++) imports.push((await A.client.rpc("take_ai_credit_total", { kind: `cv-${tag}`, total_limit: 3 })).data)
+    check("CV import stops after 3 for the account", imports.join(",") === "true,true,true,false", imports.join(","))
   } catch (e) {
     results.push("ERROR  " + e.message)
   } finally {

@@ -43,11 +43,11 @@ async function toContent(file: File): Promise<Anthropic.Beta.BetaContentBlockPar
 }
 
 export async function POST(request: Request) {
-  // Real version: only signed-in people, up to a daily limit (each request costs money)
+  // Real version: only signed-in people, 3 imports per account (each request costs money)
   if (!IS_DEMO) {
-    const access = await aiAccess("cv-import", 10)
+    const access = await aiAccess("cv-import", { total: 3 })
     if (access === "signedOut") return fail(401, "Please sign in first.")
-    if (access === "limit") return fail(429, "You've reached today's limit for CV imports. Please try again tomorrow.")
+    if (access === "limit") return fail(429, "You've used all 3 CV imports for your account. You can still edit your CV by hand.")
   }
   const form = await request.formData().catch(() => null)
   const file = form?.get("file")

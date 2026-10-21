@@ -21,7 +21,7 @@ const fail = (status: number, error: string) => Response.json({ error }, { statu
 export async function POST(request: Request) {
   // Real version: only signed-in people, up to a daily limit (each request costs money)
   if (!IS_DEMO) {
-    const access = await aiAccess("refine-job", 30)
+    const access = await aiAccess("refine-job", { perDay: 30 })
     if (access === "signedOut") return fail(401, "Please sign in first.")
     if (access === "limit") return fail(429, "You've reached today's limit for this. Please try again tomorrow.")
   }
