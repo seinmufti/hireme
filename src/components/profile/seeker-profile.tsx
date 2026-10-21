@@ -8,6 +8,7 @@ import {
   CircleAlertIcon,
   CircleCheckIcon,
   EyeIcon,
+  LoaderCircleIcon,
   GlobeIcon,
   HomeIcon,
   LinkIcon,
@@ -30,7 +31,7 @@ import { stillMissing } from "@/lib/cv-import"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { deleteFile } from "@/lib/files"
+import { deleteFile, saveUpload } from "@/lib/files"
 import { ageFrom, formatDuration, formatMonthYear, projectDuration, totalMonths } from "@/lib/format"
 import { countryName, HARD_SKILLS, SOFT_SKILLS } from "@/lib/options"
 import { useT } from "@/i18n/provider"
@@ -89,7 +90,7 @@ export function SeekerProfile({ user }: { user: User }) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-center gap-5">
-        <ProfilePhoto photoId={user.photoId} name={user.name} color={user.avatarColor} size={72} />
+        <PhotoWithPencil user={user} />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-2xl font-semibold tracking-tight">{user.name}</h1>
           {user.title ? (
@@ -125,6 +126,7 @@ export function SeekerProfile({ user }: { user: User }) {
           <CvStrengthBar
             user={user}
             talent={talent}
+            skip={["photo"]}
             onFix={(target) => {
               setJumpTo(target)
               setEditing(true)
@@ -663,5 +665,52 @@ function PortfolioForm({
         </Button>
       </div>
     </form>
+  )
+}
+
+/** The photo at the top of the CV page, with a pencil at its bottom corner that picks a new photo and saves it right away. */
+function PhotoWithPencil({ user }: { user: User }) {
+  const t = useT()
+  const updateProfile = useStore((s) => s.updateProfile)
+  const input = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+
+  const pick = async (file: File) => {
+    setBusy(true)
+    const res = await saveUpload(file, { imagesOnly: true, maxSide: 600 })
+    setBusy(false)
+    if (!res.ok) return toast.error(res.error)
+    const { name, title, company, email, phone, city, linkedin, bio, country, address } = user
+    const saved = updateProfile({ name, title, company, email, phone, city, linkedin, bio, country, address, photoId: res.id })
+    if (!saved.ok) return toast.error(saved.error)
+    // The old photo isn't needed any more
+    if (user.photoId) deleteFile(user.photoId).catch(() => {})
+  }
+
+  return (
+    <div className="relative shrink-0">
+      <ProfilePhoto photoId={user.photoId} name={user.name} color={user.avatarColor} size={72} />
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ""
+          if (file) pick(file)
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => input.current?.click()}
+        disabled={busy}
+        aria-label={user.photoId ? t("form.changePhoto") : t("form.addPhoto")}
+        title={user.photoId ? t("form.changePhoto") : t("form.addPhoto")}
+        className="absolute -end-0.5 -bottom-0.5 flex size-7 items-center justify-center rounded-full border bg-card text-foreground shadow-sm transition hover:bg-muted"
+      >
+        {busy ? <LoaderCircleIcon className="size-3.5 animate-spin" /> : <PencilIcon className="size-3.5" />}
+      </button>
+    </div>
   )
 }

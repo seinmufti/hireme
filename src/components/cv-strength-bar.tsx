@@ -1,7 +1,7 @@
 "use client"
 
 import { useT } from "@/i18n/provider"
-import { cvStrength, type StrengthTarget } from "@/lib/cv-strength"
+import { cvStrength, type StrengthCheck, type StrengthTarget } from "@/lib/cv-strength"
 import type { TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -13,15 +13,18 @@ export function CvStrengthBar({
   user,
   talent,
   onFix,
+  skip,
   className,
 }: {
   user: Pick<User, "photoId" | "title" | "phone" | "email" | "city">
   talent: TalentInput | null
   onFix: (target: StrengthTarget) => void
+  /** Not suggested here (e.g. the photo, which has its own pencil on the CV page) */
+  skip?: StrengthCheck[]
   className?: string
 }) {
   const t = useT()
-  const strength = cvStrength(user, talent)
+  const strength = cvStrength(user, talent, skip)
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between text-sm">

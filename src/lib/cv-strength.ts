@@ -21,7 +21,8 @@ export type StrengthCheck =
 
 export type StrengthTarget = ListingSection | "profession"
 
-export function cvStrength(user: Pick<User, "photoId" | "title" | "phone" | "email" | "city">, p: TalentInput | null) {
+/** `skip`: checks not to suggest as the next step (they still count towards the percentage). */
+export function cvStrength(user: Pick<User, "photoId" | "title" | "phone" | "email" | "city">, p: TalentInput | null, skip: StrengthCheck[] = []) {
   const checks: { key: StrengthCheck; target: StrengthTarget; done: boolean }[] = [
     { key: "profession", target: "profession", done: !!user.title.trim() },
     { key: "contact", target: "personal", done: !!user.phone && !!user.email },
@@ -38,5 +39,5 @@ export function cvStrength(user: Pick<User, "photoId" | "title" | "phone" | "ema
     { key: "projects", target: "projects", done: !!p?.projects?.length },
   ]
   const done = checks.filter((c) => c.done).length
-  return { percent: Math.round((done / checks.length) * 100), next: checks.find((c) => !c.done) ?? null }
+  return { percent: Math.round((done / checks.length) * 100), next: checks.find((c) => !c.done && !skip.includes(c.key)) ?? null }
 }
