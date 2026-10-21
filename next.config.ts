@@ -22,7 +22,8 @@ const SEGMENT = BASE_PATH.slice(1).replace("/", "\\/")
 const DEMO_ORIGIN = process.env.HIREME_DEMO_ORIGIN ?? (process.env.VERCEL ? "https://hireme-demo.vercel.app" : "http://localhost:3002")
 
 const nextConfig: NextConfig = {
-  distDir: isTestServer ? ".next-test" : isDemo ? ".next-demo" : ".next",
+  // Separate build folders so the copies can run side by side locally; Vercel always expects .next
+  distDir: process.env.VERCEL ? ".next" : isTestServer ? ".next-test" : isDemo ? ".next-demo" : ".next",
   basePath: BASE_PATH,
   // Lets client code prefix the few URLs Next.js doesn't (fetch, history.replaceState)
   env: { NEXT_PUBLIC_BASE_PATH: BASE_PATH },
