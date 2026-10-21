@@ -6,6 +6,6 @@ import { spawn } from "node:child_process"
 const child = spawn("npx", ["next", "dev", "-p", "3001"], {
   stdio: "inherit",
   shell: true,
-  env: { ...process.env, HIREME_TEST_SERVER: "1" },
+  env: { ...process.env, HIREME_TEST_SERVER: "1", NEXT_PUBLIC_HIREME_MODE: "demo" },
 })
 child.on("exit", (code) => process.exit(code ?? 0))

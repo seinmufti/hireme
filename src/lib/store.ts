@@ -11,6 +11,7 @@ import { rememberLogin } from "@/lib/recent-accounts"
 import { replaceAllOnce, safeStorage, setOnRestored } from "@/lib/safe-storage"
 import { ageFrom, PHONE_PATTERN } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE, professionFrom, withTalentDefaults, withUserDefaults, type LegacyTalent, type LegacyUser } from "@/lib/normalize"
+import { IS_DEMO } from "@/lib/mode"
 import { AVATAR_COLORS, type Role } from "@/lib/options"
 import type { Application, Conversation, Degree, Follow, Job, JobInput, Message, Notification, ProfileInput, Result, Saved, Talent, TalentInput, User } from "@/lib/types"
 
@@ -29,7 +30,7 @@ export type NewAccountInput = {
   dateOfBirth?: string
 }
 
-type Data = {
+export type Data = {
   users: User[]
   talents: Talent[]
   conversations: Conversation[]
@@ -72,6 +73,10 @@ type Actions = {
  * companies and generated job seekers aren't part of it.
  */
 const initialData = (): Data => {
+  // The real version starts empty; its data comes from the database once signed in (lib/real-sync.ts)
+  if (!IS_DEMO) {
+    return { users: [], talents: [], conversations: [], messages: [], jobs: [], notifications: [], applications: [], savedJobs: [], savedTalents: [], follows: [], currentUserId: null }
+  }
   const users = CORE_USERS
   const ids = new Set(users.map((u) => u.id))
   const jobs = DEMO_JOBS.filter((j) => ids.has(j.employerId))
@@ -128,6 +133,8 @@ const uniqueSkills = (list: string[]) => {
   const seen = new Set<string>()
   return list.map((s) => s.trim()).filter((s) => s && !seen.has(s.toLowerCase()) && seen.add(s.toLowerCase()))
 }
+
+const NO_STORAGE = { getItem: () => null, setItem: () => {}, removeItem: () => {} }
 
 export const useStore = create<Data & Actions>()(
   persist(
@@ -513,7 +520,9 @@ export const useStore = create<Data & Actions>()(
         if (version < 17) data = withSalaries(data)
         return data
       },
-      storage: createJSONStorage(() => safeStorage),
+      // The demo saves to this browser; the real version saves nothing here (others' data mustn't stay on a
+      // shared computer after signing out): the database is the store (lib/real-sync.ts)
+      storage: createJSONStorage(() => (IS_DEMO ? safeStorage : NO_STORAGE)),
       partialize: ({ users, talents, conversations, messages, jobs, notifications, applications, savedJobs, savedTalents, follows, currentUserId }) => ({
         users,
         talents,
@@ -845,7 +854,9 @@ if (typeof window !== "undefined") {
   setOnRestored(() => useStore.persist.rehydrate())
   useStore.persist.rehydrate()
   // Keep open tabs in sync: when another tab saves, load that instead of overwriting it later.
-  window.addEventListener("storage", (e) => {
-    if (e.key === "hireme-demo") useStore.persist.rehydrate()
-  })
+  if (IS_DEMO) {
+    window.addEventListener("storage", (e) => {
+      if (e.key === "hireme-demo") useStore.persist.rehydrate()
+    })
+  }
 }

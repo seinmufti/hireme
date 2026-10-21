@@ -1,10 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { IS_DEMO } from "@/lib/mode"
+import { supabase } from "@/lib/supabase/client"
 
-// Uploaded files (profile photos, scans of degrees, licenses, certificates) are kept in this browser's
-// IndexedDB, which holds far more than localStorage. The app data only stores their ids.
-// Like the rest of the demo data, they never leave the visitor's browser.
+// Uploaded files (profile photos, scans of degrees, licenses, certificates). The app data only stores their ids.
+// - Demo: kept in this browser's IndexedDB (holds far more than localStorage); they never leave the browser.
+// - Real: in Supabase storage, at files/<user id>/<random>/<file name> (that path is the id); only the
+//   owner can upload or delete, signed-in users can open them (employers see CV photos and certificates).
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 export const UPLOAD_ACCEPT = "image/*,application/pdf"
@@ -70,6 +73,7 @@ export async function saveUpload(file: File, opts: { imagesOnly?: boolean; maxSi
   try {
     const blob = await shrinkImage(file, opts.maxSide)
     const name = blob === file ? file.name : file.name.replace(/\.\w+$/, "") + ".jpg"
+    if (!IS_DEMO) return await uploadToStorage(blob, name, blob.type || file.type)
     const id = `f-${crypto.randomUUID()}`
     await run("readwrite", (s) => s.put({ id, name, type: blob.type || file.type, blob, createdAt: new Date().toISOString() } satisfies StoredFile))
     notify()
@@ -79,11 +83,45 @@ export async function saveUpload(file: File, opts: { imagesOnly?: boolean; maxSi
   }
 }
 
-export const getFile = async (id: string) => ((await run("readonly", (s) => s.get(id))) as StoredFile | undefined) ?? null
+export const getFile = async (id: string) =>
+  IS_DEMO ? (((await run("readonly", (s) => s.get(id))) as StoredFile | undefined) ?? null) : downloadFromStorage(id)
 
 export async function deleteFile(id: string) {
-  await run("readwrite", (s) => s.delete(id))
+  if (IS_DEMO) await run("readwrite", (s) => s.delete(id))
+  else await supabase()?.storage.from(BUCKET).remove([id])
   notify()
+}
+
+// ─── Real version: Supabase storage ──────────────────────────────────────────
+
+const BUCKET = "files"
+// Files already downloaded this visit
+const downloaded = new Map<string, Promise<StoredFile | null>>()
+
+async function uploadToStorage(blob: Blob, name: string, type: string) {
+  const db = supabase()
+  const user = (await db?.auth.getUser())?.data.user
+  if (!db || !user) return { ok: false as const, error: "Please sign in to upload files." }
+  const safe = name.replace(/[^\w.\- ]+/g, "_").slice(-80) || "file"
+  const id = `${user.id}/${crypto.randomUUID()}/${safe}`
+  const { error } = await db.storage.from(BUCKET).upload(id, blob, { contentType: type, upsert: false })
+  if (error) return { ok: false as const, error: "The file couldn't be uploaded. Please try again." }
+  notify()
+  return { ok: true as const, id }
+}
+
+function downloadFromStorage(id: string) {
+  if (!downloaded.has(id)) {
+    downloaded.set(
+      id,
+      (async () => {
+        const res = await supabase()?.storage.from(BUCKET).download(id)
+        if (!res || res.error || !res.data) return null
+        return { id, name: id.split("/").pop() ?? "file", type: res.data.type, blob: res.data, createdAt: "" }
+      })()
+    )
+  }
+  return downloaded.get(id)!
 }
 
 /** Saves a file as-is under a known id (used when restoring a backup). */
