@@ -17,11 +17,10 @@ export function ActionsPanel() {
 
   return (
     <aside className="space-y-4">
-      <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("home.actions")}</h2>
 
       {/* Filled with the brand red */}
       <section className="rounded-xl p-1.5 text-white" style={{ backgroundColor: BRAND_RED }}>
-        <h3 className="px-2.5 pt-2 pb-1 text-sm font-semibold">{t("home.quickActions")}</h3>
+        <h3 className="px-2.5 pt-2 pb-1 text-sm font-semibold">{t("home.actions")}</h3>
         <ul>
           {actions.map((a) => (
             <li key={a.href}>
