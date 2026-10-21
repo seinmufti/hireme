@@ -128,10 +128,6 @@ export function SeekerProfile({ user }: { user: User }) {
             user={user}
             talent={talent}
             skipPhoto
-            onFix={(target) => {
-              setJumpTo(target)
-              setEditing(true)
-            }}
           />
         </div>
       )}
@@ -546,12 +542,6 @@ function PortfolioForm({
         <CvStrengthBar
           user={contact}
           talent={portfolio}
-          onFix={(target) => {
-            // A section, or the profession box itself (which also gets the cursor)
-            const el = document.getElementById(`edit-${target}`)
-            el?.scrollIntoView({ behavior: "smooth", block: target === "profession" ? "center" : "start" })
-            if (el instanceof HTMLInputElement) el.focus({ preventScroll: true })
-          }}
           className="min-w-48 flex-1"
         />
         <CvImportButton

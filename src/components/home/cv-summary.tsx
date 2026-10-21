@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { CircleAlertIcon, CircleCheckIcon, EyeIcon } from "lucide-react"
 import { CvStrengthBar } from "@/components/cv-strength-bar"
 import { UserAvatar } from "@/components/user-avatar"
@@ -20,7 +19,6 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
     ? { icon: CircleAlertIcon, text: t("home.cvIncomplete"), className: "border-amber-300 bg-amber-50 text-amber-900" }
     : { icon: CircleCheckIcon, text: t("home.cvComplete"), className: "border-emerald-300 bg-emerald-50 text-emerald-900" }
   const latest = talent?.experiences[0]
-  const router = useRouter()
   const skills = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   return (
@@ -58,7 +56,7 @@ export function CvSummary({ user, talent }: { user: HomeUser; talent: HomeTalent
       )}
 
       {/* CV strength: how complete the CV is, and the next thing to add */}
-      <CvStrengthBar user={user} talent={talent} onFix={(target) => router.push(editCvAt(target))} className="mx-5 mt-3" />
+      <CvStrengthBar user={user} talent={talent} className="mx-5 mt-3" />
 
       {talent?.summary ? (
         <p className="px-5 pt-4 text-sm leading-relaxed whitespace-pre-line">{talent.summary}</p>
