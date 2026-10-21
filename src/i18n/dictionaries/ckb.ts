@@ -420,7 +420,7 @@ const ckb: DeepPartial<Messages> = {
     phone: "تەلەفۆن",
   },
   seeker: {
-    contents: "ناوەڕۆک",
+    contents: "بەشەکان",
     sections: {
       personal: "زانیاری کەسی و پەیوەندی",
       about: "پرۆفایل",

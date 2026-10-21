@@ -420,7 +420,7 @@ const ar: DeepPartial<Messages> = {
     phone: "الهاتف",
   },
   seeker: {
-    contents: "المحتويات",
+    contents: "الأقسام",
     sections: {
       personal: "البيانات الشخصية والتواصل",
       about: "الملف الشخصي",

@@ -421,7 +421,7 @@ const en = {
     phone: "Phone",
   },
   seeker: {
-    contents: "Contents",
+    contents: "Categories",
     sections: {
       personal: "Personal details & contact",
       about: "Profile",
