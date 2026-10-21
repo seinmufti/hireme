@@ -137,7 +137,7 @@ enabled = true
 # This feature is only available on the hosted platform.
 [storage.analytics]
 enabled = true
-max_namespaces = 5
+max_namespaces = 10
 max_tables = 10
 max_catalogs = 2
 
