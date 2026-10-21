@@ -20,7 +20,8 @@ type Group = { title: string; items: Item[] }
 
 /** Pages and CV sections, with extra words they can be found by (any language's label also works). */
 const PLACES: { key: MessageKey; href: string; words: string; roles?: Role[] }[] = [
-  { key: "nav.home", href: "/home", words: "home dashboard overview", roles: ["SEEKER"] },
+  { key: "nav.home", href: "/home", words: "home dashboard matching jobs", roles: ["SEEKER"] },
+  { key: "nav.profile", href: "/overview", words: "profile overview stats actions cv strength", roles: ["SEEKER"] },
   { key: "nav.inbox", href: "/inbox", words: "inbox messages chat conversations", roles: ["SEEKER", "EMPLOYER"] },
   { key: "nav.jobs", href: "/jobs", words: "jobs vacancies openings work listings", roles: ["SEEKER", "RECRUITER", "GUEST"] },
   { key: "nav.companies", href: "/companies", words: "companies employers businesses contact", roles: ["RECRUITER"] },

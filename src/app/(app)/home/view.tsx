@@ -1,40 +1,69 @@
 "use client"
 
-import { ActionsPanel } from "@/components/home/actions-panel"
-import { CvSummary } from "@/components/home/cv-summary"
-import type { HomeTalent, HomeUser } from "@/components/home/home-data"
-import { OverallPanel } from "@/components/home/overall-panel"
-import { NotificationList } from "@/components/notifications/notification-list"
-import { useI18n } from "@/i18n/provider"
+import { useMemo } from "react"
+import Link from "next/link"
+import { ArrowRightIcon, TargetIcon } from "lucide-react"
+import { JobCard } from "@/components/jobs/job-card"
+import { buttonVariants } from "@/components/ui/button"
+import { useT } from "@/i18n/provider"
+import { matchCount, matchingJobs } from "@/lib/matching"
 import { useStore } from "@/lib/store"
+import { useMyTalent } from "@/lib/use-my-talent"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
-// A job seeker's Home: Overall on the left, their CV and notifications in the middle, Actions on the right.
+// How many matching jobs Home shows; the rest are on the Jobs tab
+const SHOWN = 6
+
+// A job seeker's Home: a dashboard, starting with the jobs that match their CV. More panels come later.
 export function HomeView() {
-  const { dir } = useI18n()
-  const user = useRoleGuard(["SEEKER"]) as HomeUser | null
-  const talent = useStore((s) => (user ? s.talents.find((x) => x.userId === user.id) : undefined)) as HomeTalent | undefined
+  const t = useT()
+  const user = useRoleGuard(["SEEKER"])
+  const talent = useMyTalent()
+  const jobs = useStore((s) => s.jobs)
+  const applications = useStore((s) => s.applications)
+  const matches = useMemo(() => (talent ? matchingJobs(talent, jobs) : []), [talent, jobs])
+  const applied = useMemo(
+    () => new Map(applications.filter((a) => a.seekerId === user?.id).map((a) => [a.jobId, a.status])),
+    [applications, user?.id]
+  )
   if (!user) return null
+
+  const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   return (
     <div className="space-y-6">
-      {/* The panels keep their physical sides in every language (stats left, actions right); text inside follows the language */}
-      <div dir="ltr" className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[13rem_minmax(0,1fr)_16rem] xl:grid-cols-[15rem_minmax(0,1fr)_18rem]">
-        {/* Phones and tablets: one column, your CV first, then the stats, then the actions */}
-        <div dir={dir} className="order-2 lg:sticky lg:top-20 lg:order-none">
-          <OverallPanel user={user} talent={talent ?? null} />
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">{t("home.matchingJobs")}</h1>
+            {matches.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                {matches.length === 1 ? t("home.matchingOne") : t("home.matchingCount", { count: matches.length })}
+              </p>
+            )}
+          </div>
+          {matches.length > SHOWN && (
+            <Link href="/jobs" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              {t("home.seeAll")} <ArrowRightIcon className="rtl:rotate-180" />
+            </Link>
+          )}
         </div>
-        <div dir={dir} className="order-1 min-w-0 space-y-6 lg:order-none">
-          <CvSummary user={user} talent={talent ?? null} />
-          {/* New jobs that match the job seeker (the same list as the bell in the header) */}
-          <section className="overflow-hidden rounded-xl border bg-card">
-            <NotificationList section className="max-h-[32rem]" />
-          </section>
-        </div>
-        <div dir={dir} className="order-3 lg:sticky lg:top-20 lg:order-none">
-          <ActionsPanel />
-        </div>
-      </div>
+        {matches.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-xl border bg-card px-6 py-10 text-center text-muted-foreground">
+            <TargetIcon className="size-6" />
+            <p className="max-w-md text-sm">{t("home.noJobs")}</p>
+            <Link href="/profile" className={buttonVariants({ size: "sm" })}>
+              {t("jobs.editProfile")}
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {matches.slice(0, SHOWN).map((m) => (
+              <JobCard key={m.job.id} job={m.job} matches={matchCount(m)} isMatch have={have} applied={applied.get(m.job.id)} canApply canSave />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }

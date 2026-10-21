@@ -31,6 +31,8 @@ function Shell({ children }: { children: React.ReactNode }) {
   const role = user?.role
 
   const home = { href: "/home", label: t("nav.home"), icon: HomeIcon }
+  // What used to be Home: the CV at a glance, stats, notifications and actions
+  const overview = { href: "/overview", label: t("nav.profile"), icon: UserIcon }
   const jobs = { href: "/jobs", label: t("nav.jobs"), icon: BriefcaseIcon }
   // Employers don't search jobs; their Jobs tab is their own posts
   const myJobs = { href: "/jobs/mine", label: t("nav.jobs"), icon: BriefcaseIcon }
@@ -48,7 +50,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, cv, jobs, applications]
+          ? [home, overview, cv, jobs, applications]
           : role === "GUEST"
             ? [jobs]
             : []
