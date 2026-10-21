@@ -11,7 +11,7 @@ export function ActionsPanel() {
 
   const actions = [
     // Edit CV is only here on Home
-    { href: "/profile?edit=1", icon: PencilIcon, label: t("home.editCv") },
+    { href: "/profile?edit=1", icon: PencilIcon, label: t("common.edit") },
     { href: "/profile/cv", icon: FileTextIcon, label: t("home.previewCv") },
   ]
 
