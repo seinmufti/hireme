@@ -21,8 +21,10 @@ import { cn } from "@/lib/utils"
 
 type Mode = "signIn" | "signUp" | "forgot"
 
-/** Where Supabase sends people back to after confirming their email, Google, or a password reset link. */
+/** Where Google sends people back to. */
 const callback = (next = "/login") => `${window.location.origin}${BASE_PATH}/auth/callback?next=${encodeURIComponent(next)}`
+/** Where the links in HireMe's emails go (confirm your account, reset your password): the email adds its token. */
+const emailLink = (next = "/login") => `${window.location.origin}${BASE_PATH}/auth/confirm?next=${encodeURIComponent(next)}`
 
 /** Real version: sign in, create an account (job seeker or employer), forgot password, or Google. */
 export function RealLoginView() {
@@ -57,7 +59,7 @@ export function RealLoginView() {
           email: form.email.trim(),
           password: form.password,
           options: {
-            emailRedirectTo: callback(),
+            emailRedirectTo: emailLink(),
             data: { name: form.name.trim(), role: form.role, company: form.company.trim(), title: form.title.trim() },
           },
         })
@@ -65,7 +67,7 @@ export function RealLoginView() {
         // With email confirmation on, there's no session until they click the link
         else if (!data.session) toast.success(t("auth.checkEmail"), { duration: 10000 })
       } else {
-        await db.auth.resetPasswordForEmail(form.email.trim(), { redirectTo: callback("/reset-password") })
+        await db.auth.resetPasswordForEmail(form.email.trim(), { redirectTo: emailLink("/reset-password") })
         toast.success(t("auth.linkSent"), { duration: 10000 })
         setMode("signIn")
       }

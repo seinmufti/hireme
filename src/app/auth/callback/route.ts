@@ -1,5 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server"
-import { serverSupabase } from "@/lib/supabase/server"
+import type { NextRequest } from "next/server"
+import { goTo, serverSupabase } from "@/lib/supabase/server"
 
 // Real version: Supabase sends people here after confirming their email, signing in with Google, or
 // opening a password reset link. The code in the link becomes their session; then on to `next`
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const db = await serverSupabase()
   if (db && code) {
     const { error } = await db.auth.exchangeCodeForSession(code)
-    if (!error) return NextResponse.redirect(new URL(`${base}${safeNext}`, url.origin))
+    if (!error) return goTo(`${base}${safeNext}`)
   }
-  return NextResponse.redirect(new URL(`${base}/login?error=link`, url.origin))
+  return goTo(`${base}/login?error=link`)
 }

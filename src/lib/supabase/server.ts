@@ -3,6 +3,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import { BACKEND_READY, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/mode"
 
+/**
+ * Redirects to a path on the same site. Relative on purpose: behind nordlyssolutions.com's proxy the request
+ * arrives at the Vercel address, and an absolute redirect would send people there instead.
+ */
+export function goTo(path: string) {
+  return new Response(null, { status: 303, headers: { Location: path } })
+}
+
 /** Supabase as the signed-in visitor (their cookies), for route handlers and server pages. Null when not set up. */
 export async function serverSupabase(): Promise<SupabaseClient | null> {
   if (!BACKEND_READY) return null
