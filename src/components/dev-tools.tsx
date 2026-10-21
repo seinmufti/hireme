@@ -90,7 +90,7 @@ function DesktopDevTools({ user }: { user: User | null }) {
         setHovered(true)
       }}
       onMouseLeave={closeSoon}
-      className="dark fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-50 hidden h-12 lg:flex -translate-x-1/2 items-center rounded-full bg-black ps-1.5 pe-4 text-white shadow-2xl ring-1 ring-white/10"
+      className="dark fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-50 hidden h-14 lg:flex -translate-x-1/2 items-center rounded-full bg-black ps-1.5 pe-4 text-white shadow-2xl ring-1 ring-white/10"
     >
       <button
         type="button"

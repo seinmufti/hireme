@@ -152,7 +152,8 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
           <Fragment key={role}>
             {/* Each role's section filled with its colour */}
             <div
-              className={cn("flex flex-col gap-1 rounded-xl px-2 py-1.5", stacked ? "items-start" : "items-center")}
+              // In the bar: compact, so the sections fit inside it
+              className={cn("flex flex-col rounded-xl", stacked ? "items-start gap-1 px-2 py-1.5" : "items-center gap-0.5 px-1.5 py-1")}
               style={{ backgroundColor: ROLE_COLOR[role].base }}
             >
               <span className="text-[10px] leading-none font-semibold tracking-wide text-white/80 uppercase">
@@ -177,13 +178,14 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
                               onPicked?.()
                             }}
                             className={cn(
-                              "flex items-center gap-1.5 rounded-full border py-0.5 pr-3 pl-0.5 text-sm whitespace-nowrap text-white transition",
+                              "flex items-center gap-1.5 rounded-full border pr-3 pl-0.5 text-sm whitespace-nowrap text-white transition",
+                              stacked ? "py-0.5" : "py-px",
                               active ? "border-white/70 bg-white/25 font-medium" : "border-transparent hover:bg-white/15"
                             )}
                           />
                         }
                       >
-                        <UserAvatar name={a.name} color={ROLE_COLOR[a.role].base} size={24} className="brightness-75" />
+                        <UserAvatar name={a.name} color={ROLE_COLOR[a.role].base} size={stacked ? 24 : 20} className="brightness-75" />
                         {firstName(a.name)}
                       </TooltipTrigger>
                       <TooltipContent side="bottom">
