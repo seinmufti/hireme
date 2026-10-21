@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Two builds of one app (see src/lib/mode.ts): the real HireMe at /hireme and the demo at /hireme/demo.
+// Two builds of one app (see src/lib/mode.ts): the real HireMe and its demo at /demo.
 // NEXT_PUBLIC_HIREME_MODE=demo builds the demo.
 const isDemo = process.env.NEXT_PUBLIC_HIREME_MODE === "demo"
 
@@ -9,10 +9,17 @@ const isDemo = process.env.NEXT_PUBLIC_HIREME_MODE === "demo"
 // data saved by the app on port 3000.
 const isTestServer = process.env.HIREME_TEST_SERVER === "1"
 
-/** The app lives under /hireme (and the demo under /hireme/demo), so nordlyssolutions.com can serve both. */
-const BASE_PATH = isDemo ? "/hireme/demo" : "/hireme"
+/**
+ * Where the app is mounted. Deployed (Vercel), it's /hireme, so nordlyssolutions.com/hireme can show it
+ * next to Nordlys' own pages. Locally it's the root: localhost:3000 and localhost:3000/demo.
+ */
+const MOUNT = process.env.VERCEL ? "/hireme" : ""
+const BASE_PATH = isDemo ? `${MOUNT}/demo` : MOUNT
 // "hireme" or "hireme/demo", for matching addresses outside the app
 const SEGMENT = BASE_PATH.slice(1).replace("/", "\\/")
+
+/** The demo is its own deployment (its own server locally); the real app shows it at /demo. */
+const DEMO_ORIGIN = process.env.HIREME_DEMO_ORIGIN ?? (process.env.VERCEL ? "https://hireme-demo.vercel.app" : "http://localhost:3002")
 
 const nextConfig: NextConfig = {
   distDir: isTestServer ? ".next-test" : isDemo ? ".next-demo" : ".next",
@@ -21,12 +28,24 @@ const nextConfig: NextConfig = {
   env: { NEXT_PUBLIC_BASE_PATH: BASE_PATH },
   async redirects() {
     return [
-      // The bare domain (e.g. hireme-pink.vercel.app) opens the app
-      { source: "/", destination: BASE_PATH, permanent: false, basePath: false },
-      // Old addresses from before the app moved under its base path (e.g. /profile/cv) still work
-      { source: `/:path((?!${SEGMENT}(?:/|$)|_next/|api/).*)`, destination: `${BASE_PATH}/:path`, permanent: false, basePath: false },
+      ...(BASE_PATH
+        ? [
+            // The bare domain (e.g. hireme-pink.vercel.app) opens the app
+            { source: "/", destination: BASE_PATH, permanent: false, basePath: false as const },
+            // Old addresses from outside the base path (e.g. /profile/cv) still work
+            { source: `/:path((?!${SEGMENT}(?:/|$)|_next/|api/).*)`, destination: `${BASE_PATH}/:path`, permanent: false, basePath: false as const },
+          ]
+        : []),
+      // The app's root: sign-in, which sends signed-in people on to their home page
       { source: "/", destination: "/login", permanent: false },
       { source: "/accounts", destination: "/login", permanent: false },
+    ]
+  },
+  async rewrites() {
+    if (isDemo) return []
+    return [
+      { source: "/demo", destination: `${DEMO_ORIGIN}${MOUNT}/demo` },
+      { source: "/demo/:path*", destination: `${DEMO_ORIGIN}${MOUNT}/demo/:path*` },
     ]
   },
   // The root layout reads the language cookie, so pages render per request.

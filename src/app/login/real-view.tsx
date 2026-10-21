@@ -198,7 +198,7 @@ export function RealLoginView() {
         </p>
       </form>
 
-      <a href="/hireme/demo" className="mt-6 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+      <a href={`${BASE_PATH}/demo`} className="mt-6 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
         {t("auth.tryDemo")}
       </a>
     </main>

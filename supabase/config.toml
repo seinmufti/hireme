@@ -161,7 +161,7 @@ site_url = "https://nordlyssolutions.com/hireme"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # URLs (globs) auth may send people back to: the app's /auth/callback (Google) and /auth/confirm (email links).
-additional_redirect_urls = ["https://nordlyssolutions.com/hireme/auth/**", "https://hireme-pink.vercel.app/hireme/auth/**", "http://localhost:3000/hireme/auth/**"]
+additional_redirect_urls = ["https://nordlyssolutions.com/hireme/auth/**", "https://hireme-pink.vercel.app/hireme/auth/**", "http://localhost:3000/auth/**"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.

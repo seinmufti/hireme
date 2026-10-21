@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useT } from "@/i18n/provider"
+import { BASE_PATH } from "@/lib/mode"
 import { reloadRealData, useBackend } from "@/lib/real-sync"
 import { supabase } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
@@ -23,7 +24,7 @@ export function NotSetUp() {
         <WithBrand text={t("auth.notSetUpTitle")} />
       </h1>
       <p className="max-w-sm text-sm text-muted-foreground">{t("auth.notSetUpBody")}</p>
-      <a href="/hireme/demo" className="mt-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+      <a href={`${BASE_PATH}/demo`} className="mt-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
         {t("auth.openDemo")}
       </a>
     </main>
