@@ -19,6 +19,8 @@ import {
   type CvImport,
   type ImportConflict,
 } from "@/lib/cv-import"
+import { IS_DEMO } from "@/lib/mode"
+import { useCurrentUser } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
 type Step = { kind: "pick" } | { kind: "reading"; fileName: string; estimateMs: number } | { kind: "conflicts"; cv: CvImport; conflicts: ImportConflict[] }
@@ -64,6 +66,26 @@ function rememberReadingMs(file: File, ms: number) {
     const kind = kindOf(file)
     all[kind] = [...(all[kind] ?? []), ms].slice(-5)
     localStorage.setItem(TIMES_KEY, JSON.stringify(all))
+  } catch {}
+}
+
+// The demo has no accounts on a server, so its limit of 3 imports per (demo) account is counted in this
+// browser. The real version counts them in the database (api/cv-import).
+const DEMO_IMPORTS_KEY = "hireme-demo-cv-imports"
+const DEMO_IMPORT_LIMIT = 3
+
+function demoImportsUsed(userId: string): number {
+  try {
+    return (JSON.parse(localStorage.getItem(DEMO_IMPORTS_KEY) ?? "{}") as Record<string, number>)[userId] ?? 0
+  } catch {
+    return 0
+  }
+}
+
+function countDemoImport(userId: string) {
+  try {
+    const all = JSON.parse(localStorage.getItem(DEMO_IMPORTS_KEY) ?? "{}") as Record<string, number>
+    localStorage.setItem(DEMO_IMPORTS_KEY, JSON.stringify({ ...all, [userId]: (all[userId] ?? 0) + 1 }))
   } catch {}
 }
 
@@ -158,6 +180,7 @@ export function CvImportButton<P extends object, T extends object>({
   onApply: (next: { profile: P; portfolio: T }, needsLook: string[]) => void
 }) {
   const t = useT()
+  const userId = useCurrentUser()?.id
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>({ kind: "pick" })
   const [replace, setReplace] = useState<Set<string>>(new Set())
@@ -197,6 +220,7 @@ export function CvImportButton<P extends object, T extends object>({
 
   const read = async (picked: File) => {
     if (picked.size > CV_IMPORT_MAX_BYTES) return toast.error(t("cvImport.tooBig"))
+    if (IS_DEMO && userId && demoImportsUsed(userId) >= DEMO_IMPORT_LIMIT) return toast.error(t("cvImport.limitReached"))
     setStep({ kind: "reading", fileName: picked.name, estimateMs: estimateReadingMs(picked) })
     try {
       const file = await shrinkImage(picked)
@@ -205,8 +229,10 @@ export function CvImportButton<P extends object, T extends object>({
       const started = Date.now()
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/cv-import`, { method: "POST", body })
       const data = await res.json().catch(() => null)
+      if (res.status === 429) throw new Error(t("cvImport.limitReached"))
       if (!res.ok || !data?.cv) throw new Error(data?.error ?? t("cvImport.failed"))
       rememberReadingMs(picked, Date.now() - started)
+      if (IS_DEMO && userId) countDemoImport(userId)
       const cv = data.cv as CvImport
       const conflicts = findConflicts(profile as Record<string, unknown>, portfolio as Record<string, unknown>, cv)
       if (conflicts.length) {

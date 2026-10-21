@@ -631,6 +631,7 @@ const en = {
     download: "Download PDF",
   },
   cvImport: {
+    limitReached: "You've used all 3 CV imports for this account. You can still edit your CV by hand.",
     button: "Import from your CV",
     title: "Import from your CV",
     conflictsIntro: "Your CV has different details for some fields you already filled in. Tick the ones to replace.",
