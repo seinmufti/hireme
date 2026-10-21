@@ -18,6 +18,8 @@ export function NavLinks({ links }: { links: NavLink[] }) {
           <Link
             key={l.href}
             href={l.href}
+            // The whole page loads in the background, so switching tabs is instant
+            prefetch
             className={cn(
               "flex items-center gap-2 border-b-2 px-3 whitespace-nowrap text-sm font-medium transition-colors",
               active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"

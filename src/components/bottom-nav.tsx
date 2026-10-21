@@ -20,6 +20,8 @@ export function BottomNav({ links }: { links: NavLink[] }) {
           <Link
             key={l.href}
             href={l.href}
+            // The whole page loads in the background, so switching tabs is instant
+            prefetch
             className={cn(
               "relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
               active ? "text-primary" : "text-muted-foreground hover:text-foreground"
