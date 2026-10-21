@@ -8,6 +8,7 @@ import { countryName } from "@/lib/options"
 import type { TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Flag, ProfilePhoto } from "./photo"
+import { BrandName } from "@/components/brand-name"
 
 /**
  * Who the CV is about. Employers get a version without contact details, address and references
@@ -184,7 +185,7 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
       {/* Always at the bottom of every page, also on premium CVs */}
       <div className="absolute bottom-[5mm] left-1/2 flex -translate-x-1/2 items-center gap-2.5 text-[14pt] font-semibold" style={{ color: MUTED }}>
         <Logo size={42} className="rounded-none ring-0" />
-        HireMe
+        <BrandName />
       </div>
 
       {!premium && (
@@ -194,9 +195,7 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
             {Array.from({ length: 22 }, (_, row) => (
               <div key={row} className={cn("flex gap-[16mm] whitespace-nowrap", row % 2 && "translate-x-[22mm]")}>
                 {Array.from({ length: 12 }, (_, i) => (
-                  <span key={i} className="text-[20pt] font-black tracking-wider text-primary/[0.13]">
-                    HireMe
-                  </span>
+                  <BrandName key={i} className="text-[20pt] font-black tracking-wider opacity-[0.13]" />
                 ))}
               </div>
             ))}

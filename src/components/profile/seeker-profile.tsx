@@ -39,6 +39,7 @@ import type { Translate } from "@/i18n/translate"
 import { certificationComplete, degreeComplete, filled, jobComplete, listingSectionsMissing, sectionsMissingEntries, portfolioEntryProblem, useStore, type ListingSection } from "@/lib/store"
 import type { Talent, TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { WithBrand } from "@/components/brand-name"
 import { AttachmentThumb, LocationFields, PhotoField, ProjectFields, TagPicker } from "./cv-fields"
 import {
   CertificationFields,
@@ -596,7 +597,7 @@ function PortfolioForm({
           onChange={(patch) => setContact((c) => ({ ...c, ...patch }))}
         />
         <p className="text-xs text-muted-foreground">
-          {t("seeker.contactPrivate")}
+          <WithBrand text={t("seeker.contactPrivate")} />
         </p>
       </section>
 

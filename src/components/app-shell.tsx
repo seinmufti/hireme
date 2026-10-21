@@ -13,6 +13,7 @@ import { StoreGate } from "@/components/store-gate"
 import { buttonVariants } from "@/components/ui/button"
 import { useI18n } from "@/i18n/provider"
 import { unreadCountFor, useCurrentUser, useStore } from "@/lib/store"
+import { BrandName } from "@/components/brand-name"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -59,7 +60,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:gap-6 lg:px-8">
           <Link href="/login" title={t("nav.goLogin")} className="flex shrink-0 items-center gap-2.5">
             <Logo size={32} />
-            <span className="text-lg font-semibold tracking-tight">HireMe</span>
+            <BrandName className="text-lg font-semibold tracking-tight" />
           </Link>
           {/* Smaller screens: the links are in the bar at the bottom */}
           <div className="hidden h-full items-stretch lg:flex">

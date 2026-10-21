@@ -27,7 +27,7 @@ export function CvStrengthBar({
   const complete = cvCompleteness(user, talent, skipPhoto ? ["photo"] : [])
   const strength = cvStrength(user, talent, skipPhoto ? ["photo"] : [])
   return (
-    <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", className)}>
+    <div className={cn("space-y-4", className)}>
       <Meter
         label={t("home.cvCompleteness")}
         value={t("home.percentComplete", { percent: complete.percent })}

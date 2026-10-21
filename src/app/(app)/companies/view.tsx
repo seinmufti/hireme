@@ -10,6 +10,7 @@ import { useT } from "@/i18n/provider"
 import { companyMatchesQuery, takesApplications } from "@/lib/jobs"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
+import { WithBrand } from "@/components/brand-name"
 
 // Every employer on HireMe with their contact details and open jobs.
 export function CompaniesView({ initialQuery }: { initialQuery: string }) {
@@ -41,7 +42,7 @@ export function CompaniesView({ initialQuery }: { initialQuery: string }) {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("companies.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            {t("companies.count", { count: companies.length })}
+            <WithBrand text={t("companies.count", { count: companies.length })} />
           </p>
         </div>
         <div className="relative w-full sm:w-80">

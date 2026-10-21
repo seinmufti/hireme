@@ -19,6 +19,7 @@ import { restoreBackup } from "@/lib/safe-storage"
 import { useStore } from "@/lib/store"
 import type { User } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { WithBrand } from "@/components/brand-name"
 
 // Same left-to-right order as the header switcher
 const ORDER: Role[] = ["SEEKER", "RECRUITER", "EMPLOYER"]
@@ -56,7 +57,7 @@ function Accounts() {
     <main className="relative flex min-h-dvh flex-col items-center px-4 py-5 md:h-dvh md:justify-center md:overflow-hidden md:px-8">
       <BackupButtons />
       <Logo size={48} className="shrink-0" />
-      <h1 className="mt-2 shrink-0 text-2xl font-semibold tracking-tight">{t("login.welcome")}</h1>
+      <h1 className="mt-2 shrink-0 text-2xl font-semibold tracking-tight"><WithBrand text={t("login.welcome")} /></h1>
 
       <div className="mt-5 flex min-h-0 w-full max-w-sm flex-col items-stretch rounded-2xl border bg-card p-5 shadow-sm md:w-auto md:max-w-none md:flex-row">
         {ORDER.map((role, i) => {
