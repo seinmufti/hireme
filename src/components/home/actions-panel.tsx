@@ -18,16 +18,18 @@ export function ActionsPanel() {
   return (
     <aside className="space-y-4">
 
-      {/* Filled with the brand red */}
-      <section className="rounded-xl p-1.5 text-white" style={{ backgroundColor: BRAND_RED }}>
-        <h3 className="px-2.5 pt-2 pb-1 text-sm font-semibold">{t("home.actions")}</h3>
-        <ul>
+      <section className="overflow-hidden rounded-xl border bg-card">
+        {/* The header filled with the brand red */}
+        <h3 className="px-4 py-2.5 text-sm font-semibold text-white" style={{ backgroundColor: BRAND_RED }}>
+          {t("home.actions")}
+        </h3>
+        <ul className="p-1.5">
           {actions.map((a) => (
             <li key={a.href}>
-              <Link href={a.href} className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-white/15">
-                <a.icon className="size-4 shrink-0 text-white/80" />
+              <Link href={a.href} className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-muted">
+                <a.icon className="size-4 shrink-0 text-muted-foreground" />
                 <span className="flex-1 truncate">{a.label}</span>
-                <ChevronRightIcon className="size-4 shrink-0 text-white/70 rtl:rotate-180" />
+                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground rtl:rotate-180" />
               </Link>
             </li>
           ))}
