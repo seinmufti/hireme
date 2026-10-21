@@ -174,9 +174,6 @@ function ApplyDialog({ job, open, onOpenChange }: { job: Job; open: boolean; onO
             />
           </div>
           <DialogFooter>
-            <Link href="/profile/cv" className={buttonVariants({ variant: "ghost" })}>
-              <FileUserIcon /> {t("applications.checkCv")}
-            </Link>
             <Button type="submit">
               <SendIcon /> {t("applications.send")}
             </Button>
