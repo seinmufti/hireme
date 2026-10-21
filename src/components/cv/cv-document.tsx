@@ -6,6 +6,7 @@ import { Logo } from "@/components/logo"
 import { useStoredFile } from "@/lib/files"
 import { countryName } from "@/lib/options"
 import type { TalentInput, User } from "@/lib/types"
+import { firstName } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { Flag, ProfilePhoto } from "./photo"
 import { BrandName } from "@/components/brand-name"
@@ -399,7 +400,8 @@ function Header({ person, t, age, forEmployer }: { person: CvPerson; t: CvTalent
     <header className="pb-[2mm]">
       <div className="flex items-center gap-[6mm]">
         <div className="min-w-0 flex-1">
-          <h1 className="text-[25pt] leading-[1.1] font-bold tracking-[-0.01em]">{person.name}</h1>
+          {/* Employers only ever see the first name */}
+          <h1 className="text-[25pt] leading-[1.1] font-bold tracking-[-0.01em]">{forEmployer ? firstName(person.name) : person.name}</h1>
           {person.title && (
             <p className="mt-[1.5mm] text-[11.5pt] font-normal tracking-[0.02em]" style={{ color: ACCENT }}>
               {person.title}
