@@ -34,19 +34,20 @@ function Shell({ children }: { children: React.ReactNode }) {
   const myJobs = { href: "/jobs/mine", label: t("nav.jobs"), icon: BriefcaseIcon }
   // The CV page: your details, with Edit and the Preview CV button
   const cv = { href: "/profile", label: t("nav.cvPreview"), icon: FileUserIcon }
+  // The list of all companies is for recruiters only; everyone can still open a company from its jobs
   const companies = { href: "/companies", label: t("nav.companies"), icon: Building2Icon }
   const pool = { href: "/pool", label: t("nav.pool"), icon: UsersIcon }
   const inbox = { href: "/inbox", label: t("nav.inbox"), icon: InboxIcon, badge: unread }
   const profile = { href: "/profile", label: t("nav.profile"), icon: UserIcon }
   const links: NavLink[] =
     role === "EMPLOYER"
-      ? [pool, myJobs, companies, inbox, profile]
+      ? [pool, myJobs, inbox, profile]
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, cv, jobs, inbox, companies]
+          ? [home, cv, jobs, inbox]
           : role === "GUEST"
-            ? [jobs, companies]
+            ? [jobs]
             : []
 
   return (

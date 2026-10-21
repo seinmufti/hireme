@@ -32,12 +32,19 @@ export function CompanyView({ id }: { id: string }) {
   const toggleFollow = useStore((s) => s.toggleFollow)
 
   if (!viewer) return null
+  // Back to all companies (recruiters), or to the jobs this company came from
+  const back =
+    viewer.role === "RECRUITER"
+      ? { href: "/companies", label: t("companies.allCompanies") }
+      : viewer.role === "EMPLOYER"
+        ? { href: "/jobs/mine", label: t("jobs.myPosts") }
+        : { href: "/jobs", label: t("jobs.allJobs") }
   if (!company) {
     return (
       <div className="mx-auto max-w-md rounded-xl border border-dashed bg-card py-16 text-center">
         <p className="font-medium">{t("companies.notFound")}</p>
-        <Link href="/companies" className="mt-2 inline-block text-sm text-primary hover:underline">
-          {t("companies.browseAll")}
+        <Link href={back.href} className="mt-2 inline-block text-sm text-primary hover:underline">
+          {back.label}
         </Link>
       </div>
     )
@@ -45,8 +52,8 @@ export function CompanyView({ id }: { id: string }) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <Link href="/companies" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {t("companies.allCompanies")}
+      <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {back.label}
       </Link>
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_20rem]">
         <section className="space-y-4">

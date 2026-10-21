@@ -9,12 +9,12 @@ import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/provider"
 import { companyMatchesQuery, takesApplications } from "@/lib/jobs"
 import { useStore } from "@/lib/store"
-import { ANYONE } from "@/lib/options"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
 // Every employer on HireMe with their contact details and open jobs.
 export function CompaniesView({ initialQuery }: { initialQuery: string }) {
-  const viewer = useRoleGuard(ANYONE)
+  // Every company: recruiters only (others reach a company from its jobs)
+  const viewer = useRoleGuard(["RECRUITER"])
   const t = useT()
   const users = useStore((s) => s.users)
   const jobs = useStore((s) => s.jobs)
