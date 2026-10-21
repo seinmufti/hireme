@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { BriefcaseIcon, Building2Icon, FileUserIcon, HomeIcon, InboxIcon, LogInIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { BriefcaseIcon, Building2Icon, FileUserIcon, HomeIcon, LogInIcon, MailIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
 import { BottomNav } from "@/components/bottom-nav"
 import { GlobalSearch } from "@/components/global-search"
 import { DevTools } from "@/components/dev-tools"
@@ -40,15 +41,14 @@ function Shell({ children }: { children: React.ReactNode }) {
   const applications = { href: "/jobs/applied", label: t("nav.applications"), icon: SendIcon }
   const companies = { href: "/companies", label: t("nav.companies"), icon: Building2Icon }
   const pool = { href: "/pool", label: t("nav.pool"), icon: UsersIcon }
-  const inbox = { href: "/inbox", label: t("nav.inbox"), icon: InboxIcon, badge: unread }
   const profile = { href: "/profile", label: t("nav.profile"), icon: UserIcon }
   const links: NavLink[] =
     role === "EMPLOYER"
-      ? [pool, myJobs, inbox, profile]
+      ? [pool, myJobs, profile]
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, cv, jobs, applications, inbox]
+          ? [home, cv, jobs, applications]
           : role === "GUEST"
             ? [jobs]
             : []
@@ -69,6 +69,8 @@ function Shell({ children }: { children: React.ReactNode }) {
           {user && (
             <div className="ms-auto flex items-center gap-1 sm:gap-2 lg:gap-4">
               <GlobalSearch user={user} />
+              {/* Messages: a mail icon, just before the bell */}
+              {(role === "SEEKER" || role === "EMPLOYER") && <InboxButton unread={unread} />}
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
               {role === "SEEKER" && <NotificationBell />}
               <LanguageSwitcher />
@@ -88,5 +90,27 @@ function Shell({ children }: { children: React.ReactNode }) {
       {/* Demo accounts and the Premium crown */}
       <DevTools user={user} />
     </>
+  )
+}
+
+/** The inbox as a mail icon with the number of unread messages, next to the notification bell. */
+function InboxButton({ unread }: { unread: number }) {
+  const { t } = useI18n()
+  const active = usePathname().startsWith("/inbox")
+  return (
+    <Link
+      href="/inbox"
+      aria-label={t("nav.inbox")}
+      title={t("nav.inbox")}
+      aria-current={active ? "page" : undefined}
+      className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
+    >
+      <MailIcon className="size-5" />
+      {unread > 0 && (
+        <span className="absolute -top-0.5 -end-0.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 font-semibold text-primary-foreground">
+          {unread > 9 ? "9+" : unread}
+        </span>
+      )}
+    </Link>
   )
 }

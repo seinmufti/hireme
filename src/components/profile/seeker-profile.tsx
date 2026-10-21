@@ -4,13 +4,20 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
+  AwardIcon,
+  BriefcaseIcon,
   CakeIcon,
   CircleAlertIcon,
   CircleCheckIcon,
   EyeIcon,
+  FileTextIcon,
+  FolderKanbanIcon,
   LoaderCircleIcon,
   GlobeIcon,
+  GraduationCapIcon,
   HomeIcon,
+  IdCardIcon,
+  LanguagesIcon,
   LinkIcon,
   LockIcon,
   MailIcon,
@@ -19,6 +26,7 @@ import {
   PhoneIcon,
   UserIcon,
   UserRoundCheckIcon,
+  WrenchIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Flag, ProfilePhoto } from "@/components/cv/photo"
@@ -736,6 +744,16 @@ function PhotoWithPencil({ user }: { user: User }) {
 }
 
 const CONTENTS: ListingSection[] = ["personal", "about", "work", "education", "skills", "languages", "certifications", "projects"]
+const CONTENTS_ICONS: Record<ListingSection, typeof UserIcon> = {
+  personal: IdCardIcon,
+  about: FileTextIcon,
+  work: BriefcaseIcon,
+  education: GraduationCapIcon,
+  skills: WrenchIcon,
+  languages: LanguagesIcon,
+  certifications: AwardIcon,
+  projects: FolderKanbanIcon,
+}
 
 /**
  * Wide screens: the CV's sections listed beside the page (on the start side), to jump to any of them.
@@ -767,7 +785,9 @@ function Contents({ editing }: { editing: boolean }) {
     <nav aria-label={t("seeker.contents")} className="fixed top-28 hidden w-48 min-[1200px]:block" style={{ insetInlineStart: "calc(50% - 24rem - 13.5rem)" }}>
       <p className="mb-2 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("seeker.contents")}</p>
       <ul className="space-y-0.5 border-s">
-        {CONTENTS.map((s) => (
+        {CONTENTS.map((s) => {
+          const Icon = CONTENTS_ICONS[s]
+          return (
           <li key={s}>
             <button
               type="button"
@@ -776,14 +796,16 @@ function Contents({ editing }: { editing: boolean }) {
                 setCurrent(s)
               }}
               className={cn(
-                "-ms-px block w-full border-s-2 px-3 py-1 text-start text-sm transition-colors",
+                "-ms-px flex w-full items-center gap-2 border-s-2 px-3 py-1 text-start text-sm transition-colors",
                 current === s ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
               )}
             >
+              <Icon className="size-4 shrink-0" />
               {sectionTitle(t, s)}
             </button>
           </li>
-        ))}
+          )
+        })}
       </ul>
     </nav>
   )

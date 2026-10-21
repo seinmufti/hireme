@@ -33,7 +33,7 @@ const ckb: DeepPartial<Messages> = {
     applications: "داواکارییەکانم",
     signIn: "چوونەژوورەوە",
     home: "سەرەکی",
-    jobs: "ڕیکلامەکانی کار",
+    jobs: "کارەکان",
     cvPreview: "CV",
     companies: "کۆمپانیاکان",
     inbox: "نامەکان",
@@ -250,7 +250,7 @@ const ckb: DeepPartial<Messages> = {
     preferenceSaved: "جۆری کاری دڵخواز پاشەکەوتکرا",
   },
   jobs: {
-    title: "ڕیکلامەکانی کار",
+    title: "کارەکان",
     openCount: "{count} کاری بەردەست",
     openOne: "١ کاری بەردەست",
     matchProfile: "{count} گونجاون لەگەڵ CV ـەکەت",

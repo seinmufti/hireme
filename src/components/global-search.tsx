@@ -11,7 +11,7 @@ import type { Role } from "@/lib/options"
 import type { User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-// A keyword search over everything: the app's pages and CV sections, job listings and companies.
+// A keyword search over everything: the app's pages and CV sections, jobs and companies.
 // With nothing typed it offers recent searches (this browser) and popular searches (the skills and job
 // categories that come up most in open jobs).
 

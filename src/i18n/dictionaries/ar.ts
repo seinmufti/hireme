@@ -33,7 +33,7 @@ const ar: DeepPartial<Messages> = {
     applications: "طلباتي",
     signIn: "تسجيل الدخول",
     home: "الرئيسية",
-    jobs: "إعلانات الوظائف",
+    jobs: "الوظائف",
     cvPreview: "السيرة الذاتية",
     companies: "الشركات",
     inbox: "الرسائل",
@@ -250,7 +250,7 @@ const ar: DeepPartial<Messages> = {
     preferenceSaved: "تم حفظ تفضيل العمل",
   },
   jobs: {
-    title: "إعلانات الوظائف",
+    title: "الوظائف",
     openCount: "{count} وظيفة متاحة",
     openOne: "وظيفة واحدة متاحة",
     matchProfile: "{count} تناسب سيرتك الذاتية",
