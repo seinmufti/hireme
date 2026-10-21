@@ -85,6 +85,17 @@ export const AGE_BUCKETS = [
 ]
 
 /** Where each role lands after signing in: job seekers on Home (their dashboard), everyone else in the Pool. */
+/**
+ * One colour per role (the colour of its demo account), used in Dev tools so roles are easy to tell apart.
+ * `light` is the same colour, readable on black.
+ */
+export const ROLE_COLOR: Record<Role, { base: string; light: string }> = {
+  SEEKER: { base: "#1D4ED8", light: "#60A5FA" },
+  RECRUITER: { base: "#047857", light: "#34D399" },
+  EMPLOYER: { base: "#8A1538", light: "#F472A0" },
+  GUEST: { base: "#64748B", light: "#94A3B8" },
+}
+
 export const homeFor = (role: Role) => (role === "SEEKER" ? "/home" : role === "GUEST" ? "/jobs" : "/pool")
 
 // New accounts get the next color from this list automatically

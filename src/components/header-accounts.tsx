@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { UserAvatar } from "@/components/user-avatar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { firstName } from "@/lib/format"
-import { homeFor, type Role } from "@/lib/options"
+import { homeFor, ROLE_COLOR, type Role } from "@/lib/options"
 import { recentLogins } from "@/lib/recent-accounts"
 import { useStore } from "@/lib/store"
 import { useT } from "@/i18n/provider"
@@ -93,7 +93,7 @@ function MoreAccounts({
                 a.id === currentId && "bg-brand-soft"
               )}
             >
-              <UserAvatar name={a.name} color={a.avatarColor} size={28} />
+              <UserAvatar name={a.name} color={ROLE_COLOR[a.role].base} size={28} />
               <span className="min-w-0">
                 <span className="block truncate font-medium">{a.name}</span>
                 <span className="block truncate text-xs text-muted-foreground">{subtitle(a.id)}</span>
@@ -152,7 +152,7 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
           <Fragment key={role}>
             {i > 0 && !stacked && <span className="mx-3 h-10 w-px bg-white/15" aria-hidden />}
             <div className={cn("flex flex-col gap-1", stacked ? "items-start" : "items-center")}>
-              <span className="text-[10px] leading-none font-medium tracking-wide text-white/50 uppercase">
+              <span className="text-[10px] leading-none font-semibold tracking-wide uppercase" style={{ color: ROLE_COLOR[role].light }}>
                 {t(`roles.${role}`)}
               </span>
               <div className="flex items-center gap-1">
@@ -182,7 +182,7 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
                           />
                         }
                       >
-                        <UserAvatar name={a.name} color={a.avatarColor} size={24} />
+                        <UserAvatar name={a.name} color={ROLE_COLOR[a.role].base} size={24} />
                         {firstName(a.name)}
                       </TooltipTrigger>
                       <TooltipContent side="bottom">
