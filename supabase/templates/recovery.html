@@ -7,7 +7,13 @@
       <tr><td dir="rtl" style="padding-top:12px;font-size:16px;line-height:24px">طُلب إعادة تعيين كلمة مرور حسابك في HireMe. اختر كلمة مرور جديدة من الزر أدناه.</td></tr>
       <tr><td dir="rtl" style="padding-top:12px;font-size:16px;line-height:24px">داواکرا وشەی نهێنی هەژمارەکەت لە HireMe نوێ بکرێتەوە. لە دوگمەی خوارەوە وشەی نهێنی نوێ هەڵبژێرە.</td></tr>
       <tr><td style="padding:24px 0">
-        <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery" style="display:inline-block;background:#8f1d45;color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;line-height:24px;text-align:center;padding:12px 28px;border-radius:10px">Choose a new password<br><span dir="rtl">اختر كلمة مرور جديدة</span><br><span dir="rtl">وشەی نهێنی نوێ هەڵبژێرە</span></a>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;background:#8f1d45;border-radius:10px">
+          <tr>
+            <td width="33%" style="vertical-align:middle"><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery" style="display:block;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;line-height:20px;text-align:center;padding:14px 8px">Choose a new password</a></td>
+            <td width="33%" style="vertical-align:middle;border-left:1px solid rgba(255,255,255,0.45)"><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery" dir="rtl" style="display:block;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;line-height:20px;text-align:center;padding:14px 8px">اختر كلمة مرور جديدة</a></td>
+            <td width="33%" style="vertical-align:middle;border-left:1px solid rgba(255,255,255,0.45)"><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery" dir="rtl" style="display:block;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;line-height:20px;text-align:center;padding:14px 8px">وشەی نهێنی نوێ هەڵبژێرە</a></td>
+          </tr>
+        </table>
       </td></tr>
       <tr><td style="font-size:13px;line-height:20px;color:#777">If you didn't ask for this, ignore this email: your password stays the same.</td></tr>
     </table>
