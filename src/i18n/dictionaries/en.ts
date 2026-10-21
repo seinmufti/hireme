@@ -168,11 +168,14 @@ const en = {
     saved: "Profile saved",
   },
   home: {
-    cvStrength: "CV strength",
+    cvStrength: "CV completeness",
+    percentComplete: "{percent}% complete",
     strength: {
       photo: "Add a photo",
       profession: "Add your profession",
       contact: "Add your phone and email",
+      linkedin: "Add your LinkedIn profile",
+      address: "Add your address",
       personal: "Add your gender, date of birth and city",
       summary: "Write a short summary about you",
       experience: "Add a job you've had",

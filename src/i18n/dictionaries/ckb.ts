@@ -167,11 +167,14 @@ const ckb: DeepPartial<Messages> = {
     saved: "پرۆفایل پاشەکەوتکرا",
   },
   home: {
-    cvStrength: "بەهێزیی CV",
+    cvStrength: "تەواوبوونی CV",
+    percentComplete: "{percent}% تەواوە",
     strength: {
       photo: "وێنەیەک زیاد بکە",
       profession: "پیشەکەت زیاد بکە",
       contact: "ژمارەی تەلەفۆن و ئیمەیڵەکەت زیاد بکە",
+      linkedin: "لینکی LinkedIn ـەکەت زیاد بکە",
+      address: "ناونیشانەکەت زیاد بکە",
       personal: "ڕەگەز، بەرواری لەدایکبوون و شار زیاد بکە",
       summary: "کورتەیەک دەربارەی خۆت بنووسە",
       experience: "کارێک کە کردووتە زیاد بکە",

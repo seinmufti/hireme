@@ -6,7 +6,7 @@ import type { TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /**
- * "CV strength": a bar with the percentage and the next thing to add (on Home and the CV page).
+ * "CV completeness": a bar with how much of the CV is filled in, and the next thing to add (on Home and the CV page).
  * `onFix` opens the CV form at that part.
  */
 export function CvStrengthBar({
@@ -16,7 +16,7 @@ export function CvStrengthBar({
   skip,
   className,
 }: {
-  user: Pick<User, "photoId" | "title" | "phone" | "email" | "city">
+  user: Pick<User, "photoId" | "title" | "phone" | "email" | "city" | "linkedin" | "address">
   talent: TalentInput | null
   onFix: (target: StrengthTarget) => void
   /** Not suggested here (e.g. the photo, which has its own pencil on the CV page) */
@@ -29,7 +29,7 @@ export function CvStrengthBar({
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">{t("home.cvStrength")}</span>
-        <span className="tabular-nums text-muted-foreground">{strength.percent}%</span>
+        <span className="tabular-nums text-muted-foreground">{t("home.percentComplete", { percent: strength.percent })}</span>
       </div>
       <div
         className="h-2 overflow-hidden rounded-full bg-muted"

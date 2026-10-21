@@ -1,13 +1,15 @@
 import type { ListingSection } from "@/lib/store"
 import type { TalentInput, User } from "@/lib/types"
 
-// "CV strength": how complete and convincing the CV is, beyond the minimum needed for the Pool.
-// Each check is worth the same; the first one not done is suggested as the next step.
+// "CV completeness": how much of the CV form is filled in, as a percentage (beyond the minimum needed for the Pool).
+// Each part counts the same; the first one not done is suggested as the next step.
 
 export type StrengthCheck =
   | "photo"
   | "profession"
   | "contact"
+  | "linkedin"
+  | "address"
   | "personal"
   | "summary"
   | "experience"
@@ -22,11 +24,13 @@ export type StrengthCheck =
 export type StrengthTarget = ListingSection | "profession"
 
 /** `skip`: checks not to suggest as the next step (they still count towards the percentage). */
-export function cvStrength(user: Pick<User, "photoId" | "title" | "phone" | "email" | "city">, p: TalentInput | null, skip: StrengthCheck[] = []) {
+export function cvStrength(user: Pick<User, "photoId" | "title" | "phone" | "email" | "city" | "linkedin" | "address">, p: TalentInput | null, skip: StrengthCheck[] = []) {
   const checks: { key: StrengthCheck; target: StrengthTarget; done: boolean }[] = [
     { key: "profession", target: "profession", done: !!user.title.trim() },
     { key: "contact", target: "personal", done: !!user.phone && !!user.email },
     { key: "personal", target: "personal", done: !!p?.gender && !!p.dateOfBirth && !!user.city },
+    { key: "linkedin", target: "personal", done: !!user.linkedin?.trim() },
+    { key: "address", target: "personal", done: !!user.address?.trim() },
     { key: "summary", target: "about", done: !!p?.summary?.trim() },
     { key: "experience", target: "work", done: !!p?.experiences.length },
     { key: "description", target: "work", done: !!p?.experiences[0]?.description?.trim() },

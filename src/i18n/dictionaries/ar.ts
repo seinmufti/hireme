@@ -167,11 +167,14 @@ const ar: DeepPartial<Messages> = {
     saved: "تم حفظ الملف",
   },
   home: {
-    cvStrength: "قوة السيرة الذاتية",
+    cvStrength: "اكتمال السيرة الذاتية",
+    percentComplete: "{percent}% مكتملة",
     strength: {
       photo: "أضف صورة",
       profession: "أضف مهنتك",
       contact: "أضف رقم هاتفك وبريدك الإلكتروني",
+      linkedin: "أضف رابط حسابك على LinkedIn",
+      address: "أضف عنوانك",
       personal: "أضف الجنس وتاريخ الميلاد والمدينة",
       summary: "اكتب نبذة قصيرة عنك",
       experience: "أضف وظيفة عملت بها",
