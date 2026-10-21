@@ -7,6 +7,8 @@ export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (process.env.NEXT_PUBLIC_HIREME_MODE === "demo" || !url || !key) return NextResponse.next()
+  // Visitors who aren't signed in have no session to renew
+  if (!request.cookies.getAll().some((c) => c.name.startsWith("sb-"))) return NextResponse.next()
 
   let response = NextResponse.next({ request })
   const client = createServerClient(url, key, {
@@ -19,8 +21,9 @@ export async function proxy(request: NextRequest) {
       },
     },
   })
-  // Renews the session if needed (the result itself isn't used here)
-  await client.auth.getUser()
+  // Renews the session if needed (the result itself isn't used here). getClaims checks the sign-in
+  // token's signature locally, so most pages don't wait on a call to Supabase.
+  await client.auth.getClaims()
   return response
 }
 

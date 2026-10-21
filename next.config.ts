@@ -70,6 +70,8 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   partialPrefetching: false,
   turbopack: {
+    // The real version doesn't download the demo's sample accounts, CVs and jobs (see src/data/demo-none.ts)
+    resolveAlias: isDemo ? {} : { "@/data/demo": "./src/data/demo-none.ts", "@/data/demo-jobs": "./src/data/demo-none.ts" },
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],
