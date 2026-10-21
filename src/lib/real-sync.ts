@@ -7,7 +7,7 @@ import { firstName } from "@/lib/format"
 import { listingMissing, useStore, type Data } from "@/lib/store"
 import { supabase } from "@/lib/supabase/client"
 import type { Role } from "@/lib/options"
-import type { Talent, User } from "@/lib/types"
+import type { Reference, Talent, User } from "@/lib/types"
 
 // Real version: the app keeps using the same store as the demo, and this file connects it to Supabase.
 // - Load: after sign-in, everything the database lets this person see goes into the store.
@@ -109,6 +109,26 @@ function toUsers(profiles: ProfileRow[], privates: PrivateRow[], talents: Talent
   })
 }
 
+// References (names and contact details) are kept out of the CV row, which employers can read, and saved in
+// cv_private, which only the CV's owner can. The CV row only keeps that a reference exists.
+type References = Record<string, Reference>
+const HIDDEN_REFERENCE: Reference = { name: "", position: "", phone: "", email: "" }
+
+/** The CV as saved in talents: references blanked out. */
+function withoutReferences(t: Talent): Talent {
+  return { ...t, experiences: t.experiences.map((e) => ({ ...e, reference: e.reference && HIDDEN_REFERENCE })) }
+}
+
+/** Each job's reference, by job id, for cv_private. */
+function referencesOf(t: Talent): References {
+  return Object.fromEntries(t.experiences.flatMap((e) => (e.reference ? [[e.id, e.reference]] : [])))
+}
+
+/** Your own CV with its references put back. */
+function withReferences(t: Talent, refs: References): Talent {
+  return { ...t, experiences: t.experiences.map((e) => ({ ...e, reference: e.reference && (refs[e.id] ?? e.reference) })) }
+}
+
 /** Loads everything this visitor may see. */
 async function loadAll(db: SupabaseClient, userId: string | null) {
   const get = async <T>(table: string) => {
@@ -116,12 +136,15 @@ async function loadAll(db: SupabaseClient, userId: string | null) {
     if (error) throw new Error(`${table}: ${error.message}`)
     return (data ?? []) as T[]
   }
-  const [profiles, privates, ...rows] = await Promise.all([
+  const [profiles, privates, cvPrivate, ...rows] = await Promise.all([
     get<ProfileRow>("profiles"),
     get<PrivateRow>("profile_private"),
+    userId ? get<{ id: string; data: { references?: References } }>("cv_private") : Promise.resolve([]),
     ...TABLES.map((t) => (userId || t.key === "jobs" ? get<Row>(t.table) : Promise.resolve([] as Row[]))),
   ])
   const lists = Object.fromEntries(TABLES.map((t, i) => [t.key, rows[i].map((r) => r.data)])) as unknown as Pick<Data, Key>
+  const refs = cvPrivate.find((r) => r.id === userId)?.data.references ?? {}
+  lists.talents = lists.talents.map((t) => (t.userId === userId ? withReferences(t, refs) : t))
   const users = toUsers(profiles, privates, lists.talents)
   const me = profiles.find((p) => p.id === userId)
   useBackend.setState({ onboarded: me?.onboarded ?? true })
@@ -165,12 +188,20 @@ async function save(prev: Data, next: Data) {
       if (a === b) continue
       const old = new Map(a.map((o) => [t.rowId(o), o]))
       const now = new Map(b.map((o) => [t.rowId(o), o]))
-      // A CV also says whether it's complete for the Pool (others can't see the contact details to check)
+      // A CV also says whether it's complete for the Pool (others can't see the contact details to check),
+      // and its references go to cv_private instead
       const data = (o: Record<string, unknown>) =>
-        t.key === "talents" && mine ? { ...o, listed: listingMissing(mine, o as unknown as Talent).length === 0 } : o
+        t.key === "talents" && mine
+          ? { ...withoutReferences(o as unknown as Talent), listed: listingMissing(mine, o as unknown as Talent).length === 0 }
+          : o
       const added = [...now].filter(([id]) => !old.has(id))
       const changed = [...now].filter(([id, o]) => old.has(id) && old.get(id) !== o)
       const removed = [...old.keys()].filter((id) => !now.has(id))
+      const myCv = t.key === "talents" && [...added, ...changed].map(([, o]) => o as unknown as Talent).find((o) => o.userId === uid)
+      if (myCv) {
+        const res = await db.from("cv_private").upsert({ id: uid, data: { references: referencesOf(myCv) } })
+        if (res.error) throw res.error
+      }
       if (added.length) {
         const res = await db.from(t.table).insert(added.map(([id, o]) => ({ id, ...t.columns(o), data: data(o) })))
         if (res.error) throw res.error

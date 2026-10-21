@@ -101,8 +101,19 @@ async function makeUser(label, meta) {
     const bNotes = await B.client.from("notifications").select("id")
     check("notifications are private", bNotes.data?.length === 0)
 
+    // References (the private part of a CV)
+    const refs = await A.client.from("cv_private").upsert({ id: A.id, data: { references: { e1: { name: "Ref Person", phone: "+964 770 000 0000" } } } })
+    check("a job seeker saves their references", !refs.error, refs.error?.message)
+    const ownRefs = await A.client.from("cv_private").select("data").eq("id", A.id)
+    check("a job seeker reads their own references", ownRefs.data?.[0]?.data?.references?.e1?.name === "Ref Person")
+    const eRefs = await E.client.from("cv_private").select("data").eq("id", A.id)
+    check("an employer can't read a job seeker's references", eRefs.data?.length === 0)
+    const bRefs = await B.client.from("cv_private").upsert({ id: A.id, data: {} })
+    const refsNow = await admin.from("cv_private").select("data").eq("id", A.id).single()
+    check("nobody can change another's references", !!bRefs.error && refsNow.data.data.references?.e1?.name === "Ref Person")
+
     // Files
-    const file = await A.client.storage.from("files").upload(`${A.id}/x/photo.txt`, new Blob(["hi"], { type: "text/plain" }))
+    const file =await A.client.storage.from("files").upload(`${A.id}/x/photo.txt`, new Blob(["hi"], { type: "text/plain" }))
     check("a user uploads to their own folder", !file.error, file.error?.message)
     const intoOthers = await B.client.storage.from("files").upload(`${A.id}/y/evil.txt`, new Blob(["x"], { type: "text/plain" }))
     check("nobody uploads into another's folder", !!intoOthers.error)
