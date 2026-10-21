@@ -212,6 +212,13 @@ function listen(db: SupabaseClient) {
   channel.subscribe()
 }
 
+/** Loads everything again (e.g. after choosing a role). */
+export async function reloadRealData() {
+  const db = supabase()
+  if (!db) return
+  await loadAll(db, uid)
+}
+
 /**
  * Starts the real version: follows sign-in and sign-out, loads the data, and saves changes.
  * Called once from the app's shell.
@@ -231,6 +238,8 @@ export function startRealSync() {
       toast.error("Couldn't load HireMe. Please reload the page.")
     }
     useBackend.setState({ status: userId ? "signedIn" : "signedOut" })
+    // Job seekers hear about listings that match them (saved like any other change)
+    if (userId) useStore.getState().checkJobMatches()
   }
 
   db.auth.onAuthStateChange((event, session) => {

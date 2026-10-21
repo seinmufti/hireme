@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { GUEST_ID, homeFor, type Role } from "@/lib/options"
+import { VISITOR_ID } from "@/lib/real-sync"
 import { useCurrentUser, useStore } from "@/lib/store"
 
 /**
@@ -20,7 +21,8 @@ export function useRoleGuard(roles?: Role[]) {
   useEffect(() => {
     if (!user && guestsWelcome) useStore.getState().switchAccount(GUEST_ID)
     else if (!user) router.replace("/login")
-    else if (!allowed) router.replace(homeFor(user.role))
+    // Real version: a signed-out visitor opening a private page signs in first
+    else if (!allowed) router.replace(user.id === VISITOR_ID ? "/login" : homeFor(user.role))
   }, [user, allowed, guestsWelcome, router])
 
   return allowed ? user : null

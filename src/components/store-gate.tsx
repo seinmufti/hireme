@@ -1,19 +1,30 @@
 "use client"
 
-import { useSyncExternalStore } from "react"
+import { useEffect, useSyncExternalStore } from "react"
 import { PageSkeleton } from "@/components/page-skeleton"
+import { ChooseRole, NotSetUp } from "@/components/real-screens"
+import { BACKEND_READY, IS_DEMO } from "@/lib/mode"
+import { startRealSync, useBackend } from "@/lib/real-sync"
 import { useStore } from "@/lib/store"
 
-// Data comes from localStorage, so wait for it before rendering anything that reads it.
-// The server always renders the loader; the browser shows the app as soon as data has loaded.
+// Wait for the data before rendering anything that reads it. The server always renders the loader.
+// - Demo: the data comes from this browser's storage.
+// - Real: from the database, once Supabase has said who's signed in (lib/real-sync.ts). Without a
+//   Supabase project it shows "not set up"; Google sign-ups first choose job seeker or employer.
 export function StoreGate({ children }: { children: React.ReactNode }) {
   const hydrated = useSyncExternalStore(
     (onChange) => useStore.persist.onFinishHydration(onChange),
     () => useStore.persist.hasHydrated(),
     () => false
   )
+  const backend = useBackend((s) => s.status)
+  const onboarded = useBackend((s) => s.onboarded)
+  useEffect(() => {
+    if (!IS_DEMO) startRealSync()
+  }, [])
 
-  if (!hydrated) {
+  if (!IS_DEMO && !BACKEND_READY) return <NotSetUp />
+  if (!hydrated || (!IS_DEMO && backend === "loading")) {
     return (
       // Placeholder shapes in the page's layout while the data loads
       <div className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-4 pt-5 sm:px-6 lg:px-8 lg:pt-8">
@@ -22,5 +33,6 @@ export function StoreGate({ children }: { children: React.ReactNode }) {
       </div>
     )
   }
+  if (!IS_DEMO && backend === "signedIn" && !onboarded) return <ChooseRole />
   return children
 }

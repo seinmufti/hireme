@@ -23,6 +23,15 @@
         "dev:test"
       ],
       "port": 3001
+    },
+    {
+      "name": "hireme-demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:demo"
+      ],
+      "port": 3002
     }
   ]
 }

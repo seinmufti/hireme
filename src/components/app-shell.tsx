@@ -5,6 +5,8 @@ import { BriefcaseIcon, Building2Icon, FileUserIcon, HomeIcon, InboxIcon, LogInI
 import { BottomNav } from "@/components/bottom-nav"
 import { GlobalSearch } from "@/components/global-search"
 import { DevTools } from "@/components/dev-tools"
+import { SignOutButton } from "@/components/real-screens"
+import { IS_DEMO } from "@/lib/mode"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Logo } from "@/components/logo"
 import { NavLinks, type NavLink } from "@/components/nav-links"
@@ -72,6 +74,8 @@ function Shell({ children }: { children: React.ReactNode }) {
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
               {role === "SEEKER" && <NotificationBell />}
               <LanguageSwitcher />
+              {/* Real version: sign out (the demo switches accounts in Dev tools) */}
+              {!IS_DEMO && role !== "GUEST" && <SignOutButton />}
               {/* Guests browse; signing in (or creating an account) is one click away */}
               {role === "GUEST" && (
                 <Link href="/login" className={buttonVariants({ size: "sm" })}>
@@ -86,7 +90,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-5 pb-[calc(10rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pt-8 lg:pb-[calc(6rem+env(safe-area-inset-bottom))]">{children}</main>
       <BottomNav links={links} />
       {/* Demo accounts and the Premium crown */}
-      <DevTools user={user} />
+      {IS_DEMO && <DevTools user={user} />}
     </>
   )
 }

@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk"
+import { IS_DEMO } from "@/lib/mode"
+import { serverSupabase } from "@/lib/supabase/server"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import mammoth from "mammoth"
 import { CV_IMPORT_MAX_BYTES } from "@/lib/cv-import"
@@ -41,6 +43,8 @@ async function toContent(file: File): Promise<Anthropic.Beta.BetaContentBlockPar
 }
 
 export async function POST(request: Request) {
+  // Real version: only signed-in people (each request costs money)
+  if (!IS_DEMO && !(await (await serverSupabase())?.auth.getUser())?.data.user) return fail(401, "Please sign in first.")
   const form = await request.formData().catch(() => null)
   const file = form?.get("file")
   if (!(file instanceof File)) return fail(400, "Please choose a file.")
