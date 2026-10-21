@@ -173,16 +173,16 @@ export function HeaderAccounts({ stacked, onPicked }: { stacked?: boolean; onPic
                               router.push(destinationFor(a))
                               onPicked?.()
                             }}
+                            // Filled with the role's colour: solid for the signed-in account, see-through for the rest
+                            style={{ backgroundColor: active ? ROLE_COLOR[role].base : `${ROLE_COLOR[role].base}66` }}
                             className={cn(
-                              "flex items-center gap-1.5 rounded-full border py-0.5 pr-3 pl-0.5 text-sm whitespace-nowrap transition",
-                              active
-                                ? "border-white/30 bg-white/15 font-medium text-white"
-                                : "border-transparent text-white/70 hover:bg-white/10 hover:text-white"
+                              "flex items-center gap-1.5 rounded-full border py-0.5 pr-3 pl-0.5 text-sm whitespace-nowrap text-white transition hover:brightness-125",
+                              active ? "border-white/70 font-medium" : "border-transparent"
                             )}
                           />
                         }
                       >
-                        <UserAvatar name={a.name} color={ROLE_COLOR[a.role].base} size={24} />
+                        <UserAvatar name={a.name} color={ROLE_COLOR[a.role].base} size={24} className="brightness-75" />
                         {firstName(a.name)}
                       </TooltipTrigger>
                       <TooltipContent side="bottom">
