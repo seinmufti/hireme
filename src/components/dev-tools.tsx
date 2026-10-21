@@ -128,19 +128,22 @@ function DesktopDevTools({ user }: { user: User | null }) {
         <div
           inert={!open}
           className={cn(
-            "flex items-center gap-3 overflow-hidden transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            "overflow-hidden transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
             open ? "opacity-100 delay-100" : "opacity-0"
           )}
         >
-          <span className="ms-2 h-7 w-px shrink-0 bg-white/15" aria-hidden />
-          {/* The crown first, next to the wrench: toasts pop up at the bottom right, over the bar's far end */}
-          {user?.role === "SEEKER" && (
-            <>
-              <PremiumToggle user={user} />
-              <span className="h-7 w-px shrink-0 bg-white/15" aria-hidden />
-            </>
-          )}
-          <HeaderAccounts />
+          {/* Full width from the start (w-max), so the bar only uncovers it: nothing inside squeezes and shifts while it grows */}
+          <div className="flex w-max items-center gap-3">
+            <span className="ms-2 h-7 w-px shrink-0 bg-white/15" aria-hidden />
+            {/* The crown first, next to the wrench: toasts pop up at the bottom right, over the bar's far end */}
+            {user?.role === "SEEKER" && (
+              <>
+                <PremiumToggle user={user} />
+                <span className="h-7 w-px shrink-0 bg-white/15" aria-hidden />
+              </>
+            )}
+            <HeaderAccounts />
+          </div>
         </div>
       </div>
     </div>
