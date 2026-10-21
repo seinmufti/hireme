@@ -3,13 +3,19 @@
   <body style="margin:0;padding:24px;background:#f4f2f1;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;padding:32px">
       <tr><td style="font-size:24px;font-weight:bold"><span style="color:#000000">Hire</span><span style="color:#F03838">Me</span></td></tr>
-      <tr><td style="padding-top:20px;font-size:16px;line-height:24px">Someone asked to reset the password of your HireMe account. Choose a new password here:</td></tr>
+      <tr><td style="padding-top:20px;font-size:16px;line-height:24px">Someone asked to reset the password of your HireMe account. Choose a new password below.</td></tr>
+      <tr><td dir="rtl" style="padding-top:12px;font-size:16px;line-height:24px">طُلب إعادة تعيين كلمة مرور حسابك في HireMe. اختر كلمة مرور جديدة من الزر أدناه.</td></tr>
+      <tr><td dir="rtl" style="padding-top:12px;font-size:16px;line-height:24px">داواکرا وشەی نهێنی هەژمارەکەت لە HireMe نوێ بکرێتەوە. لە دوگمەی خوارەوە وشەی نهێنی نوێ هەڵبژێرە.</td></tr>
       <tr><td style="padding:24px 0">
-        <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery" style="display:inline-block;background:#8f1d45;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:10px">Choose a new password</a>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed">
+          <tr>
+            <td width="33%" style="padding-right:4px"><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery" style="display:block;background:#8f1d45;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;line-height:20px;text-align:center;padding:12px 6px;border-radius:10px">New password</a></td>
+            <td width="33%" style="padding:0 2px"><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery" dir="rtl" style="display:block;background:#8f1d45;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;line-height:20px;text-align:center;padding:12px 6px;border-radius:10px">كلمة مرور جديدة</a></td>
+            <td width="33%" style="padding-left:4px"><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery" dir="rtl" style="display:block;background:#8f1d45;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;line-height:20px;text-align:center;padding:12px 6px;border-radius:10px">وشەی نهێنی نوێ</a></td>
+          </tr>
+        </table>
       </td></tr>
-      <tr><td dir="rtl" style="font-size:15px;line-height:24px;color:#444">طُلب إعادة تعيين كلمة مرور حسابك في HireMe. اضغط الزر أعلاه لاختيار كلمة مرور جديدة.</td></tr>
-      <tr><td dir="rtl" style="padding-top:8px;font-size:15px;line-height:24px;color:#444">داواکرا وشەی نهێنی هەژمارەکەت لە HireMe نوێ بکرێتەوە. کرتە لە دوگمەکەی سەرەوە بکە بۆ هەڵبژاردنی وشەی نهێنی نوێ.</td></tr>
-      <tr><td style="padding-top:24px;font-size:13px;line-height:20px;color:#777">If you didn't ask for this, ignore this email: your password stays the same.</td></tr>
+      <tr><td style="font-size:13px;line-height:20px;color:#777">If you didn't ask for this, ignore this email: your password stays the same.</td></tr>
     </table>
   </body>
 </html>
