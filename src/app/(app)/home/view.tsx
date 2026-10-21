@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import Link from "next/link"
 import { ArrowRightIcon, TargetIcon } from "lucide-react"
 import { JobCard } from "@/components/jobs/job-card"
+import { NotificationList } from "@/components/notifications/notification-list"
 import { buttonVariants } from "@/components/ui/button"
 import { useT } from "@/i18n/provider"
 import { matchCount, matchingJobs } from "@/lib/matching"
@@ -14,7 +15,7 @@ import { useRoleGuard } from "@/lib/use-role-guard"
 // How many matching jobs Home shows; the rest are on the Jobs tab
 const SHOWN = 6
 
-// A job seeker's Home: a dashboard, starting with the jobs that match their CV. More panels come later.
+// A job seeker's Home: a dashboard of the jobs that match their CV, then their notifications. More panels come later.
 export function HomeView() {
   const t = useT()
   const user = useRoleGuard(["SEEKER"])
@@ -63,6 +64,10 @@ export function HomeView() {
             ))}
           </div>
         )}
+      </section>
+      {/* New jobs that match the job seeker (the same list as the bell in the header) */}
+      <section className="overflow-hidden rounded-xl border bg-card">
+        <NotificationList section className="max-h-[32rem]" />
       </section>
     </div>
   )

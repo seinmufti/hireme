@@ -4,12 +4,11 @@ import { ActionsPanel } from "@/components/home/actions-panel"
 import { SeekerProfile } from "@/components/profile/seeker-profile"
 import type { HomeTalent, HomeUser } from "@/components/home/home-data"
 import { OverallPanel } from "@/components/home/overall-panel"
-import { NotificationList } from "@/components/notifications/notification-list"
 import { useI18n } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 
-// A job seeker's Profile tab: Overall on the left, their whole CV (viewed and edited here) and notifications in the middle, Actions on the right.
+// A job seeker's Profile tab: Overall on the left, their whole CV (viewed and edited here) in the middle, Actions on the right.
 export function OverviewView() {
   const { dir } = useI18n()
   const account = useRoleGuard(["SEEKER"])
@@ -28,10 +27,6 @@ export function OverviewView() {
         <div dir={dir} className="order-1 min-w-0 space-y-6 lg:order-none">
           {/* The whole CV: one card while reading it, a card per section while editing. Keyed so switching accounts resets the form */}
           <SeekerProfile key={account.id} user={account} embedded />
-          {/* New jobs that match the job seeker (the same list as the bell in the header) */}
-          <section className="overflow-hidden rounded-xl border bg-card">
-            <NotificationList section className="max-h-[32rem]" />
-          </section>
         </div>
         <div dir={dir} className="order-3 lg:sticky lg:top-20 lg:order-none">
           <ActionsPanel />
