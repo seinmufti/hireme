@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronRightIcon, FileTextIcon, PencilIcon } from "lucide-react"
+import { FileTextIcon, PencilIcon } from "lucide-react"
 import { BRAND_RED } from "@/components/brand-name"
 import { useT } from "@/i18n/provider"
 import { cn } from "@/lib/utils"
@@ -29,7 +29,6 @@ export function ActionsPanel() {
               <Link href={a.href} className={cn("flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-muted", a.className)}>
                 <a.icon className={cn("size-4 shrink-0", a.className ?? "text-muted-foreground")} />
                 <span className="flex-1 truncate">{a.label}</span>
-                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground rtl:rotate-180" />
               </Link>
             </li>
           ))}
