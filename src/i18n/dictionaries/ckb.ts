@@ -167,9 +167,23 @@ const ckb: DeepPartial<Messages> = {
     saved: "پرۆفایل پاشەکەوتکرا",
   },
   home: {
-    cvStrength: "تەواوبوونی CV",
+    cvStrength: "بەهێزیی CV",
+    cvCompleteness: "تەواوبوونی CV",
+    quality: {
+      summaryLength: "کورتەیەک لە 2 بۆ 4 ڕستە بنووسە",
+      bullets: "لانیکەم 3 خاڵ بۆ دوایین کارت بنووسە",
+      numbers: "ژمارە بۆ دەستکەوتەکانت زیاد بکە، وەک «فرۆشتن 20% زیادکرا»",
+      allDescribed: "باسی ئەوە بکە کە لە هەموو کارێکدا کردووتە",
+      moreHardSkills: "لانیکەم 5 کارامەیی تەکنیکی زیاد بکە",
+      moreSoftSkills: "لانیکەم 3 کارامەیی کەسی زیاد بکە",
+      secondLanguage: "زمانێکی دووەم زیاد بکە",
+      photo: "وێنەیەک زیاد بکە",
+      certification: "مۆڵەت یان بڕوانامەیەک زیاد بکە",
+      project: "پرۆژە یان چالاکییەک زیاد بکە",
+      linkedin: "لینکی LinkedIn ـەکەت زیاد بکە",
+    },
     percentComplete: "{percent}% تەواوە",
-    strength: {
+    missing: {
       photo: "وێنەیەک زیاد بکە",
       profession: "پیشەکەت زیاد بکە",
       contact: "ژمارەی تەلەفۆن و ئیمەیڵەکەت زیاد بکە",

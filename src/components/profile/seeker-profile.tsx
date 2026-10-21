@@ -126,7 +126,7 @@ export function SeekerProfile({ user }: { user: User }) {
           <CvStrengthBar
             user={user}
             talent={talent}
-            skip={["photo"]}
+            skipPhoto
             onFix={(target) => {
               setJumpTo(target)
               setEditing(true)

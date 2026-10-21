@@ -1,52 +1,79 @@
 "use client"
 
 import { useT } from "@/i18n/provider"
-import { cvStrength, type StrengthCheck, type StrengthTarget } from "@/lib/cv-strength"
+import { cvCompleteness, cvStrength, type CvTarget } from "@/lib/cv-strength"
 import type { TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /**
- * "CV completeness": a bar with how much of the CV is filled in, and the next thing to add (on Home and the CV page).
- * `onFix` opens the CV form at that part.
+ * Two bars (on Home, the CV page and the CV form): CV completeness (how much is filled in) and CV strength
+ * (how convincing it is), each with the next thing to do. `onFix` opens the CV form at that part.
+ * `skipPhoto`: don't suggest the photo (the CV page has a pencil on it); it still counts.
  */
 export function CvStrengthBar({
   user,
   talent,
   onFix,
-  skip,
+  skipPhoto,
   className,
 }: {
   user: Pick<User, "photoId" | "title" | "phone" | "email" | "city" | "linkedin" | "address">
   talent: TalentInput | null
-  onFix: (target: StrengthTarget) => void
-  /** Not suggested here (e.g. the photo, which has its own pencil on the CV page) */
-  skip?: StrengthCheck[]
+  onFix: (target: CvTarget) => void
+  skipPhoto?: boolean
   className?: string
 }) {
   const t = useT()
-  const strength = cvStrength(user, talent, skip)
+  const complete = cvCompleteness(user, talent, skipPhoto ? ["photo"] : [])
+  const strength = cvStrength(user, talent, skipPhoto ? ["photo"] : [])
   return (
-    <div className={cn("space-y-1.5", className)}>
+    <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", className)}>
+      <Meter
+        label={t("home.cvCompleteness")}
+        value={t("home.percentComplete", { percent: complete.percent })}
+        percent={complete.percent}
+        tip={complete.next && { text: t(`home.missing.${complete.next.key}`), target: complete.next.target }}
+        onFix={onFix}
+      />
+      <Meter
+        label={t("home.cvStrength")}
+        value={`${strength.percent}%`}
+        percent={strength.percent}
+        tip={strength.next && { text: t(`home.quality.${strength.next.key}`), target: strength.next.target }}
+        onFix={onFix}
+      />
+    </div>
+  )
+}
+
+function Meter({
+  label,
+  value,
+  percent,
+  tip,
+  onFix,
+}: {
+  label: string
+  value: string
+  percent: number
+  tip: { text: string; target: CvTarget } | null
+  onFix: (target: CvTarget) => void
+}) {
+  return (
+    <div className="min-w-0 space-y-1.5">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium">{t("home.cvStrength")}</span>
-        <span className="tabular-nums text-muted-foreground">{t("home.percentComplete", { percent: strength.percent })}</span>
+        <span className="font-medium">{label}</span>
+        <span className="tabular-nums text-muted-foreground">{value}</span>
       </div>
-      <div
-        className="h-2 overflow-hidden rounded-full bg-muted"
-        role="progressbar"
-        aria-valuenow={strength.percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={t("home.cvStrength")}
-      >
+      <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
         <div
-          className={cn("h-full rounded-full transition-all", strength.percent >= 80 ? "bg-emerald-500" : strength.percent >= 50 ? "bg-amber-400" : "bg-primary")}
-          style={{ width: `${strength.percent}%` }}
+          className={cn("h-full rounded-full transition-all", percent >= 80 ? "bg-emerald-500" : percent >= 50 ? "bg-amber-400" : "bg-primary")}
+          style={{ width: `${percent}%` }}
         />
       </div>
-      {strength.next && (
-        <button type="button" onClick={() => onFix(strength.next!.target)} className="block text-start text-sm text-primary hover:underline">
-          {t(`home.strength.${strength.next.key}`)}
+      {tip && (
+        <button type="button" onClick={() => onFix(tip.target)} className="block text-start text-sm text-primary hover:underline">
+          {tip.text}
         </button>
       )}
     </div>

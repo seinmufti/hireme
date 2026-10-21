@@ -167,9 +167,23 @@ const ar: DeepPartial<Messages> = {
     saved: "تم حفظ الملف",
   },
   home: {
-    cvStrength: "اكتمال السيرة الذاتية",
+    cvStrength: "قوة السيرة الذاتية",
+    cvCompleteness: "اكتمال السيرة الذاتية",
+    quality: {
+      summaryLength: "اكتب نبذة من 2 إلى 4 جمل",
+      bullets: "أضف 3 نقاط على الأقل لآخر وظيفة",
+      numbers: "أضف أرقاماً لإنجازاتك، مثل «زيادة المبيعات بنسبة 20%»",
+      allDescribed: "صِف ما قمت به في كل وظيفة",
+      moreHardSkills: "أضف 5 مهارات تقنية على الأقل",
+      moreSoftSkills: "أضف 3 مهارات شخصية على الأقل",
+      secondLanguage: "أضف لغة ثانية",
+      photo: "أضف صورة",
+      certification: "أضف رخصة أو شهادة مهنية",
+      project: "أضف مشروعاً أو نشاطاً",
+      linkedin: "أضف رابط حسابك على LinkedIn",
+    },
     percentComplete: "{percent}% مكتملة",
-    strength: {
+    missing: {
       photo: "أضف صورة",
       profession: "أضف مهنتك",
       contact: "أضف رقم هاتفك وبريدك الإلكتروني",

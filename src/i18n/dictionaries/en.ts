@@ -168,9 +168,23 @@ const en = {
     saved: "Profile saved",
   },
   home: {
-    cvStrength: "CV completeness",
+    cvStrength: "CV strength",
+    cvCompleteness: "CV completeness",
+    quality: {
+      summaryLength: "Write a summary of 2–4 sentences",
+      bullets: "Give your latest job at least 3 bullet points",
+      numbers: "Add numbers to your achievements, e.g. “Increased sales by 20%”",
+      allDescribed: "Describe what you did in every job",
+      moreHardSkills: "Add at least 5 hard skills",
+      moreSoftSkills: "Add at least 3 soft skills",
+      secondLanguage: "Add a second language",
+      photo: "Add a photo",
+      certification: "Add a license or certificate",
+      project: "Add a project or activity",
+      linkedin: "Add your LinkedIn profile",
+    },
     percentComplete: "{percent}% complete",
-    strength: {
+    missing: {
       photo: "Add a photo",
       profession: "Add your profession",
       contact: "Add your phone and email",
