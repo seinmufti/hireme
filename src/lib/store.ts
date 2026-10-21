@@ -48,7 +48,7 @@ type Actions = {
   createAccount: (input: NewAccountInput) => Result<{ userId: string }>
   saveTalent: (input: TalentInput) => Result
   updateProfile: (input: ProfileInput) => Result
-  sendMessage: (seekerId: string, body: string) => Result<{ conversationId: string }>
+  sendMessage: (seekerId: string, body: string, jobId?: string) => Result<{ conversationId: string }>
   replyMessage: (conversationId: string, body: string) => Result
   markRead: (conversationId: string) => void
   postJob: (input: JobInput) => Result<{ jobId: string; notified: number }>
@@ -302,7 +302,8 @@ export const useStore = create<Data & Actions>()(
           return { ok: true }
         },
 
-        sendMessage: (seekerId, body) => {
+        // `jobId`: messaging one of the job's applicants; the conversation remembers the job
+        sendMessage: (seekerId, body, jobId) => {
           const employer = me()
           const text = body.trim()
           if (employer?.role !== "EMPLOYER") return fail("Only employers can message job seekers.")
@@ -312,8 +313,11 @@ export const useStore = create<Data & Actions>()(
           let conversation = get().conversations.find((c) => c.employerId === employer.id && c.seekerId === seekerId)
           if (!conversation) {
             const at = now()
-            conversation = { id: newId("c"), employerId: employer.id, seekerId, createdAt: at, updatedAt: at }
+            conversation = { id: newId("c"), employerId: employer.id, seekerId, createdAt: at, updatedAt: at, ...(jobId && { jobId }) }
             set((s) => ({ conversations: [...s.conversations, conversation!] }))
+          } else if (jobId && !conversation.jobId) {
+            const id = conversation.id
+            set((s) => ({ conversations: s.conversations.map((c) => (c.id === id ? { ...c, jobId } : c)) }))
           }
           addMessage(conversation.id, employer.id, text)
           return { ok: true, conversationId: conversation.id }
@@ -614,6 +618,17 @@ function withSalaries(data: Data): Data {
     savedTalents: data.savedTalents ?? [],
     follows: data.follows ?? [],
   }
+}
+
+/**
+ * The job a conversation is about: the one it started from, or else the latest job of this employer the
+ * job seeker applied to. Undefined when there's none (e.g. found in the Pool).
+ */
+export function conversationJob(c: Conversation, jobs: Job[], applications: Application[]) {
+  if (c.jobId) return jobs.find((j) => j.id === c.jobId)
+  const theirs = new Set(jobs.filter((j) => j.employerId === c.employerId).map((j) => j.id))
+  const applied = applications.filter((a) => a.seekerId === c.seekerId && theirs.has(a.jobId)).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+  return applied && jobs.find((j) => j.id === applied.jobId)
 }
 
 /** Adds the one guest account to data saved before guests existed. */

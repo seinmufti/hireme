@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import { usePathname } from "next/navigation"
 import { ConversationList } from "@/components/inbox/conversation-list"
 import { firstName } from "@/lib/format"
-import { useStore } from "@/lib/store"
+import { conversationJob, useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { useT } from "@/i18n/provider"
 import { cn } from "@/lib/utils"
@@ -16,6 +16,8 @@ export function InboxShell({ children }: { children: React.ReactNode }) {
   const talents = useStore((s) => s.talents)
   const conversations = useStore((s) => s.conversations)
   const messages = useStore((s) => s.messages)
+  const jobs = useStore((s) => s.jobs)
+  const applications = useStore((s) => s.applications)
   // Phones and tablets show one side at a time: the list, or the open conversation
   const inThread = usePathname() !== "/inbox"
 
@@ -30,6 +32,8 @@ export function InboxShell({ children }: { children: React.ReactNode }) {
         if (!other) return []
         const thread = messages.filter((m) => m.conversationId === c.id)
         const last = thread.at(-1)
+        // The job it's about, shown next to the name
+        const job = conversationJob(c, jobs, applications)
         return [
           {
             id: c.id,
@@ -41,11 +45,12 @@ export function InboxShell({ children }: { children: React.ReactNode }) {
               : other.company || t("inbox.employer"),
             preview: last ? `${last.senderId === user.id ? t("inbox.you") : ""}${last.body}` : "",
             at: c.updatedAt,
+            job: job?.title,
             unread: thread.filter((m) => m.senderId !== user.id && !m.readAt).length,
           },
         ]
       })
-  }, [user, users, talents, conversations, messages, t])
+  }, [user, users, talents, conversations, messages, jobs, applications, t])
 
   if (!user) return null
 

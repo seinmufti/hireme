@@ -98,6 +98,7 @@ const ar: DeepPartial<Messages> = {
     createAccount: "إنشاء الحساب",
   },
   inbox: {
+    aboutJob: "بخصوص الوظيفة: {job}",
     title: "الرسائل",
     conversations: "{count} محادثات",
     conversation: "محادثة واحدة",

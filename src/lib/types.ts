@@ -118,6 +118,7 @@ export type Conversation = {
   seekerId: string
   createdAt: string
   updatedAt: string
+  jobId?: string // the job it started from (an employer messaging one of its applicants); missing in older saved data
 }
 
 export type Message = {

@@ -33,11 +33,14 @@ export function MessageDialog({
   sender,
   open,
   onOpenChange,
+  jobId,
 }: {
   talent: PoolTalent | null
   sender: Sender
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Messaging an applicant: the job they applied to (shown in the inbox) */
+  jobId?: string
 }) {
   const t = useT()
   const router = useRouter()
@@ -55,7 +58,7 @@ export function MessageDialog({
   if (!talent) return null
 
   const submit = () => {
-    const res = sendMessage(talent.userId, body)
+    const res = sendMessage(talent.userId, body, jobId)
     if (!res.ok) {
       toast.error(res.error)
       return

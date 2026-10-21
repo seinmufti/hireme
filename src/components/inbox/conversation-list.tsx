@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { BriefcaseIcon } from "lucide-react"
 import { useParams } from "next/navigation"
 import { UserAvatar } from "@/components/user-avatar"
 import { timeAgo } from "@/lib/format"
@@ -13,6 +14,7 @@ type Item = {
   name: string
   avatarColor: string
   subtitle: string
+  job?: string // the job the conversation is about
   preview: string
   at: string
   unread: number
@@ -66,6 +68,12 @@ export function ConversationList({
                 <span className="ms-auto shrink-0 text-[11px] text-muted-foreground" title={exact(c.at)}>{timeAgo(c.at)}</span>
               </div>
               <div className="truncate text-xs text-muted-foreground">{c.subtitle}</div>
+              {c.job && (
+                <div className="flex min-w-0 items-center gap-1 text-xs text-primary">
+                  <BriefcaseIcon className="size-3 shrink-0" />
+                  <span className="truncate">{c.job}</span>
+                </div>
+              )}
               <div className="mt-0.5 flex items-center gap-2">
                 <span className={cn("truncate text-xs", c.unread ? "text-foreground" : "text-muted-foreground")}>{c.preview}</span>
                 {c.unread > 0 && (

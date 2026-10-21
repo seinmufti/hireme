@@ -98,6 +98,7 @@ const ckb: DeepPartial<Messages> = {
     createAccount: "دروستکردنی هەژمار",
   },
   inbox: {
+    aboutJob: "دەربارەی کاری: {job}",
     title: "نامەکان",
     conversations: "{count} گفتوگۆ",
     conversation: "1 گفتوگۆ",

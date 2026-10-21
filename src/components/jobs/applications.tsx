@@ -289,6 +289,7 @@ export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
         sender={{ name: viewer.name, title: viewer.title, company: viewer.company }}
         open={messaging !== null}
         onOpenChange={(o) => !o && setMessaging(null)}
+        jobId={job.id}
       />
     </section>
   )

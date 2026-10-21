@@ -99,6 +99,7 @@ const en = {
     createAccount: "Create account",
   },
   inbox: {
+    aboutJob: "About the job: {job}",
     title: "Inbox",
     conversations: "{count} conversations",
     conversation: "1 conversation",
