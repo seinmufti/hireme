@@ -77,6 +77,7 @@ export function SeekerProfile({ user }: { user: User }) {
   const [editing, setEditing] = useState(startEditing)
   // Which form section to scroll to when editing starts from a section's Edit button or a link (?edit=work)
   const [jumpTo, setJumpTo] = useState<EditTarget | null>(startAt)
+  const [imported, setImported] = useState<Imported | null>(null)
   const edit = (section: SectionId) => {
     setJumpTo(section)
     setEditing(true)
@@ -121,6 +122,21 @@ export function SeekerProfile({ user }: { user: User }) {
 
       <PoolStatus user={user} talent={talent} />
 
+      {/* Import from a CV file, under the status: the form opens with what was read */}
+      {!editing && (
+        <div className="flex justify-center rounded-xl border bg-card px-5 py-4">
+          <CvImportButton
+            profile={contactOf(user)}
+            portfolio={talent ? toPortfolioInput(talent) : EMPTY_PORTFOLIO}
+            onApply={(next, paths) => {
+              setImported({ ...next, paths })
+              setJumpTo(null)
+              setEditing(true)
+            }}
+          />
+        </div>
+      )}
+
       {/* CV strength: the next thing to add opens the form there */}
       {!editing && (
         <div className="rounded-xl border bg-card px-5 py-4">
@@ -137,8 +153,13 @@ export function SeekerProfile({ user }: { user: User }) {
           user={user}
           talent={talent}
           jumpTo={jumpTo}
-          onCancel={() => setEditing(false)}
+          imported={imported}
+          onCancel={() => {
+            setEditing(false)
+            setImported(null)
+          }}
           onSaved={() => {
+            setImported(null)
             // Back to the CV page, from the top
             setEditing(false)
             window.scrollTo({ top: 0 })
@@ -429,18 +450,36 @@ const fileIds = (p: TalentInput, photoId: string) => [
   ...p.languages.flatMap((l) => l.attachmentIds),
 ]
 
+/** The contact details the CV form edits, from the saved user. */
+const contactOf = (user: User) => ({
+  name: user.name,
+  title: user.title,
+  phone: user.phone,
+  email: user.email,
+  linkedin: user.linkedin,
+  photoId: user.photoId,
+  country: user.country || "IQ",
+  city: user.city,
+  address: user.address,
+})
+
+/** A CV file read on the CV page: the form opens with it filled in (and what needs a look). */
+type Imported = { profile: ReturnType<typeof contactOf>; portfolio: TalentInput; paths: string[] }
+
 function PortfolioForm({
   user,
   talent,
   jumpTo,
   onCancel,
   onSaved,
+  imported,
 }: {
   user: User
   talent: Talent | null
   jumpTo: EditTarget | null
   onCancel: () => void
   onSaved: () => void
+  imported?: Imported | null
 }) {
   const t = useT()
   // Opened from a section's Edit button: scroll that section into view
@@ -465,18 +504,8 @@ function PortfolioForm({
   const updateProfile = useStore((s) => s.updateProfile)
   const router = useRouter()
   const saveTalent = useStore((s) => s.saveTalent)
-  const [contact, setContact] = useState({
-    name: user.name,
-    title: user.title,
-    phone: user.phone,
-    email: user.email,
-    linkedin: user.linkedin,
-    photoId: user.photoId,
-    country: user.country || "IQ",
-    city: user.city,
-    address: user.address,
-  })
-  const [portfolio, setPortfolio] = useState(() => (talent ? toPortfolioInput(talent) : EMPTY_PORTFOLIO))
+  const [contact, setContact] = useState(() => imported?.profile ?? contactOf(user))
+  const [portfolio, setPortfolio] = useState(() => imported?.portfolio ?? (talent ? toPortfolioInput(talent) : EMPTY_PORTFOLIO))
   // Files that were stored when the form opened; the rest were uploaded while editing
   const savedFiles = useRef(new Set(fileIds(talent ?? EMPTY_PORTFOLIO, user.photoId).filter(Boolean)))
   // Follows what's typed: a section turns normal as soon as its required details are in
@@ -484,7 +513,7 @@ function PortfolioForm({
   // degree, license or field itself does (see portfolio-fields)
   const needs = new Set(sectionsMissingEntries(portfolio))
   // After a CV import: fields the AI wasn't sure about or couldn't find also turn their section yellow
-  const [toCheck, setToCheck] = useState<string[]>([])
+  const [toCheck, setToCheck] = useState<string[]>(imported?.paths ?? [])
   // Only while those details are still empty: once filled in, the section turns normal again (the toast
   // listed everything, including details that were filled in but unclear)
   const stillEmpty = new Set(stillMissing(contact, portfolio))
