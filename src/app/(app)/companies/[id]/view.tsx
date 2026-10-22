@@ -50,6 +50,12 @@ export function CompanyView({ id }: { id: string }) {
     )
   }
 
+  const follow = viewer.role === "SEEKER" && (
+    <Button variant={following ? "outline" : "default"} className="w-full" onClick={() => toggleFollow(company.id)} aria-pressed={following}>
+      {following ? <BellRingIcon /> : <BellPlusIcon />} {following ? t("companies.following") : t("companies.follow")}
+    </Button>
+  )
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
@@ -63,6 +69,8 @@ export function CompanyView({ id }: { id: string }) {
               {jobs.length ? (jobs.length === 1 ? t("companies.openJobsOne") : t("companies.openJobs", { count: jobs.length })) : t("companies.noOpenJobs")}
             </p>
           </div>
+          {/* Phones: Follow right under the name, not after all the jobs */}
+          {follow && <div className="lg:hidden">{follow}</div>}
           {jobs.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {jobs.map((j) => (
@@ -72,11 +80,7 @@ export function CompanyView({ id }: { id: string }) {
           )}
         </section>
         <aside className="space-y-3">
-          {viewer.role === "SEEKER" && (
-            <Button variant={following ? "outline" : "default"} className="w-full" onClick={() => toggleFollow(company.id)} aria-pressed={following}>
-              {following ? <BellRingIcon /> : <BellPlusIcon />} {following ? t("companies.following") : t("companies.follow")}
-            </Button>
-          )}
+          {follow && <div className="hidden lg:block">{follow}</div>}
           <CompanyCard employer={company} showContact />
         </aside>
       </div>

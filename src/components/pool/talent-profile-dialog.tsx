@@ -6,7 +6,7 @@ import { CvDocument } from "@/components/cv/cv-document"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { PoolTalent } from "@/lib/filters"
-import { timeAgo } from "@/lib/format"
+import { useT, useTimeAgo } from "@/i18n/provider"
 import { latestJob } from "./talent-meta"
 
 /** A job seeker's CV as employers see it: no contact details, address or references, and no download. */
@@ -23,6 +23,8 @@ export function TalentProfileDialog({
   canMessage: boolean
   onMessage: () => void
 }) {
+  const t = useT()
+  const timeAgo = useTimeAgo()
   if (!talent) return null
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -45,15 +47,15 @@ export function TalentProfileDialog({
         </div>
 
         <DialogFooter className="sticky bottom-0 m-0 items-center rounded-none border-t bg-card/95 px-6 py-3 backdrop-blur sm:justify-between">
-          <span className="text-xs text-muted-foreground">Updated {timeAgo(talent.updatedAt)}</span>
+          <span className="text-xs text-muted-foreground">{t("common.updated", { time: timeAgo(talent.updatedAt) })}</span>
           {canMessage &&
             (talent.conversationId ? (
               <Link href={`/inbox/${talent.conversationId}`} className={buttonVariants({ variant: "outline" })}>
-                <MessageSquareTextIcon /> Open conversation
+                <MessageSquareTextIcon /> {t("pool.openConversation")}
               </Link>
             ) : (
               <Button onClick={onMessage}>
-                <SendIcon /> Send message
+                <SendIcon /> {t("pool.sendMessage")}
               </Button>
             ))}
         </DialogFooter>

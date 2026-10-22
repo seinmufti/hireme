@@ -83,7 +83,8 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
           </section>
         </article>
 
-        <aside className="space-y-4">
+        {/* The employer's own job on phones: Edit, Close and the applicant count first, above the description */}
+        <aside className={cn("space-y-4", isOwner && "order-first lg:order-none")}>
           {isOwner ? (
             <div className="space-y-3 rounded-xl border bg-card p-5">
               <p className="flex items-center gap-2 text-sm">
@@ -145,7 +146,12 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
             </div>
           )}
 
-          {employer && <CompanyCard employer={employer} />}
+          {/* The employer doesn't need their own company card above their job on phones */}
+          {employer && (
+            <div className={cn(isOwner && "hidden lg:block")}>
+              <CompanyCard employer={employer} />
+            </div>
+          )}
         </aside>
       </div>
 

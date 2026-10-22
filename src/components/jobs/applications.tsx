@@ -250,7 +250,7 @@ export function ApplicantsList({ job, viewer }: { job: Job; viewer: User }) {
                   setOver(null)
                   move(e.dataTransfer.getData("text/plain"), status)
                 }}
-                className={cn("flex min-h-32 flex-col gap-2 rounded-lg bg-muted/40 p-2 transition-colors", over === status && "bg-brand-soft ring-2 ring-primary/30")}
+                className={cn("flex min-h-12 flex-col gap-2 rounded-lg bg-muted/40 p-2 transition-colors md:min-h-32", over === status && "bg-brand-soft ring-2 ring-primary/30")}
               >
                 <h3 className="flex items-center justify-between px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                   {statusLabel(status)} <span className="tabular-nums">{column.length}</span>
