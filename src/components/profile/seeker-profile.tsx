@@ -134,13 +134,14 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
   )
   // CV strength: the next thing to add opens the form there
   const strength = <CvStrengthBar user={user} talent={talent} skipPhoto />
-  // Preview CV: a round floating button with an eye, bottom corner (Dev tools sits in the middle)
+  // Preview CV on phones and tablets: a round floating button with an eye, bottom corner. Wide screens
+  // don't need it: the Actions panel beside the CV has "Preview CV & Download".
   const preview = !editing && (
     <Link
       href="/profile/cv"
       aria-label={t("seeker.previewCv")}
       title={t("seeker.previewCv")}
-      className="fixed end-4 bottom-[calc(9rem+env(safe-area-inset-bottom))] z-40 flex size-14 lg:end-6 lg:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
+      className="fixed end-4 bottom-[calc(9rem+env(safe-area-inset-bottom))] z-40 flex size-14 lg:hidden items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
     >
       <EyeIcon className="size-6" />
     </Link>
