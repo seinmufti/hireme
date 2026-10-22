@@ -167,7 +167,7 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      {!embedded && <Contents editing={editing} />}
+      {!embedded && <CvContents floating />}
       {header}
       {actions}
       {!editing && <div className="rounded-xl border bg-card px-5 py-4">{strength}</div>}
@@ -779,17 +779,22 @@ const CONTENTS_ICONS: Record<ListingSection, typeof UserIcon> = {
  * Wide screens: the CV's sections listed beside the page (on the start side), to jump to any of them.
  * The section in view is highlighted. Works on the CV page and in the form (whose sections are edit-<id>).
  */
-function Contents({ editing }: { editing: boolean }) {
+/**
+ * The CV's sections, to jump to any of them; the one in view is marked. Beside the page on its own
+ * (`floating`), or as a card in a sidebar (the Profile tab, under Overall).
+ */
+export function CvContents({ floating }: { floating?: boolean }) {
   const t = useT()
   const [current, setCurrent] = useState<ListingSection>("personal")
-  const idOf = (s: ListingSection) => (editing ? `edit-${s}` : `cv-${s}`)
+  // The section's form while editing, otherwise its part of the CV
+  const sectionEl = (s: ListingSection) => document.getElementById(`edit-${s}`) ?? document.getElementById(`cv-${s}`)
 
   useEffect(() => {
     const update = () => {
       // The last section whose top has passed just under the header
       let seen: ListingSection = "personal"
       for (const s of CONTENTS) {
-        const el = document.getElementById(editing ? `edit-${s}` : `cv-${s}`)
+        const el = sectionEl(s)
         if (el && el.getBoundingClientRect().top < 140) seen = s
       }
       // At the very bottom the last sections can't reach the top: the last one counts as in view
@@ -799,10 +804,14 @@ function Contents({ editing }: { editing: boolean }) {
     update()
     window.addEventListener("scroll", update, { passive: true })
     return () => window.removeEventListener("scroll", update)
-  }, [editing])
+  }, [])
 
   return (
-    <nav aria-label={t("seeker.contents")} className="fixed top-28 hidden w-48 min-[1200px]:block" style={{ insetInlineStart: "calc(50% - 24rem - 13.5rem)" }}>
+    <nav
+      aria-label={t("seeker.contents")}
+      className={floating ? "fixed top-28 hidden w-48 min-[1200px]:block" : "rounded-xl border bg-card py-4 pe-3 ps-2"}
+      style={floating ? { insetInlineStart: "calc(50% - 24rem - 13.5rem)" } : undefined}
+    >
       <p className="mb-2 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("seeker.contents")}</p>
       <ul className="space-y-0.5 border-s">
         {CONTENTS.map((s) => {
@@ -812,7 +821,7 @@ function Contents({ editing }: { editing: boolean }) {
             <button
               type="button"
               onClick={() => {
-                document.getElementById(idOf(s))?.scrollIntoView({ behavior: "smooth", block: "start" })
+                sectionEl(s)?.scrollIntoView({ behavior: "smooth", block: "start" })
                 setCurrent(s)
               }}
               className={cn(
