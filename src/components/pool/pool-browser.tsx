@@ -62,6 +62,20 @@ export function PoolBrowser({
   const hasFilters = active.length > 0 || query.trim() !== "" || onlySaved
   const byId = (id: string | null) => talents.find((t) => t.id === id) ?? null
 
+  // In the search row on wide screens, first in the chip row on phones
+  const sortSelect = (
+    <Select items={sorts} value={sort} onValueChange={(v) => v && setSort(v)}>
+      <SelectTrigger size="sm" className="w-auto shrink-0 sm:w-48" aria-label={t("common.sort")}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {sorts.map((s) => (
+          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-6">
@@ -89,22 +103,15 @@ export function PoolBrowser({
               className="h-8 ps-8"
             />
           </div>
-          <div className="ms-auto flex items-center gap-2 text-sm">
+          <div className="ms-auto hidden items-center gap-2 text-sm sm:flex">
             <span className="text-muted-foreground">{t("common.sort")}</span>
-            <Select items={sorts} value={sort} onValueChange={(v) => v && setSort(v)}>
-              <SelectTrigger size="sm" className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {sorts.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {sortSelect}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Phones: one row that scrolls sideways, so the job seekers start right below */}
+        <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
+          <div className="contents sm:hidden">{sortSelect}</div>
           <button
             type="button"
             aria-pressed={onlySaved}
@@ -128,7 +135,7 @@ export function PoolBrowser({
         </div>
 
         {hasFilters && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="no-scrollbar -mx-4 flex items-center gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
             {active.map(({ def, value, label }) => (
               <button
                 key={def.key + value}

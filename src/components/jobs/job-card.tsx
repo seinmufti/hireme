@@ -49,20 +49,21 @@ export function JobCard({
   return (
     <article
       className={cn(
-        "relative flex flex-col rounded-xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-sm",
+        "relative flex flex-col rounded-xl border bg-card p-4 shadow-xs sm:p-5 transition hover:border-primary/30 hover:shadow-sm",
         !takesApplications(job) && "opacity-70",
         className
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-semibold">
+          {/* Long titles wrap to a second line instead of being cut off next to the match tag */}
+          <h3 className="line-clamp-2 font-semibold leading-snug">
             {/* The whole card opens the job */}
             <Link href={`/jobs/${job.id}`} className="after:absolute after:inset-0 hover:underline">
               {job.title}
             </Link>
           </h3>
-          <p className="truncate text-sm text-muted-foreground">
+          <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
             {job.company} · {job.category}
           </p>
         </div>

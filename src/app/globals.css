@@ -138,3 +138,11 @@
     font-family: var(--font-arabic), var(--font-sans), sans-serif;
   }
 }
+
+/* Rows that scroll sideways on phones (filter chips): no scrollbar, like a native app */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

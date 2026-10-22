@@ -31,7 +31,7 @@ function PhoneDevTools({ user }: { user: User | null }) {
     <div dir="ltr" className="dark lg:hidden">
       {open && <button type="button" aria-label="Close dev tools" className="fixed inset-0 z-50 cursor-default" onClick={() => setOpen(false)} />}
       {open && (
-        <div className="fixed inset-x-2 bottom-[calc(8.25rem+env(safe-area-inset-bottom))] z-50 max-h-[60dvh] space-y-4 overflow-y-auto rounded-2xl bg-black p-4 text-white shadow-2xl ring-1 ring-white/10">
+        <div className="fixed inset-x-2 bottom-[calc(12.25rem+env(safe-area-inset-bottom))] z-50 max-h-[60dvh] space-y-4 overflow-y-auto rounded-2xl bg-black p-4 text-white shadow-2xl ring-1 ring-white/10">
           <HeaderAccounts stacked onPicked={() => setOpen(false)} />
           {user?.role === "SEEKER" && (
             <div className="flex items-center justify-between border-t border-white/15 pt-3">
@@ -46,8 +46,9 @@ function PhoneDevTools({ user }: { user: User | null }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label="Dev tools"
+        // Phones: on the left edge, above pinned bars (e.g. a job's Apply bar) so it never covers a button
         className={cn(
-          "fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex size-11 -translate-x-1/2 items-center justify-center rounded-full bg-black text-white shadow-2xl ring-1 ring-white/10",
+          "fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-3 z-50 flex size-11 items-center justify-center rounded-full bg-black text-white shadow-2xl ring-1 ring-white/10",
           open && "bg-neutral-800"
         )}
       >

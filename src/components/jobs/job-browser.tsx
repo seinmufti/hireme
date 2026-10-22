@@ -147,6 +147,33 @@ export function JobBrowser({
   }
   const hasFilters = active.length > 0 || query.trim() !== "" || onlyMatches || withSalary || onlySaved
 
+  const matchingButton = isSeeker && talent && (
+    <button
+      type="button"
+      aria-pressed={onlyMatches}
+      onClick={() => setOnlyMatches((v) => !v)}
+      className={cn(
+        "flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
+        onlyMatches ? "border-emerald-400 bg-emerald-50 text-emerald-900" : "hover:bg-muted"
+      )}
+    >
+      <TargetIcon className="size-3.5" /> {t("jobs.matchingMine")}
+      <span className="rounded-full bg-muted px-1.5 text-xs tabular-nums">{matches.length}</span>
+    </button>
+  )
+  const sortSelect = (
+    <Select items={isSeeker ? SORTS : SORTS.slice(1)} value={sort} onValueChange={(v) => v && setSort(v)}>
+      <SelectTrigger size="sm" className="w-auto shrink-0 sm:w-36" aria-label={t("common.sort")}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {(isSeeker ? SORTS : SORTS.slice(1)).map((s) => (
+          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-6">
@@ -181,36 +208,20 @@ export function JobBrowser({
               aria-label={t("jobs.searchLabel")}
             />
           </div>
-          {isSeeker && talent && (
-            <button
-              type="button"
-              aria-pressed={onlyMatches}
-              onClick={() => setOnlyMatches((v) => !v)}
-              className={cn(
-                "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
-                onlyMatches ? "border-emerald-400 bg-emerald-50 text-emerald-900" : "hover:bg-muted"
-              )}
-            >
-              <TargetIcon className="size-3.5" /> {t("jobs.matchingMine")}
-              <span className="rounded-full bg-muted px-1.5 text-xs tabular-nums">{matches.length}</span>
-            </button>
-          )}
-          <div className="ms-auto flex items-center gap-2 text-sm">
+          {/* Wide screens: beside the search; phones: first in the chip row below */}
+          <div className="hidden sm:contents">{matchingButton}</div>
+          <div className="ms-auto hidden items-center gap-2 text-sm sm:flex">
             <span className="text-muted-foreground">{t("common.sort")}</span>
-            <Select items={isSeeker ? SORTS : SORTS.slice(1)} value={sort} onValueChange={(v) => v && setSort(v)}>
-              <SelectTrigger size="sm" className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(isSeeker ? SORTS : SORTS.slice(1)).map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {sortSelect}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Phones: one row that scrolls sideways (like Indeed or LinkedIn), so the jobs start right below */}
+        <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
+          <div className="contents sm:hidden">
+            {matchingButton}
+            {sortSelect}
+          </div>
           <button
             type="button"
             aria-pressed={withSalary}
@@ -248,7 +259,7 @@ export function JobBrowser({
         </div>
 
         {hasFilters && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="no-scrollbar -mx-4 flex items-center gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
             {active.map(({ def, value }) => (
               <button
                 key={def.key + value}

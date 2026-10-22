@@ -14,7 +14,7 @@ import { SaveJobButton } from "@/components/save-button"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { ApplicantsList, ApplyPanel } from "./applications"
+import { ApplicantsList, ApplyPanel, useMyApplication } from "./applications"
 import { JobDescription, SkillChips, useJobFacts } from "./job-meta"
 
 /** One job: what it is, why it suits the job seeker, and the company behind it. */
@@ -150,6 +150,37 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
       </div>
 
       {isOwner && <ApplicantsList job={job} viewer={viewer} />}
+
+      {!isOwner && <MobileApplyBar job={job} viewer={viewer} />}
+    </div>
+  )
+}
+
+/**
+ * Phones: Apply (and Save) stay pinned above the tab bar while reading the job, as on Indeed or LinkedIn,
+ * instead of waiting at the bottom of the page. Gone once applied; the status is in the panel below.
+ */
+function MobileApplyBar({ job, viewer }: { job: Job; viewer: User }) {
+  const t = useT()
+  const applied = useMyApplication(job.id, viewer.id)
+  const isSeeker = viewer.role === "SEEKER"
+  if (!takesApplications(job) || applied || (!isSeeker && viewer.role !== "GUEST")) return null
+  return (
+    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 border-t bg-card/95 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="flex items-start gap-2">
+        {isSeeker ? (
+          <>
+            <SaveJobButton jobId={job.id} className="size-10 shrink-0 rounded-lg border" />
+            <div className="min-w-0 flex-1 [&_button]:h-10">
+              <ApplyPanel job={job} viewer={viewer} />
+            </div>
+          </>
+        ) : (
+          <Link href="/login" className={buttonVariants({ className: "h-10 w-full" })}>
+            <LogInIcon /> {t("applications.signInToApply")}
+          </Link>
+        )}
+      </div>
     </div>
   )
 }
