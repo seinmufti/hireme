@@ -35,11 +35,12 @@ export function OverallPanel({ user, talent }: { user: HomeUser; talent: HomeTal
             <>
               <span className="text-2xl font-semibold tracking-tight">{duration}</span>
               {byField.length > 0 && (
-                <ul className="mt-2 space-y-1">
+                // One field per item: its name in full, the time spent in it below
+                <ul className="mt-3 space-y-2.5">
                   {byField.map(([field, m]) => (
-                    <li key={field} className="flex items-baseline justify-between gap-2">
-                      <span className="truncate font-medium">{field}</span>
-                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{span(m)}</span>
+                    <li key={field} className="leading-snug">
+                      <p className="font-medium">{field}</p>
+                      <p className="text-xs text-muted-foreground tabular-nums">{span(m)}</p>
                     </li>
                   ))}
                 </ul>
