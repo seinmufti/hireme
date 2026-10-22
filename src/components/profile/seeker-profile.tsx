@@ -151,11 +151,14 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
     return (
       <>
         <div className="mx-auto max-w-3xl divide-y rounded-xl border bg-card">
-          <div className="space-y-4 p-6">
-            {header}
-            {actions}
+          {/* Name, title and status on the left; CV completeness and strength on the right (stacked on phones) */}
+          <div className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 sm:items-center">
+            <div className="min-w-0 space-y-4">
+              {header}
+              {actions}
+            </div>
+            <div className="min-w-0">{strength}</div>
           </div>
-          <div className="px-6 py-5">{strength}</div>
           <PortfolioView user={user} talent={talent} onEdit={edit} flat />
         </div>
       </>
