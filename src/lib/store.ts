@@ -12,7 +12,7 @@ import { replaceAllOnce, safeStorage, setOnRestored } from "@/lib/safe-storage"
 import { ageFrom, PHONE_PATTERN } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE, professionFrom, withTalentDefaults, withUserDefaults, type LegacyTalent, type LegacyUser } from "@/lib/normalize"
 import { IS_DEMO } from "@/lib/mode"
-import { AVATAR_COLORS, type Role } from "@/lib/options"
+import { AVATAR_COLORS, toJobFunction, type Role } from "@/lib/options"
 import type { Application, Conversation, Degree, Follow, Job, JobInput, Message, Notification, ProfileInput, Result, Saved, Talent, TalentInput, User } from "@/lib/types"
 
 // All app data lives here. It starts as the built-in demo data and every change
@@ -507,7 +507,7 @@ export const useStore = create<Data & Actions>()(
     {
       name: "hireme-demo",
       // Bump when the demo data or its shape changes so visitors start fresh
-      version: 17,
+      version: 18,
       // v9 -> v10: jobs record start and end dates instead of years and months (see withJobDates)
       // v10 -> v11: the generated demo job seekers are added (see withDemoSeekers)
       // v11 -> v12: CV builder fields (photo, location, summary, skills, projects, job descriptions and
@@ -517,6 +517,7 @@ export const useStore = create<Data & Actions>()(
       // v14 -> v15: jobs have an application deadline; saved ones get 30 days from posting (see withDeadlines)
       // v15 -> v16: the guest account is added (see withGuest)
       // v16 -> v17: job salaries, saved jobs and job seekers, followed companies (see withSalaries)
+      // v17 -> v18: categories are job functions, not industries (see withJobFunctions)
       migrate: (persisted, version) => {
         let data = withJobDates(migrateOlder(persisted, version))
         if (version < 11) data = withDemoSeekers(data)
@@ -526,6 +527,7 @@ export const useStore = create<Data & Actions>()(
         if (version < 15) data = withDeadlines(data)
         if (version < 16) data = withGuest(data)
         if (version < 17) data = withSalaries(data)
+        if (version < 18) data = withJobFunctions(data)
         return data
       },
       // The demo saves to this browser; the real version saves nothing here (others' data mustn't stay on a
@@ -627,6 +629,15 @@ function withJobPostings(data: Data): Data {
 
 /** v14 -> v15: jobs saved before deadlines existed get one 30 days after they were posted (the demo jobs get theirs). */
 /** v16 -> v17: demo jobs get their salaries (others none); nothing saved or followed yet. */
+/** Jobs' and work experience's categories as job functions (see toJobFunction). */
+export function withJobFunctions<D extends Pick<Data, "jobs" | "talents">>(data: D): D {
+  return {
+    ...data,
+    jobs: data.jobs.map((j) => ({ ...j, category: toJobFunction(j.category, j.title) })),
+    talents: data.talents.map((t) => ({ ...t, experiences: (t.experiences ?? []).map((e) => ({ ...e, category: toJobFunction(e.category, e.title) })) })),
+  }
+}
+
 function withSalaries(data: Data): Data {
   return {
     ...data,

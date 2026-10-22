@@ -41,7 +41,7 @@ export const SAMPLE_CV_READ: CvRead = {
       {
         title: "Senior Sales Executive",
         employer: "Korek Telecom",
-        category: "Sales & Marketing",
+        category: "Sales",
         contractType: "Full-time",
         start: "2021-03",
         end: "",
@@ -53,7 +53,7 @@ export const SAMPLE_CV_READ: CvRead = {
       {
         title: "Sales Representative",
         employer: "Nestlé Iraq",
-        category: "Sales & Marketing",
+        category: "Sales",
         contractType: "Full-time",
         start: "2018-09",
         end: "2021-02",

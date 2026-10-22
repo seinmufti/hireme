@@ -8,7 +8,7 @@ type Template = Pick<JobInput, "title" | "category" | "contractType" | "skills" 
 export const JOB_TEMPLATES: Template[] = [
   {
     title: "Sales Representative",
-    category: "Sales & Marketing",
+    category: "Sales",
     contractType: "Full-time",
     skills: ["Sales", "Negotiation", "Customer Service", "Communication"],
     description:
@@ -24,7 +24,7 @@ export const JOB_TEMPLATES: Template[] = [
   },
   {
     title: "Accountant",
-    category: "Finance & Accounting",
+    category: "Accounting",
     contractType: "Full-time",
     skills: ["Accounting", "Microsoft Excel", "Financial Reporting"],
     description:
@@ -32,7 +32,7 @@ export const JOB_TEMPLATES: Template[] = [
   },
   {
     title: "Software Developer",
-    category: "Information Technology",
+    category: "IT & Software",
     contractType: "Full-time",
     skills: ["JavaScript", "SQL", "Git", "Problem solving"],
     description:
@@ -40,7 +40,7 @@ export const JOB_TEMPLATES: Template[] = [
   },
   {
     title: "Digital Marketing Specialist",
-    category: "Sales & Marketing",
+    category: "Marketing",
     contractType: "Full-time",
     skills: ["Digital Marketing", "Social Media", "Content Writing", "Google Ads"],
     description:
@@ -56,7 +56,7 @@ export const JOB_TEMPLATES: Template[] = [
   },
   {
     title: "Registered Nurse",
-    category: "Healthcare",
+    category: "Medical & Healthcare",
     contractType: "Full-time",
     skills: ["Patient Care", "Teamwork", "Communication"],
     description:

@@ -20,24 +20,59 @@ export const GENDERS = ["Male", "Female"]
 export const CONTRACT_TYPES = ["Full-time", "Part-time", "Internship"]
 
 // Job categories for previous jobs; people can also write their own
+// Job functions (what the person does), not industries: a job's category, and the fields a job
+// seeker's experience is summed up by
 export const JOB_CATEGORIES = [
-  "Information Technology",
-  "Engineering",
-  "Oil & Gas",
-  "Construction",
-  "Telecommunications",
-  "Finance & Accounting",
-  "Sales & Marketing",
-  "Customer Service",
-  "Administration",
+  "Accounting",
+  "Finance",
+  "Sales",
+  "Marketing",
   "Human Resources",
-  "Healthcare",
-  "Education & Teaching",
-  "Hospitality & Tourism",
+  "Administration",
+  "Customer Service",
+  "IT & Software",
+  "Engineering",
+  "Operations",
   "Logistics & Supply Chain",
-  "NGO & Humanitarian",
+  "Procurement",
   "Legal",
+  "Medical & Healthcare",
+  "Teaching & Training",
+  "Project Management",
+  "Design & Creative",
+  "Management",
 ]
+
+/**
+ * Categories saved before they became job functions (some were industries, e.g. "Oil & Gas"), turned
+ * into today's: where one old category became two, the job title decides. Anything else stays as it is.
+ */
+export function toJobFunction(category: string, title = ""): string {
+  const is = (re: RegExp) => re.test(title)
+  switch (category) {
+    case "Finance & Accounting":
+      return is(/account|audit|bookkeep|tax|payroll/i) ? "Accounting" : "Finance"
+    case "Sales & Marketing":
+      return is(/market|brand|social media|content|seo|digital|advertis|communications/i) ? "Marketing" : "Sales"
+    case "Information Technology":
+      return "IT & Software"
+    case "Engineering":
+    case "Oil & Gas":
+    case "Construction":
+    case "Telecommunications":
+      return is(/project manag/i) ? "Project Management" : "Engineering"
+    case "Hospitality & Tourism":
+      return "Customer Service"
+    case "Healthcare":
+      return "Medical & Healthcare"
+    case "Education & Teaching":
+      return "Teaching & Training"
+    case "NGO & Humanitarian":
+      return is(/project|program|coordinat/i) ? "Project Management" : is(/financ/i) ? "Finance" : "Operations"
+    default:
+      return category
+  }
+}
 
 export const EDUCATION = [
   "High school",

@@ -4,7 +4,7 @@ import type { RealtimePostgresChangesPayload, SupabaseClient } from "@supabase/s
 import { toast } from "sonner"
 import { create } from "zustand"
 import { firstName } from "@/lib/format"
-import { listingMissing, useStore, type Data } from "@/lib/store"
+import { listingMissing, useStore, withJobFunctions, type Data } from "@/lib/store"
 import { supabase } from "@/lib/supabase/client"
 import type { Role } from "@/lib/options"
 import type { Reference, Talent, User } from "@/lib/types"
@@ -158,7 +158,9 @@ async function loadAll(db: SupabaseClient, userId: string | null) {
     userId ? get<{ id: string; data: CvPrivate }>("cv_private") : Promise.resolve([]),
     ...TABLES.map((t) => (userId || t.key === "jobs" ? get<Row>(t.table) : Promise.resolve([] as Row[]))),
   ])
-  const lists = Object.fromEntries(TABLES.map((t, i) => [t.key, rows[i].map((r) => r.data)])) as unknown as Pick<Data, Key>
+  let lists = Object.fromEntries(TABLES.map((t, i) => [t.key, rows[i].map((r) => r.data)])) as unknown as Pick<Data, Key>
+  // Rows saved with the older categories show today's job functions (and are saved that way when next changed)
+  lists = withJobFunctions(lists)
   const own = cvPrivate.find((r) => r.id === userId)?.data ?? {}
   lists.talents = lists.talents.map((t) => (t.userId === userId ? withPrivate(t, own) : t))
   const users = toUsers(profiles, privates, lists.talents)

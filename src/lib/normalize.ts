@@ -1,3 +1,4 @@
+import { toJobFunction } from "@/lib/options"
 import type { Certification, Degree, Experience, LanguageSkill, Talent, User } from "@/lib/types"
 
 // Saved data and backups from before the CV builder (data version 12) lack its fields.
@@ -30,7 +31,12 @@ export function withTalentDefaults(t: LegacyTalent): Talent {
     softSkills: t.softSkills ?? [],
     projects: t.projects ?? [],
     workPreference: { ...EMPTY_WORK_PREFERENCE, ...t.workPreference },
-    experiences: (t.experiences ?? []).map((e) => ({ ...e, description: e.description ?? "", reference: e.reference ?? null })),
+    experiences: (t.experiences ?? []).map((e) => ({
+      ...e,
+      category: toJobFunction(e.category ?? "", e.title),
+      description: e.description ?? "",
+      reference: e.reference ?? null,
+    })),
     degrees: (t.degrees ?? []).map((d) => ({ ...d, attachmentIds: d.attachmentIds ?? [] })),
     certifications: (t.certifications ?? []).map((c) => ({ ...c, attachmentIds: c.attachmentIds ?? [] })),
     languages: (t.languages ?? []).map((l) => ({ ...l, attachmentIds: l.attachmentIds ?? [] })),
