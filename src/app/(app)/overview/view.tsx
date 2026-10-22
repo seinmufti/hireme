@@ -20,7 +20,7 @@ export function OverviewView() {
     <div className="space-y-6">
       {/* The panels keep their physical sides in every language (stats left, actions right); text inside follows the language */}
       <div dir="ltr" className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[13rem_minmax(0,1fr)_16rem] xl:grid-cols-[15rem_minmax(0,1fr)_18rem]">
-        {/* Phones and tablets: one column, your CV first, then the stats, then the actions */}
+        {/* Phones and tablets: one column, your CV first (its actions under the name), then the stats */}
         <div dir={dir} className="order-2 lg:sticky lg:top-20 lg:order-none">
           <OverallPanel user={user} talent={talent ?? null} />
         </div>
@@ -28,7 +28,8 @@ export function OverviewView() {
           {/* The whole CV: one card while reading it, a card per section while editing. Keyed so switching accounts resets the form */}
           <SeekerProfile key={account.id} user={account} embedded />
         </div>
-        <div dir={dir} className="order-3 lg:sticky lg:top-20 lg:order-none">
+        {/* Wide screens only: phones have these actions as buttons under the name (see SeekerProfile) */}
+        <div dir={dir} className="hidden lg:sticky lg:top-20 lg:block">
           <ActionsPanel />
         </div>
       </div>

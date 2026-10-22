@@ -9,7 +9,6 @@ import {
   CakeIcon,
   CircleAlertIcon,
   CircleCheckIcon,
-  EyeIcon,
   FileTextIcon,
   FolderKanbanIcon,
   LoaderCircleIcon,
@@ -36,7 +35,7 @@ import { CvStrengthBar } from "@/components/cv-strength-bar"
 import { CvImportButton } from "@/components/profile/cv-import-dialog"
 import { sectionsToCheck } from "@/components/profile/cv-import-review"
 import { stillMissing } from "@/lib/cv-import"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { deleteFile, saveUpload } from "@/lib/files"
@@ -134,26 +133,28 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
   )
   // CV strength: the next thing to add opens the form there
   const strength = <CvStrengthBar user={user} talent={talent} skipPhoto />
-  // Preview CV on phones and tablets: a round floating button with an eye, bottom corner. Wide screens
-  // don't need it: the Actions panel beside the CV has "Preview CV & Download".
-  const preview = !editing && (
-    <Link
-      href="/profile/cv"
-      aria-label={t("seeker.previewCv")}
-      title={t("seeker.previewCv")}
-      className="fixed end-4 bottom-[calc(9rem+env(safe-area-inset-bottom))] z-40 flex size-14 lg:hidden items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/15 transition hover:scale-105 hover:shadow-xl"
-    >
-      <EyeIcon className="size-6" />
-    </Link>
+  // Phones and tablets: the actions as buttons right under the name (as on LinkedIn's profile), instead
+  // of an Actions panel at the end of the page. Wide screens have that panel beside the CV.
+  const actions = !editing && (
+    <div className="flex gap-2 lg:hidden">
+      <Link href="/overview?edit=1" className={buttonVariants({ variant: "outline", className: "h-10 shrink-0 px-4" })}>
+        <PencilIcon /> {t("common.edit")}
+      </Link>
+      <Link href="/profile/cv" className={buttonVariants({ className: "h-10 min-w-0 flex-1" })}>
+        <FileTextIcon /> {t("home.previewCv")}
+      </Link>
+    </div>
   )
 
   // Import from a CV file lives in the form (see PortfolioForm), not on the CV itself
   if (flat) {
     return (
       <>
-        {preview}
         <div className="mx-auto max-w-3xl divide-y rounded-xl border bg-card">
-          <div className="space-y-4 p-6">{header}</div>
+          <div className="space-y-4 p-6">
+            {header}
+            {actions}
+          </div>
           <div className="px-6 py-5">{strength}</div>
           <PortfolioView user={user} talent={talent} onEdit={edit} flat />
         </div>
@@ -165,7 +166,7 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
     <div className="mx-auto max-w-3xl space-y-6">
       {!embedded && <Contents editing={editing} />}
       {header}
-      {preview}
+      {actions}
       {!editing && <div className="rounded-xl border bg-card px-5 py-4">{strength}</div>}
 
       {editing ? (
