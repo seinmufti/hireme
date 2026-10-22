@@ -208,6 +208,7 @@ const en = {
     totalExperience: "Total work experience",
     noExperience: "No experience yet",
     yearsShort: "yrs",
+    yearShort: "yr",
     monthsShort: "mo",
     languages: "Languages",
     noLanguages: "No languages added",

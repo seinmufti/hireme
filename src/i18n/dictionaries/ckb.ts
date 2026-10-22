@@ -207,6 +207,7 @@ const ckb: DeepPartial<Messages> = {
     totalExperience: "کۆی ئەزموونی کار",
     noExperience: "هێشتا ئەزموون نییە",
     yearsShort: "ساڵ",
+    yearShort: "ساڵ",
     monthsShort: "مانگ",
     languages: "زمانەکان",
     noLanguages: "هیچ زمانێک زیاد نەکراوە",

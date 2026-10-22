@@ -207,6 +207,7 @@ const ar: DeepPartial<Messages> = {
     totalExperience: "إجمالي الخبرة العملية",
     noExperience: "لا توجد خبرة بعد",
     yearsShort: "سنة",
+    yearShort: "سنة",
     monthsShort: "شهر",
     languages: "اللغات",
     noLanguages: "لم تُضف لغات",
