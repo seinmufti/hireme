@@ -53,7 +53,7 @@ export function OverallPanel({ user, talent }: { user: HomeUser; talent: HomeTal
 
         <Stat icon={LanguagesIcon} label={t("home.languages")}>
           {languages.length ? (
-            <ul className="space-y-1">
+            <ul className="grid grid-cols-2 gap-x-3 gap-y-1">
               {languages.map((l) => (
                 // Just the languages; their levels are on the CV
                 <li key={l.language} className="truncate font-medium">

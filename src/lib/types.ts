@@ -39,6 +39,8 @@ export type Experience = {
   start: string // "YYYY-MM"
   end: string // "YYYY-MM"; empty while current is true
   current: boolean // still working there
+  country?: string // where the job was: a country code (e.g. "IQ"); missing in older saved data
+  city?: string
   description: string // responsibilities and achievements, one bullet per line
   reference: Reference | null // optional; employers and the CV only see "Available on request"
 }

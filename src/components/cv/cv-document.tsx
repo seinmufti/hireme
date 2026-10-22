@@ -6,7 +6,7 @@ import { Logo } from "@/components/logo"
 import { useStoredFile } from "@/lib/files"
 import { countryName } from "@/lib/options"
 import type { TalentInput, User } from "@/lib/types"
-import { firstName } from "@/lib/format"
+import { firstName, jobPlace } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { Flag, ProfilePhoto } from "./photo"
 import { BrandName } from "@/components/brand-name"
@@ -265,7 +265,7 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
         <Row aside={range(monthYear(e.start), e.current ? "Present" : monthYear(e.end))} className="pb-[4mm]">
           <p className="text-[10pt] font-bold">{e.title}</p>
           <p className="italic" style={{ color: MUTED }}>
-            {[e.employer, e.contractType].filter(Boolean).join(" · ")}
+            {[e.employer, jobPlace(e), e.contractType].filter(Boolean).join(" · ")}
           </p>
           {e.description && (
             <ul className="mt-[1.5mm] list-disc space-y-[0.6mm] ps-[4.5mm] marker:text-[7pt] marker:text-[#2F5D8A]">

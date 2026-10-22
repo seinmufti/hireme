@@ -1,4 +1,4 @@
-import { EDUCATION } from "@/lib/options"
+import { countryName, EDUCATION } from "@/lib/options"
 import type { Degree, Experience } from "@/lib/types"
 
 export const firstName = (name: string) => name.split(" ")[0]
@@ -23,6 +23,10 @@ export function jobMonths(e: Pick<Experience, "start" | "end" | "current">, now 
   const end = e.current ? now.getFullYear() * 12 + now.getMonth() : MONTH_VALUE.test(e.end ?? "") ? monthIndex(e.end) : null
   return end === null ? 0 : Math.max(0, end - monthIndex(e.start))
 }
+
+/** Where a job was: "Erbil, Iraq"; "" when not given. */
+export const jobPlace = (e: { city?: string; country?: string }) =>
+  [e.city?.trim(), e.country ? countryName(e.country) : ""].filter(Boolean).join(", ")
 
 export const totalMonths = (experiences: Experience[]) => experiences.reduce((sum, e) => sum + jobMonths(e), 0)
 

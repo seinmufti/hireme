@@ -16,7 +16,7 @@ import type { Certification, Degree, Experience, LanguageSkill, Talent, TalentIn
 import { cn } from "@/lib/utils"
 import { AttachmentField } from "./cv-fields"
 import { DateOfBirthPicker } from "./date-of-birth-picker"
-import { CountrySelect, InstitutionPicker } from "./pickers"
+import { CityPicker, CountrySelect, InstitutionPicker } from "./pickers"
 import { LanguagePicker } from "./language-picker"
 import { FieldOfStudyPicker } from "./field-of-study-picker"
 import { MonthPicker, PeriodPicker } from "./month-picker"
@@ -360,6 +360,15 @@ export function ExperienceFields({
             </Field>
             <Field label={t("form.contractType")} className="col-span-12 sm:col-span-6" missing={!e.contractType}>
               <Choice value={e.contractType} options={CONTRACT_TYPES} onChange={(v) => update(e.id, { contractType: v })} />
+            </Field>
+            {/* Where the job was (optional): country and city together on one line, like the period */}
+            <Field label={t("seeker.location")} className="col-span-12">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {/* A city in the old country does not fit the new one */}
+                <CountrySelect value={e.country || "IQ"} onChange={(country) => update(e.id, { country, city: "" })} />
+                {/* Keyed so each country starts with its own list */}
+                <CityPicker key={e.country || "IQ"} country={e.country || "IQ"} value={e.city ?? ""} onChange={(city) => update(e.id, { city, country: e.country || "IQ" })} />
+              </div>
             </Field>
             <Field label={t("form.period")} className="col-span-12" missing={!MONTH.test(e.start ?? "") || (!e.current && !MONTH.test(e.end ?? ""))}>
               <PeriodPicker start={e.start} end={e.end} current={e.current} onChange={(patch) => update(e.id, patch)} what={t("form.jobEndsBefore")} />

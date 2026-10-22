@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { FileTextIcon, PencilIcon } from "lucide-react"
+import { FileTextIcon } from "lucide-react"
 import { BRAND_RED } from "@/components/brand-name"
 import { useT } from "@/i18n/provider"
 
@@ -9,11 +9,8 @@ import { useT } from "@/i18n/provider"
 export function ActionsPanel() {
   const t = useT()
 
-  const actions = [
-    // Edit CV is only here on Home
-    { href: "/overview?edit=1", icon: PencilIcon, label: t("common.edit") },
-    { href: "/profile/cv", icon: FileTextIcon, label: t("home.previewCv") },
-  ]
+  // Editing is from each part of the CV (its Edit button), so not here
+  const actions = [{ href: "/profile/cv", icon: FileTextIcon, label: t("home.previewCv") }]
 
   return (
     <aside className="space-y-4">
@@ -27,7 +24,7 @@ export function ActionsPanel() {
             <li key={a.href}>
               <Link href={a.href} className={"flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm text-blue-700 hover:bg-muted"}>
                 <a.icon className="mt-0.5 size-4 shrink-0" />
-                <span className="flex-1 leading-snug">{a.label}</span>
+                <span className="flex-1 leading-snug underline underline-offset-4">{a.label}</span>
               </Link>
             </li>
           ))}

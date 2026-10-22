@@ -1,7 +1,7 @@
 "use client"
 
 import { BanknoteIcon, BriefcaseIcon, CakeIcon, GraduationCapIcon, LanguagesIcon, UserIcon } from "lucide-react"
-import { degreeDuration, formatDuration, formatJobPeriod, formatMonthYear, jobMonths } from "@/lib/format"
+import { degreeDuration, formatDuration, formatJobPeriod, formatMonthYear, jobMonths, jobPlace } from "@/lib/format"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
 import { LANGUAGE_LEVELS } from "@/lib/options"
@@ -77,7 +77,7 @@ export function ExperienceList({ experiences, limit }: { experiences: Experience
             <span className="text-muted-foreground"> · {e.employer}</span>
           </div>
           <div className="truncate text-xs text-muted-foreground">
-            {[e.category, e.contractType, formatJobPeriod(e), jobMonths(e) > 0 && formatDuration(jobMonths(e))].filter(Boolean).join(" · ")}
+            {[e.category, e.contractType, jobPlace(e), formatJobPeriod(e), jobMonths(e) > 0 && formatDuration(jobMonths(e))].filter(Boolean).join(" · ")}
           </div>
         </li>
       ))}

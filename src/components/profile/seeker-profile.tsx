@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
@@ -36,7 +36,6 @@ import { CvImportButton } from "@/components/profile/cv-import-dialog"
 import { sectionsToCheck } from "@/components/profile/cv-import-review"
 import { stillMissing } from "@/lib/cv-import"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { deleteFile, saveUpload } from "@/lib/files"
@@ -98,29 +97,27 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
       setEditing(true)
     }
   }
-  // A section's Edit button: just that section, in a dialog over the CV (nothing on the page moves)
-  const [sectionEdit, setSectionEdit] = useState<SectionId | null>(null)
-  const edit = (section: SectionId) => setSectionEdit(section)
-  const sectionDialog = (
-    <Dialog open={!!sectionEdit} onOpenChange={(open) => !open && setSectionEdit(null)}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{sectionEdit && sectionTitle(t, sectionEdit)}</DialogTitle>
-        </DialogHeader>
-        {sectionEdit && (
-          <PortfolioForm
-            key={sectionEdit}
-            user={user}
-            talent={talent}
-            jumpTo={sectionEdit}
-            only={sectionEdit}
-            onCancel={() => setSectionEdit(null)}
-            onSaved={() => setSectionEdit(null)}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
-  )
+  // Where on screen the section was when its Edit was clicked, so the form opens with that section in the
+  // same place (no jumping to the top and scrolling back down)
+  const anchor = useRef<Anchor | null>(null)
+  const edit = (section: SectionId) => {
+    const top = document.getElementById(`cv-${section}`)?.getBoundingClientRect().top
+    anchor.current = top == null ? null : { formId: `edit-${section}`, top }
+    setJumpTo(section)
+    setEditing(true)
+  }
+  // The Edit on the top card (name, title, photo): the form opens with that card where it was, the cursor in the profession
+  const editTop = () => {
+    const top = document.getElementById("cv-top")?.getBoundingClientRect().top
+    anchor.current = top == null ? null : { formId: "edit-top", top }
+    setJumpTo("profession")
+    setEditing(true)
+  }
+  const takeAnchor = () => {
+    const taken = anchor.current
+    anchor.current = null
+    return taken
+  }
   useEffect(() => {
     // Keep the scroll position: the form may be scrolling to a section (?edit=work)
     if (startEditing) router.replace(pathname, { scroll: false })
@@ -172,7 +169,11 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
       <>
         <div className="mx-auto max-w-3xl divide-y rounded-xl border bg-card">
           {/* Name, title and status on the left; CV completeness and strength on the right (stacked on phones) */}
-          <div className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 sm:items-center">
+          <div id="cv-top" className="relative grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 sm:items-center">
+            {/* Wide screens (phones have the Edit button under the name) */}
+            <Button variant="ghost" size="xs" className={cn(EDIT_LINK, "absolute end-3 top-3 hidden lg:inline-flex")} onClick={editTop} aria-label={t("common.edit")}>
+              <PencilIcon /> {t("common.edit")}
+            </Button>
             <div className="min-w-0 space-y-4">
               {header}
               {actions}
@@ -181,7 +182,6 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
           </div>
           <PortfolioView user={user} talent={talent} onEdit={edit} flat />
         </div>
-        {sectionDialog}
       </>
     )
   }
@@ -189,7 +189,8 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       {!embedded && <CvContents floating />}
-      {header}
+      {/* While editing, the name and the bars share one card at the top of the form (as on the Profile tab) */}
+      {!editing && header}
       {actions}
       {!editing && <div className="rounded-xl border bg-card px-5 py-4">{strength}</div>}
 
@@ -198,6 +199,8 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
           user={user}
           talent={talent}
           jumpTo={jumpTo}
+          takeAnchor={takeAnchor}
+          header={header}
           imported={imported}
           onCancel={() => {
             setEditing(false)
@@ -213,7 +216,6 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
       ) : (
         <PortfolioView user={user} talent={talent} onEdit={edit} />
       )}
-      {sectionDialog}
     </div>
   )
 }
@@ -293,7 +295,7 @@ function Card({
           {needsDetails && <span className="ms-2 text-xs font-normal">{t("seeker.requiredMissing")}</span>}
           {note && <span className="ms-2 text-xs font-normal">{note}</span>}
         </h2>
-        <Button variant="ghost" size="sm" onClick={() => onEdit(id)} aria-label={t("seeker.editSection", { section: title })}>
+        <Button variant="ghost" size="sm" className={EDIT_LINK} onClick={() => onEdit(id)} aria-label={t("seeker.editSection", { section: title })}>
           <PencilIcon /> {t("common.edit")}
         </Button>
       </div>
@@ -519,44 +521,70 @@ const contactOf = (user: User) => ({
 })
 
 /** A CV file read on the CV page: the form opens with it filled in (and what needs a look). */
+/** The CV's Edit buttons: blue and underlined, like links (the same blue as the Actions panel) */
+const EDIT_LINK = "text-blue-700 underline underline-offset-4 hover:bg-blue-50 hover:text-blue-800"
+
+/** Opening the form: which part of it (by id) goes where the clicked part was on screen */
+type Anchor = { formId: string; top: number }
+
 type Imported = { profile: ReturnType<typeof contactOf>; portfolio: TalentInput; paths: string[] }
 
 function PortfolioForm({
   user,
   talent,
   jumpTo,
+  takeAnchor,
+  header,
   onCancel,
   onSaved,
   imported,
-  only,
 }: {
   user: User
   talent: Talent | null
   jumpTo: EditTarget | null
+  /** Where the clicked part was on screen (once), to open its form in the same place */
+  takeAnchor?: () => Anchor | null
+  /** The name, title and status, shown beside the bars at the top (as on the Profile tab) */
+  header?: React.ReactNode
   onCancel: () => void
   onSaved: () => void
   imported?: Imported | null
-  /** Just this section (a section's Edit button opens it in a dialog); the rest of the CV is kept as it is */
-  only?: SectionId
 }) {
   const t = useT()
-  // Opened from a section's Edit button: scroll that section into view
+  // Put the cursor in the field it's about: the profession, or the section's first field (or its Add button)
+  const focusIn = (section: HTMLElement) => {
+    const field =
+      jumpTo === "profession"
+        ? document.getElementById("edit-profession")
+        : section.querySelector<HTMLElement>("input:not([type=file]):not([type=checkbox]), textarea, button[role=combobox], [data-slot=select-trigger], button:not([type=button][aria-label])")
+    field?.focus({ preventScroll: true })
+  }
+  // Opened from a section's Edit button: that section's form where the section was, before the page is drawn
+  const anchored = useRef(false)
+  useLayoutEffect(() => {
+    const taken = jumpTo ? takeAnchor?.() : null
+    if (!jumpTo || !taken) return
+    const target = document.getElementById(taken.formId)
+    const section = document.getElementById(`edit-${jumpTo === "profession" ? "personal" : jumpTo}`)
+    if (!target || !section) return
+    anchored.current = true
+    window.scrollBy({ top: target.getBoundingClientRect().top - taken.top, behavior: "instant" })
+    focusIn(section)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jumpTo])
+  // Opened by a link (?edit=work): scroll that section into view once the page has settled
   useEffect(() => {
-    if (!jumpTo) return
+    if (!jumpTo || anchored.current) return
     // A moment later: when the form opens with the page (a link to ?edit=work), the page is still settling
     // and an immediate scroll gets cut short
     const timer = setTimeout(() => {
       const section = document.getElementById(`edit-${jumpTo === "profession" ? "personal" : jumpTo}`)
       if (!section) return
-      if (!only) section.scrollIntoView({ behavior: "smooth", block: "start" })
-      // Put the cursor in the field it's about: the profession, or the section's first field (or its Add button)
-      const field =
-        jumpTo === "profession"
-          ? document.getElementById("edit-profession")
-          : section.querySelector<HTMLElement>("input:not([type=file]):not([type=checkbox]), textarea, button[role=combobox], [data-slot=select-trigger], button:not([type=button][aria-label])")
-      field?.focus({ preventScroll: true })
+      section.scrollIntoView({ behavior: "smooth", block: "start" })
+      focusIn(section)
     }, 150)
     return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jumpTo])
 
   const updateProfile = useStore((s) => s.updateProfile)
@@ -576,10 +604,7 @@ function PortfolioForm({
   const stillEmpty = new Set(stillMissing(contact, portfolio))
   const importFlags: Set<string> = sectionsToCheck(toCheck.filter((p) => stillEmpty.has(p)))
   const sectionClass = (id: SectionId) =>
-    only
-      ? "space-y-4"
-      : cn("scroll-mt-20 space-y-4 rounded-xl border p-6", needs.has(id as ListingSection) || importFlags.has(id) ? NEEDS_DETAILS : "bg-card")
-  const hide = (id: SectionId) => !!only && only !== id
+    cn("scroll-mt-20 space-y-4 rounded-xl border p-6", needs.has(id as ListingSection) || importFlags.has(id) ? NEEDS_DETAILS : "bg-card")
   const setField = (key: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setContact((c) => ({ ...c, [key]: e.target.value }))
   const list = <K extends "experiences" | "degrees" | "certifications" | "languages" | "projects">(key: K) =>
@@ -616,16 +641,22 @@ function PortfolioForm({
 
   const heading = (id: SectionId, hint?: string) => (
     <div>
-      {/* In the one-section dialog its title is the dialog's */}
-      {!only && <h2 className="font-medium">{sectionTitle(t, id)}</h2>}
+      <h2 className="font-medium">{sectionTitle(t, id)}</h2>
       {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
     </div>
   )
 
   return (
     <form onSubmit={save} className="space-y-4">
-      {/* Import from a CV file, in its own section above the bars (not when editing one section) */}
-      <div hidden={!!only} className="flex justify-center rounded-xl border bg-card px-5 py-4">
+      {/* CV completeness and strength as it's being filled in: beside the name, where they are on the Profile tab */}
+      <div id="edit-top" className="grid grid-cols-1 gap-6 rounded-xl border bg-card p-6 sm:grid-cols-2 sm:items-center">
+        {header && <div className="min-w-0 space-y-4">{header}</div>}
+        <div className={cn("min-w-0", !header && "sm:col-span-2")}>
+          <CvStrengthBar user={contact} talent={portfolio} />
+        </div>
+      </div>
+      {/* Import from a CV file, in its own section under the name and bars */}
+      <div className="flex justify-center rounded-xl border bg-card px-5 py-4">
         <CvImportButton
           profile={contact}
           portfolio={portfolio}
@@ -636,11 +667,7 @@ function PortfolioForm({
           }}
         />
       </div>
-      {/* CV completeness and strength as it's being filled in */}
-      <div hidden={!!only} className="rounded-xl border bg-card px-5 py-4">
-        <CvStrengthBar user={contact} talent={portfolio} />
-      </div>
-      <section id="edit-personal" hidden={hide("personal")} className={sectionClass("personal")}>
+      <section id="edit-personal" className={sectionClass("personal")}>
         {heading("personal")}
         <PhotoField
           photoId={contact.photoId}
@@ -677,7 +704,7 @@ function PortfolioForm({
         </p>
       </section>
 
-      <section id="edit-about" hidden={hide("about")} className={sectionClass("about")}>
+      <section id="edit-about" className={sectionClass("about")}>
         {heading("about")}
         <Textarea
           className="min-h-24 text-sm"
@@ -687,17 +714,17 @@ function PortfolioForm({
         />
       </section>
 
-      <section id="edit-work" hidden={hide("work")} className={sectionClass("work")}>
+      <section id="edit-work" className={sectionClass("work")}>
         {heading("work")}
         <ExperienceFields value={portfolio.experiences} onChange={list("experiences")} />
       </section>
 
-      <section id="edit-education" hidden={hide("education")} className={sectionClass("education")}>
+      <section id="edit-education" className={sectionClass("education")}>
         {heading("education")}
         <DegreeFields value={portfolio.degrees} onChange={list("degrees")} />
       </section>
 
-      <section id="edit-skills" hidden={hide("skills")} className={sectionClass("skills")}>
+      <section id="edit-skills" className={sectionClass("skills")}>
         {heading("skills")}
         <Field label={t("seeker.hardSkillsLabel")}>
           <TagPicker
@@ -717,29 +744,23 @@ function PortfolioForm({
         </Field>
       </section>
 
-      <section id="edit-languages" hidden={hide("languages")} className={sectionClass("languages")}>
+      <section id="edit-languages" className={sectionClass("languages")}>
         {heading("languages")}
         <LanguageFields value={portfolio.languages} onChange={list("languages")} />
       </section>
 
-      <section id="edit-certifications" hidden={hide("certifications")} className={sectionClass("certifications")}>
+      <section id="edit-certifications" className={sectionClass("certifications")}>
         {heading("certifications")}
         <CertificationFields value={portfolio.certifications} onChange={list("certifications")} />
       </section>
 
-      <section id="edit-projects" hidden={hide("projects")} className={sectionClass("projects")}>
+      <section id="edit-projects" className={sectionClass("projects")}>
         {heading("projects")}
         <ProjectFields value={portfolio.projects} onChange={list("projects")} />
       </section>
 
 
-      <div
-        className={
-          only
-            ? "sticky -bottom-[calc(1rem+env(safe-area-inset-bottom))] -mx-4 -mb-[calc(1rem+env(safe-area-inset-bottom))] flex items-center justify-end gap-2 border-t bg-popover px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:-bottom-4 sm:-mb-4 sm:pb-3"
-            : "sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex lg:bottom-[calc(1rem+env(safe-area-inset-bottom))] items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur"
-        }
-      >
+      <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex lg:bottom-[calc(1rem+env(safe-area-inset-bottom))] items-center justify-end gap-2 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
         <Button type="button" variant="ghost" onClick={cancel}>
           {t("common.cancel")}
         </Button>

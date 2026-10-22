@@ -19,21 +19,20 @@ export function OverviewView() {
   return (
     <div className="space-y-6">
       {/* The panels keep their physical sides in every language (stats left, actions right); text inside follows the language */}
-      <div dir="ltr" className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[16rem_minmax(0,1fr)_10rem] xl:grid-cols-[18rem_minmax(0,1fr)_11rem]">
+      <div dir="ltr" className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[14rem_minmax(0,1fr)_16rem] xl:grid-cols-[17rem_minmax(0,1fr)_16rem]">
         {/* Phones and tablets: one column, your CV first (its actions under the name), then the stats */}
-        {/* Wide screens: Overall and the CV's sections stay in view, and scroll on their own when taller than the window */}
-        <div dir={dir} className="no-scrollbar order-2 space-y-4 lg:sticky lg:top-20 lg:order-none lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
+        {/* Wide screens: Overall stays in view (and scrolls on its own if taller than the window) */}
+        <div dir={dir} className="no-scrollbar order-2 lg:sticky lg:top-[calc(5.5rem+1px)] lg:order-none lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-y-contain">
           <OverallPanel user={user} talent={talent ?? null} />
-          <div className="hidden lg:block">
-            <CvContents />
-          </div>
         </div>
         <div dir={dir} className="order-1 min-w-0 space-y-6 lg:order-none">
           {/* The whole CV: one card while reading it, a card per section while editing. Keyed so switching accounts resets the form */}
           <SeekerProfile key={account.id} user={account} embedded />
         </div>
-        {/* Wide screens only: phones have these actions as buttons under the name (see SeekerProfile) */}
-        <div dir={dir} className="hidden lg:sticky lg:top-20 lg:block">
+        {/* Wide screens only: the CV's sections to jump to, then the actions (phones have them as buttons
+            under the name, see SeekerProfile) */}
+        <div dir={dir} className="no-scrollbar hidden space-y-4 lg:sticky lg:top-[calc(5.5rem+1px)] lg:block lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-y-contain">
+          <CvContents />
           <ActionsPanel />
         </div>
       </div>
