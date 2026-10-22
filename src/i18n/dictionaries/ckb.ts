@@ -138,7 +138,7 @@ const ckb: DeepPartial<Messages> = {
     searchIn: "گەڕان لە {label}…",
     clearFilter: "سڕینەوەی {label}",
     filters: {
-      category: "جۆری کار",
+      category: "بوار",
       gender: "ڕەگەز",
       age: "تەمەن",
       experience: "ئەزموون",

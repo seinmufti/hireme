@@ -72,7 +72,7 @@ export function buildFilters(talents: PoolTalent[]): FilterDef[] {
   return [
     {
       key: "category",
-      label: "Job category",
+      label: "Field",
       mode: "any",
       // Includes categories people wrote themselves
       options: plain(withExtras(JOB_CATEGORIES, talents.flatMap((t) => t.experiences.map((e) => e.category)).filter(Boolean))),

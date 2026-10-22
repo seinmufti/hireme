@@ -138,7 +138,7 @@ const ar: DeepPartial<Messages> = {
     searchIn: "ابحث في {label}…",
     clearFilter: "مسح {label}",
     filters: {
-      category: "فئة الوظيفة",
+      category: "المجال",
       gender: "الجنس",
       age: "العمر",
       experience: "الخبرة",
