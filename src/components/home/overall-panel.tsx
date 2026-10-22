@@ -29,9 +29,9 @@ export function OverallPanel({ user, talent }: { user: HomeUser; talent: HomeTal
           {languages.length ? (
             <ul className="space-y-1">
               {languages.map((l) => (
-                <li key={l.language} className="flex items-baseline justify-between gap-2">
-                  <span className="truncate font-medium">{l.language}</span>
-                  <span dir="ltr" className="shrink-0 text-xs text-muted-foreground">{l.speaking}</span>
+                // Just the languages; their levels are on the CV
+                <li key={l.language} className="truncate font-medium">
+                  {l.language}
                 </li>
               ))}
             </ul>
