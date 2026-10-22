@@ -25,9 +25,9 @@ export function ActionsPanel() {
         <ul className="p-1.5">
           {actions.map((a) => (
             <li key={a.href}>
-              <Link href={a.href} className={"flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-blue-700 hover:bg-muted"}>
-                <a.icon className="size-4 shrink-0" />
-                <span className="flex-1 truncate">{a.label}</span>
+              <Link href={a.href} className={"flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm text-blue-700 hover:bg-muted"}>
+                <a.icon className="mt-0.5 size-4 shrink-0" />
+                <span className="flex-1 leading-snug">{a.label}</span>
               </Link>
             </li>
           ))}

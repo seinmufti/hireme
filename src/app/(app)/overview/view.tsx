@@ -19,7 +19,7 @@ export function OverviewView() {
   return (
     <div className="space-y-6">
       {/* The panels keep their physical sides in every language (stats left, actions right); text inside follows the language */}
-      <div dir="ltr" className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[15rem_minmax(0,1fr)_13.5rem] xl:grid-cols-[17rem_minmax(0,1fr)_14rem]">
+      <div dir="ltr" className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[16rem_minmax(0,1fr)_10rem] xl:grid-cols-[18rem_minmax(0,1fr)_11rem]">
         {/* Phones and tablets: one column, your CV first (its actions under the name), then the stats */}
         {/* Wide screens: Overall and the CV's sections stay in view, and scroll on their own when taller than the window */}
         <div dir={dir} className="no-scrollbar order-2 space-y-4 lg:sticky lg:top-20 lg:order-none lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
