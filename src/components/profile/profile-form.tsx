@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { PhoneInput } from "@/components/phone-input"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, EDIT_LINK } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useI18n, useT } from "@/i18n/provider"
@@ -52,7 +52,7 @@ function StaffProfile({ user }: { user: User }) {
           {subtitle && <p className="truncate text-muted-foreground">{subtitle}</p>}
         </div>
         {!editing && (
-          <Button variant="outline" onClick={() => setEditing(true)}>
+          <Button variant="ghost" className={EDIT_LINK} onClick={() => setEditing(true)}>
             <PencilIcon /> {t("profile.editProfile")}
           </Button>
         )}

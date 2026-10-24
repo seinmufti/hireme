@@ -33,6 +33,7 @@ import {
   PhoneIcon,
   PlusIcon,
   RotateCcwIcon,
+  SettingsIcon,
   Trash2Icon,
   TrophyIcon,
   UserIcon,
@@ -47,7 +48,7 @@ import { CvStrengthBar } from "@/components/cv-strength-bar"
 import { CvImportButton } from "@/components/profile/cv-import-dialog"
 import { sectionsToCheck } from "@/components/profile/cv-import-review"
 import { stillMissing } from "@/lib/cv-import"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants, EDIT_LINK } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { deleteFile } from "@/lib/files"
@@ -181,11 +182,14 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
   // of an Actions panel at the end of the page. Wide screens have that panel beside the CV.
   const actions = !editing && (
     <div className="flex gap-2 lg:hidden">
-      <Link href="/overview?edit=1" className={buttonVariants({ variant: "outline", className: "h-10 shrink-0 px-4" })}>
+      <Link href="/overview?edit=1" className={buttonVariants({ variant: "ghost", className: cn(EDIT_LINK, "h-10 shrink-0 px-4") })}>
         <PencilIcon /> {t("common.edit")}
       </Link>
       <Link href="/profile/cv" className={buttonVariants({ className: "h-10 min-w-0 flex-1" })}>
         <FileTextIcon /> {t("home.previewCv")}
+      </Link>
+      <Link href="/account" aria-label={t("account.title")} title={t("account.title")} className={buttonVariants({ variant: "outline", className: "size-10 shrink-0 p-0" })}>
+        <SettingsIcon />
       </Link>
     </div>
   )
@@ -198,7 +202,7 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
           {/* Name, title and status on the left; CV completeness and strength on the right (stacked on phones) */}
           <div id="cv-top" className="relative grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 sm:items-center">
             {/* Wide screens (phones have the Edit button under the name) */}
-            <Button variant="ghost" size="xs" className={cn(EDIT_LINK, "absolute end-3 top-3 hidden lg:inline-flex")} onClick={editTop} aria-label={t("common.edit")}>
+            <Button variant="ghost" size="xs" className={cn(EDIT_LINK, "absolute end-3 top-3 hidden lg:inline-flex")} onClick={editTop}>
               <PencilIcon /> {t("common.edit")}
             </Button>
             <div className="min-w-0 space-y-4">
@@ -328,8 +332,16 @@ function Card({
             </span>
           )}
         </h2>
-        <Button variant="ghost" size="sm" className={EDIT_LINK} onClick={() => onEdit(id)} aria-label={t("seeker.editSection", { section: title })}>
-          <PencilIcon /> {t("common.edit")}
+        {/* Just the pencil; the top card's Edit also has the word */}
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+          onClick={() => onEdit(id)}
+          aria-label={t("seeker.editSection", { section: title })}
+          title={t("seeker.editSection", { section: title })}
+        >
+          <PencilIcon />
         </Button>
       </div>
       <div className={cn(hiddenOnCv && "opacity-50")}>{children}</div>
@@ -459,25 +471,12 @@ function PortfolioView({ user, talent, onEdit, flat = false }: { user: User; tal
         {p.hardSkills.length + p.softSkills.length === 0 ? (
           <Empty>{t("seeker.skillsEmpty")}</Empty>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
-            {[
-              [t("seeker.hardSkills"), p.hardSkills],
-              [t("seeker.softSkills"), p.softSkills],
-            ].map(([title, list]) => (
-              <div key={title as string}>
-                <h3 className="mb-1 text-xs font-medium text-muted-foreground">{title}</h3>
-                {(list as string[]).length ? (
-                  <ul className="list-disc space-y-0.5 ps-5 marker:text-primary">
-                    {(list as string[]).map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <Empty>{t("seeker.noneAdded")}</Empty>
-                )}
-              </div>
+          // All skills in one list, technical and personal ones together
+          <ul className="grid list-disc grid-cols-1 gap-x-6 gap-y-0.5 ps-5 text-sm marker:text-primary sm:grid-cols-2">
+            {[...p.hardSkills, ...p.softSkills].map((s) => (
+              <li key={s}>{s}</li>
             ))}
-          </div>
+          </ul>
         )}
       </Card>
     ),
@@ -582,8 +581,6 @@ const contactOf = (user: User) => ({
 })
 
 /** A CV file read on the CV page: the form opens with it filled in (and what needs a look). */
-/** The CV's Edit buttons: blue and underlined, like links (the same blue as the Actions panel) */
-const EDIT_LINK = "text-blue-700 underline underline-offset-4 hover:bg-blue-50 hover:text-blue-800"
 
 /** Opening the form: which part of it (by id) goes where the clicked part was on screen */
 type Anchor = { formId: string; top: number }
@@ -811,22 +808,19 @@ function PortfolioForm({
     skills: (
       <section id="edit-skills" className={sectionClass("skills")}>
         {heading("skills")}
-        <Field label={t("seeker.hardSkillsLabel")}>
-          <TagPicker
-            value={portfolio.hardSkills}
-            onChange={(hardSkills) => setPortfolio((p) => ({ ...p, hardSkills }))}
-            suggestions={HARD_SKILLS}
-            placeholder={t("seeker.hardSkillsPlaceholder")}
-          />
-        </Field>
-        <Field label={t("seeker.softSkillsLabel")}>
-          <TagPicker
-            value={portfolio.softSkills}
-            onChange={(softSkills) => setPortfolio((p) => ({ ...p, softSkills }))}
-            suggestions={SOFT_SKILLS}
-            placeholder={t("seeker.softSkillsPlaceholder")}
-          />
-        </Field>
+        {/* One list for all skills; kept apart behind the scenes (people skills from the list count as soft
+            skills for the CV strength) */}
+        <TagPicker
+          value={[...portfolio.hardSkills, ...portfolio.softSkills]}
+          onChange={(all) =>
+            setPortfolio((p) => {
+              const soft = (x: string) => p.softSkills.includes(x) || SOFT_SKILLS.some((s) => s.toLowerCase() === x.toLowerCase())
+              return { ...p, hardSkills: all.filter((x) => !soft(x)), softSkills: all.filter(soft) }
+            })
+          }
+          suggestions={[...HARD_SKILLS, ...SOFT_SKILLS]}
+          placeholder={t("seeker.hardSkillsPlaceholder")}
+        />
       </section>
     ),
     languages: (
@@ -912,6 +906,11 @@ function PortfolioForm({
         />
         </div>
         <CvStrengthBar user={contact} talent={portfolio} />
+      </div>
+      {/* Phones and tablets: Categories (to reorder sections and add more) at the top of the form, as wide
+          screens have it beside the form */}
+      <div className="lg:hidden">
+        <CvContents />
       </div>
       {orderSections(Object.keys(formSections), portfolio.sectionOrder).map((id) => (
         <Fragment key={id}>{formSections[id]}</Fragment>
@@ -1057,6 +1056,8 @@ export function CvContents({ floating }: { floating?: boolean }) {
   const pressed = useRef<{ id: CardId; y: number; moved: boolean; list?: CardId[] } | null>(null)
   const startPress = (id: CardId, e: React.PointerEvent) => {
     if (floating || !editing || e.button !== 0) return
+    // By touch, only the grip drags (swiping elsewhere on the row scrolls the page)
+    if (e.pointerType !== "mouse" && !(e.target as HTMLElement).closest("[data-grip]")) return
     pressed.current = { id, y: e.clientY, moved: false }
     const move = (ev: PointerEvent) => {
       const press = pressed.current
@@ -1155,9 +1156,12 @@ export function CvContents({ floating }: { floating?: boolean }) {
               {!floating && editing && extra ? (
                 <span className="size-4 shrink-0" />
               ) : movable ? (
-                <span className="relative size-4 shrink-0">
-                  <Icon className={cn("size-4 transition-opacity group-hover/row:opacity-0", drag?.id === s && "opacity-0")} />
-                  <GripVerticalIcon className={cn("absolute inset-0 size-4 opacity-0 transition-opacity group-hover/row:opacity-100", drag?.id === s && "opacity-100")} />
+                // Touch screens: always the grip, and it's what to drag (the rest of the row still scrolls the page)
+                <span data-grip className="relative size-4 shrink-0 touch-none">
+                  <Icon className={cn("size-4 transition-opacity group-hover/row:opacity-0 pointer-coarse:opacity-0", drag?.id === s && "opacity-0")} />
+                  <GripVerticalIcon
+                    className={cn("absolute inset-0 size-4 opacity-0 transition-opacity group-hover/row:opacity-100 pointer-coarse:opacity-100", drag?.id === s && "opacity-100")}
+                  />
                 </span>
               ) : (
                 <Icon className="size-4 shrink-0" />

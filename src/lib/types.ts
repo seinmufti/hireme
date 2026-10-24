@@ -7,7 +7,8 @@ export type User = {
   title: string // job seekers: their profession, shown under their name
   company: string
   avatarColor: string
-  email: string
+  email: string // On the CV / profile (contact)
+  loginEmail?: string // Demo only: the address they sign in with, if not the one above (the real version keeps it in Supabase auth)
   phone: string
   city: string
   linkedin: string

@@ -47,6 +47,9 @@ const score = <K>(checks: Check<K>[], skip: K[]) => ({
   next: checks.find((c) => !c.done && !skip.includes(c.key)) ?? null,
 })
 
+/** All skills, technical and personal together */
+const skillCount = (p: TalentInput | null) => (p?.hardSkills?.length ?? 0) + (p?.softSkills?.length ?? 0)
+
 const lines = (text = "") => text.split("\n").map((l) => l.trim()).filter(Boolean)
 
 /** How much of the CV form is filled in. */
@@ -61,8 +64,9 @@ export function cvCompleteness(user: CvUser, p: TalentInput | null, skip: Comple
     { key: "experience", target: "work", done: !!p?.experiences.length },
     { key: "description", target: "work", done: !!p?.experiences[0]?.description?.trim() },
     { key: "education", target: "education", done: !!p?.degrees.length },
-    { key: "hardSkills", target: "skills", done: (p?.hardSkills?.length ?? 0) >= 3 },
-    { key: "softSkills", target: "skills", done: (p?.softSkills?.length ?? 0) >= 2 },
+    // Skills count together (technical and personal ones are one list on the CV)
+    { key: "hardSkills", target: "skills", done: skillCount(p) >= 3 },
+    { key: "softSkills", target: "skills", done: skillCount(p) >= 5 },
     { key: "languages", target: "languages", done: !!p?.languages.some((l) => l.language) },
     { key: "photo", target: "personal", done: !!user.photoId },
     { key: "certifications", target: "certifications", done: !!p?.certifications?.length },
@@ -81,8 +85,8 @@ export function cvStrength(user: CvUser, p: TalentInput | null, skip: StrengthCh
     // Achievements with numbers ("Increased sales by 20%")
     { key: "numbers", target: "work", done: jobs.some((j) => /\d/.test(j.description ?? "")) },
     { key: "allDescribed", target: "work", done: jobs.length > 0 && jobs.every((j) => !!j.description?.trim()) },
-    { key: "moreHardSkills", target: "skills", done: (p?.hardSkills?.length ?? 0) >= 5 },
-    { key: "moreSoftSkills", target: "skills", done: (p?.softSkills?.length ?? 0) >= 3 },
+    { key: "moreHardSkills", target: "skills", done: skillCount(p) >= 8 },
+    { key: "moreSoftSkills", target: "skills", done: skillCount(p) >= 10 },
     { key: "secondLanguage", target: "languages", done: (p?.languages.filter((l) => l.language).length ?? 0) >= 2 },
     { key: "photo", target: "personal", done: !!user.photoId },
     { key: "certification", target: "certifications", done: !!p?.certifications?.length },

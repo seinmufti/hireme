@@ -6,7 +6,7 @@ import { BellIcon, CopyIcon, PencilIcon, PlusIcon, UsersIcon } from "lucide-reac
 import { toast } from "sonner"
 import { useDeadlineLabel } from "@/components/jobs/job-meta"
 import { useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants, EDIT_LINK } from "@/components/ui/button"
 import { useStore } from "@/lib/store"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { cn } from "@/lib/utils"
@@ -84,7 +84,7 @@ export function MyJobsView() {
                 <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground" title={t("jobs.notifiedTitle")}>
                   <BellIcon className="size-3.5" /> {t("jobs.notifiedShort", { count: notified })}
                 </span>
-                <Link href={`/jobs/${j.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                <Link href={`/jobs/${j.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm", className: EDIT_LINK })}>
                   <PencilIcon /> {t("common.edit")}
                 </Link>
                 {/* A new post starting from this one */}

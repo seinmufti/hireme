@@ -17,12 +17,14 @@ import type { Reference, Talent, User } from "@/lib/types"
 // The app's actions (apply, post a job, send a message...) are the demo's, unchanged.
 
 /** Where the real version is: still loading, signed out (browsing as a visitor), or signed in. */
-export const useBackend = create<{ status: "loading" | "signedOut" | "signedIn"; email: string; onboarded: boolean; approved: boolean }>(() => ({
+export const useBackend = create<{ status: "loading" | "signedOut" | "signedIn"; email: string; onboarded: boolean; approved: boolean; premium: boolean }>(() => ({
   status: "loading",
   email: "",
   onboarded: true,
   // Employers wait for HireMe's approval before they see the Pool or post jobs
   approved: true,
+  // HireMe Premium, given by an admin (until premium_until)
+  premium: false,
 }))
 
 /** Signed-out visitors browse job listings as this guest (never saved). */
@@ -77,7 +79,7 @@ function setRemote(patch: Partial<Data>) {
   }
 }
 
-type ProfileRow = { id: string; role: Role; display_name: string; title: string; company: string; avatar_color: string; city: string; country: string; bio: string; photo_id: string; onboarded: boolean; approved: boolean; created_at: string }
+type ProfileRow = { id: string; role: Role; display_name: string; title: string; company: string; avatar_color: string; city: string; country: string; bio: string; photo_id: string; onboarded: boolean; approved: boolean; premium_until: string | null; created_at: string }
 type PrivateRow = { id: string; full_name: string; email: string; phone: string; address: string; linkedin: string }
 
 /**
@@ -165,7 +167,11 @@ async function loadAll(db: SupabaseClient, userId: string | null) {
   lists.talents = lists.talents.map((t) => (t.userId === userId ? withPrivate(t, own) : t))
   const users = toUsers(profiles, privates, lists.talents)
   const me = profiles.find((p) => p.id === userId)
-  useBackend.setState({ onboarded: me?.onboarded ?? true, approved: me?.approved ?? true })
+  useBackend.setState({
+    onboarded: me?.onboarded ?? true,
+    approved: me?.approved ?? true,
+    premium: !!me?.premium_until && new Date(me.premium_until) > new Date(),
+  })
   setRemote({ ...lists, users: userId ? users : [...users, VISITOR], currentUserId: userId ?? VISITOR_ID })
 }
 

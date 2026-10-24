@@ -40,7 +40,6 @@ export function TalentProfileDialog({
             talent={talent}
             age={talent.age}
             forEmployer
-            premium
             showAttachments
             className="shadow-sm"
           />

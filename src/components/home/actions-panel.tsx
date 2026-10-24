@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BriefcaseIcon, FileTextIcon, SendIcon } from "lucide-react"
+import { BriefcaseIcon, FileTextIcon, SendIcon, SettingsIcon } from "lucide-react"
 import { BRAND_RED } from "@/components/brand-name"
 import { useT } from "@/i18n/provider"
 
@@ -14,6 +14,7 @@ export function ActionsPanel() {
     { href: "/profile/cv", icon: FileTextIcon, label: t("home.previewCv") },
     { href: "/jobs", icon: BriefcaseIcon, label: t("nav.jobs") },
     { href: "/jobs/applied", icon: SendIcon, label: t("nav.applications") },
+    { href: "/account", icon: SettingsIcon, label: t("account.title") },
   ]
 
   return (

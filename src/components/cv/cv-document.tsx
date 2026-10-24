@@ -78,8 +78,8 @@ export function CvDocument({
   talent: t,
   age,
   forEmployer = false,
-  premium,
   showAttachments = false,
+  locked,
   className,
   ref,
 }: {
@@ -87,12 +87,13 @@ export function CvDocument({
   talent: CvTalent
   age: number | null
   forEmployer?: boolean
-  premium: boolean
   showAttachments?: boolean
+  /** Without Premium: the CV stops after work experience and this (the offer to see the rest) takes its place */
+  locked?: React.ReactNode
   className?: string
   ref?: React.Ref<HTMLDivElement>
 }) {
-  const blocks = buildBlocks(person, t, age, forEmployer, showAttachments)
+  const blocks = buildBlocks(person, t, age, forEmployer, showAttachments, locked)
   const measure = useRef<HTMLDivElement>(null)
   // Block indexes on each page; until measured, everything is on one page
   const [pages, setPages] = useState<number[][]>([blocks.map((_, i) => i)])
@@ -144,7 +145,7 @@ export function CvDocument({
       <div style={scale < 1 ? { zoom: scale } : undefined}>
       <div ref={ref} className="cv-pages flex flex-col items-center gap-[8mm]">
         {pages.map((indexes, p) => (
-          <Page key={p} premium={premium}>
+          <Page key={p}>
             {indexes.map((i) => (
               <Fragment key={blocks[i]?.key ?? i}>{blocks[i]?.node}</Fragment>
             ))}
@@ -170,8 +171,8 @@ export function CvDocument({
 
 const CV_TEXT = "font-[family-name:var(--font-cv)] text-[9.5pt] leading-[1.5]"
 
-/** One A4 page: the HireMe logo centred at the bottom and, on free CVs, the watermark. */
-function Page({ premium, children }: { premium: boolean; children: React.ReactNode }) {
+/** One A4 page, with the HireMe logo centred at the bottom. */
+function Page({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={cn(CV_TEXT, "cv-page relative overflow-hidden bg-white shadow-lg ring-1 ring-black/5 [print-color-adjust:exact]")}
@@ -184,26 +185,12 @@ function Page({ premium, children }: { premium: boolean; children: React.ReactNo
     >
       {children}
 
-      {/* Always at the bottom of every page, also on premium CVs */}
+      {/* At the bottom of every page */}
       <div className="absolute bottom-[5mm] left-1/2 flex -translate-x-1/2 items-center gap-2.5 text-[14pt] font-semibold" style={{ color: MUTED }}>
         <Logo size={42} />
         <BrandName />
       </div>
 
-      {!premium && (
-        // Free CVs: "HireMe" repeated across the whole page, like a stock photo; rows are staggered
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden select-none">
-          <div className="absolute -inset-[40%] flex -rotate-30 flex-col justify-center gap-[14mm]">
-            {Array.from({ length: 22 }, (_, row) => (
-              <div key={row} className={cn("flex gap-[16mm] whitespace-nowrap", row % 2 && "translate-x-[22mm]")}>
-                {Array.from({ length: 12 }, (_, i) => (
-                  <BrandName key={i} className="text-[20pt] font-black tracking-wider opacity-[0.13]" />
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -233,7 +220,7 @@ function Row({ aside, children, className }: { aside?: React.ReactNode; children
 type Block = { key: string; node: React.ReactNode }
 
 /** The CV cut into blocks that each stay on one page. A section's title travels with its first entry. */
-function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmployer: boolean, showAttachments: boolean): Block[] {
+function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmployer: boolean, showAttachments: boolean, locked?: React.ReactNode): Block[] {
   const blocks: Block[] = [{ key: "header", node: <Header person={person} t={t} age={age} forEmployer={forEmployer} /> }]
 
   // Sections the job seeker hid from their CV (the CV calls "about" its summary)
@@ -312,22 +299,9 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
     }))
   )
 
-  const skillRows = [
-    { label: "Hard skills", list: t.hardSkills },
-    { label: "Soft skills", list: t.softSkills },
-  ].filter((g) => g.list.length)
-  section(
-    "skills",
-    "Core competencies",
-    skillRows.map((g) => ({
-      key: g.label,
-      node: (
-        <Row aside={g.label} className="pb-[2mm]">
-          <p>{g.list.join("  ·  ")}</p>
-        </Row>
-      ),
-    }))
-  )
+  // All skills in one list (technical and personal ones together)
+  const skills = [...t.hardSkills, ...t.softSkills]
+  if (skills.length) section("skills", "Core competencies", [{ key: "all", node: <p className="pb-[2mm]">{skills.join("  ·  ")}</p> }])
 
   const languages = t.languages.filter((l) => l.language)
   if (languages.length) {
@@ -392,7 +366,16 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
     section(`extra-${key}`, EXTRA_CV_TITLES[key], [{ key: "list", node: <p className="pb-[3mm]">{t.extraSections?.[key]?.join(" · ")}</p> }])
   }
 
-  for (const id of orderSections([...sections.keys()], t.sectionOrder)) blocks.push(...sections.get(id)!)
+  const ordered = orderSections([...sections.keys()], t.sectionOrder)
+  if (locked) {
+    // Only the sections up to work experience (where it is, or would be, in their order), then the offer
+    const withWork = orderSections([...new Set([...ordered, "work"])], t.sectionOrder)
+    const shown = withWork.slice(0, withWork.indexOf("work") + 1)
+    for (const id of ordered.filter((x) => shown.includes(x))) blocks.push(...sections.get(id)!)
+    blocks.push({ key: "locked", node: locked })
+    return blocks
+  }
+  for (const id of ordered) blocks.push(...sections.get(id)!)
   return blocks
 }
 

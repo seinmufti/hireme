@@ -49,6 +49,8 @@ type Actions = {
   createAccount: (input: NewAccountInput) => Result<{ userId: string }>
   saveTalent: (input: TalentInput) => Result
   updateProfile: (input: ProfileInput) => Result
+  /** Demo: the sign-in email, kept apart from the email on the CV */
+  setLoginEmail: (email: string) => void
   sendMessage: (seekerId: string, body: string, jobId?: string) => Result<{ conversationId: string }>
   replyMessage: (conversationId: string, body: string) => Result
   markRead: (conversationId: string) => void
@@ -280,6 +282,11 @@ export const useStore = create<Data & Actions>()(
           })
           notifyNewMatches([user.id])
           return { ok: true }
+        },
+
+        setLoginEmail: (email) => {
+          const userId = get().currentUserId
+          set((s) => ({ users: s.users.map((u) => (u.id === userId ? { ...u, loginEmail: email } : u)) }))
         },
 
         updateProfile: (input) => {

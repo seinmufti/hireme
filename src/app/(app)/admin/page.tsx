@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { IS_DEMO } from "@/lib/mode"
 
-// Real version, admins only: every account and its role. Giving someone the recruiter role, and approving
-// employers (before that they can't see the Pool or post jobs), happen here.
+// Real version, admins only: every account and its role. Giving someone the recruiter role, approving
+// employers (before that they can't see the Pool or post jobs) and giving job seekers Premium happen here.
 // (Not translated: it's for HireMe's own staff.)
 
-type Account = { id: string; role: string; name: string; email: string; company: string; approved: boolean; createdAt: string }
+type Account = { id: string; role: string; name: string; email: string; company: string; approved: boolean; premiumUntil: string | null; createdAt: string }
 
 export default function AdminPage() {
   const [accounts, setAccounts] = useState<Account[] | null>(null)
@@ -29,18 +29,22 @@ export default function AdminPage() {
       .catch((e) => setError(e.message || "Couldn't load the accounts."))
   }, [base])
 
-  const change = async (account: Account, update: { role: string } | { approved: boolean }, done: string) => {
+  const change = async (account: Account, update: { role: string } | { approved: boolean } | { premium: boolean }, done: string) => {
     const res = await fetch(`${base}/api/admin/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: account.id, ...update }),
     })
-    if (!res.ok) return toast.error((await res.json()).error ?? "Couldn't change that.")
-    setAccounts((list) => list?.map((a) => (a.id === account.id ? { ...a, ...update, ...("role" in update && { approved: true }) } : a)) ?? null)
+    const data = await res.json()
+    if (!res.ok) return toast.error(data.error ?? "Couldn't change that.")
+    const patch: Partial<Account> = "premium" in update ? { premiumUntil: data.premiumUntil ?? null } : { ...update, ...("role" in update && { approved: true }) }
+    setAccounts((list) => list?.map((a) => (a.id === account.id ? { ...a, ...patch } : a)) ?? null)
     toast.success(`${account.name || account.email} ${done}`)
   }
   const setRole = (account: Account, role: string) => change(account, { role }, `is now ${role.toLowerCase()}`)
   const approve = (account: Account, approved: boolean) => change(account, { approved }, approved ? "is approved" : "is no longer approved")
+  const givePremium = (account: Account, premium: boolean) => change(account, { premium }, premium ? "has Premium for a year" : "no longer has Premium")
+  const hasPremium = (a: Account) => !!a.premiumUntil && new Date(a.premiumUntil) > new Date()
   const waiting = accounts?.filter((a) => a.role === "EMPLOYER" && !a.approved).length ?? 0
 
   if (IS_DEMO) return <p className="text-sm text-muted-foreground">The demo has no admin page.</p>
@@ -58,7 +62,7 @@ export default function AdminPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Accounts</h1>
-          <p className="text-sm text-muted-foreground">{accounts.length} accounts{waiting > 0 && ` · ${waiting} waiting for approval`} · approve employers and give the recruiter role here</p>
+          <p className="text-sm text-muted-foreground">{accounts.length} accounts{waiting > 0 && ` · ${waiting} waiting for approval`} · approve employers, give the recruiter role and Premium here</p>
         </div>
         <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name, email or company" className="h-9 w-full sm:w-72" />
       </div>
@@ -69,6 +73,14 @@ export default function AdminPage() {
               <p className="truncate font-medium">{a.name || "—"}</p>
               <p className="truncate text-sm text-muted-foreground">{[a.email, a.company].filter(Boolean).join(" · ")}</p>
             </div>
+            {/* Premium: a year from when it's given (people contact HireMe for it) */}
+            {a.role === "SEEKER" && (
+              <Button variant={hasPremium(a) ? "outline" : "secondary"} size="sm" onClick={() => givePremium(a, !hasPremium(a))}>
+                {hasPremium(a)
+                  ? `Premium until ${new Date(a.premiumUntil!).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} · remove`
+                  : "Give Premium"}
+              </Button>
+            )}
             {a.role === "EMPLOYER" && (
               <Button variant={a.approved ? "outline" : "default"} size="sm" onClick={() => approve(a, !a.approved)}>
                 {a.approved ? "Approved · undo" : "Approve"}

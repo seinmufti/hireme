@@ -54,4 +54,7 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
+/** Every Edit button and link: blue and underlined, like a link (use with variant "ghost") */
+const EDIT_LINK = "text-blue-700 underline underline-offset-4 hover:bg-blue-50 hover:text-blue-800"
+
+export { Button, buttonVariants, EDIT_LINK }

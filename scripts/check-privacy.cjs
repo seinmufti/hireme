@@ -35,6 +35,9 @@ async function makeUser(label, meta) {
     const selfApproved = (await admin.from("profiles").select("approved").eq("id", E.id).single()).data.approved
     check("an employer can't approve themselves", selfApproved === false, approve.error ? "refused" : "no error, but unchanged")
     await admin.from("profiles").update({ approved: true }).eq("id", E.id)
+    const selfPremium = await E.client.from("profiles").update({ premium_until: "2099-01-01T00:00:00Z" }).eq("id", E.id)
+    const premium = (await admin.from("profiles").select("premium_until").eq("id", E.id).single()).data.premium_until
+    check("nobody can give themselves Premium", premium === null, selfPremium.error ? "refused" : "no error, but unchanged")
 
     // Sign-up created the profiles
     const prof = await admin.from("profiles").select("id, role, display_name, onboarded").in("id", ids)

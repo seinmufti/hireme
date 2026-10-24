@@ -2,37 +2,38 @@
 
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
+import { IS_DEMO } from "@/lib/mode"
+import { useBackend } from "@/lib/real-sync"
 import type { User } from "@/lib/types"
 
-// HireMe Premium: one year of unlimited CV downloads without a watermark. There's no payment yet:
-// job seekers are premium unless they switch it off with the demo switch in the header, so both
-// modes can be seen. Replace this store with the real subscription to lock the premium features.
+// HireMe Premium: the whole CV and downloading it as a PDF. There's no payment yet: people contact HireMe
+// to get it (see PremiumContactDialog) and an admin switches it on for a year (the admin page). Nobody has
+// it by default. In the demo it's switched on and off with the crown in Dev tools.
 
 type PremiumState = {
-  // Job seekers who switched Premium off in the demo; everyone else is premium
-  freeUserIds: string[]
+  // Demo: the accounts switched to Premium with the Dev tools crown
+  premiumUserIds: string[]
   setPremium: (userId: string, premium: boolean) => void
 }
 
 export const usePremiumStore = create<PremiumState>()(
   persist(
     (set) => ({
-      freeUserIds: [],
+      premiumUserIds: [],
       setPremium: (userId, premium) =>
         set((s) => ({
-          freeUserIds: premium ? s.freeUserIds.filter((id) => id !== userId) : [...new Set([...s.freeUserIds, userId])],
+          premiumUserIds: premium ? [...new Set([...s.premiumUserIds, userId])] : s.premiumUserIds.filter((id) => id !== userId),
         })),
     }),
-    { name: "hireme-premium", storage: createJSONStorage(() => localStorage) }
+    // Version 1: Premium is opt-in (earlier everyone had it unless switched off), so older saved state is dropped
+    { name: "hireme-premium", version: 1, migrate: () => ({ premiumUserIds: [] }) as unknown as PremiumState, storage: createJSONStorage(() => localStorage) }
   )
 )
 
-/** Whether the account has HireMe Premium. */
-export const isPremium = (user: Pick<User, "id"> | null, freeUserIds = usePremiumStore.getState().freeUserIds) =>
-  !!user && !freeUserIds.includes(user.id)
-
-/** Like isPremium, and updates when the demo switch changes. */
+/** Whether the signed-in account has HireMe Premium (demo: the Dev tools crown; real: given by an admin). */
 export function useIsPremium(user: Pick<User, "id"> | null) {
-  const freeUserIds = usePremiumStore((s) => s.freeUserIds)
-  return isPremium(user, freeUserIds)
+  const premiumUserIds = usePremiumStore((s) => s.premiumUserIds)
+  const realPremium = useBackend((s) => s.premium)
+  if (!user) return false
+  return IS_DEMO ? premiumUserIds.includes(user.id) : realPremium
 }

@@ -7,7 +7,7 @@ import { useIsPremium, usePremiumStore } from "@/lib/premium"
 import type { User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-/** Demo for job seekers: a crown that turns Premium on (gold) and off (grey), to see both CV modes. */
+/** Demo for job seekers (Dev tools only): a crown that turns Premium on (gold) and off (grey), to see both CV modes. */
 export function PremiumToggle({ user }: { user: User }) {
   const t = useT()
   const premium = useIsPremium(user)

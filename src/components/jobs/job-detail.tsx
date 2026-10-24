@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeftIcon, BellIcon, LogInIcon, MailIcon, PencilIcon, PhoneIcon, TargetIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants, EDIT_LINK } from "@/components/ui/button"
 import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
 import { matchJob, matchPoints, type MatchableTalent } from "@/lib/matching"
@@ -96,7 +96,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
                 {applicants === 1 ? t("jobs.applicantsOne") : t("jobs.applicants", { count: applicants })}
               </a>
               <div className="flex gap-2">
-                <Link href={`/jobs/${job.id}/edit`} className={cn(buttonVariants({ variant: "outline" }), "flex-1")}>
+                <Link href={`/jobs/${job.id}/edit`} className={cn(buttonVariants({ variant: "ghost" }), EDIT_LINK, "flex-1")}>
                   <PencilIcon /> {t("common.edit")}
                 </Link>
                 <Button

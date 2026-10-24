@@ -131,8 +131,8 @@ export function describePath(path: string, t?: Translate) {
     languages: ["language", "Language {n}"],
     projects: ["project", "Project {n}"],
   }
-  if (list === "hardSkills") return say("hardSkills", "Hard skills")
-  if (list === "softSkills") return say("softSkills", "Soft skills")
+  if (list === "hardSkills") return say("hardSkills", "Skills")
+  if (list === "softSkills") return say("softSkills", "Skills")
   if (!names[list]) return path
   if (index === undefined) {
     const whole: Record<string, string> = { experiences: "Work experience", degrees: "Education", certifications: "Certifications", languages: "Languages", projects: "Projects" }
