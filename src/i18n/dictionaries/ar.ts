@@ -789,7 +789,6 @@ const ar: DeepPartial<Messages> = {
     notSetUpTitle: "HireMe غير متصل بعد",
     notSetUpBody: "تحتاج النسخة الحقيقية إلى قاعدة بياناتها. في هذه الأثناء، جرّب النسخة التجريبية.",
     openDemo: "فتح النسخة التجريبية",
-    tryDemo: "تتصفح فقط؟ جرّب النسخة التجريبية",
   },
 }
 

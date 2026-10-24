@@ -790,7 +790,6 @@ const en = {
     notSetUpTitle: "HireMe isn't connected yet",
     notSetUpBody: "The real version needs its database. Meanwhile, try the demo.",
     openDemo: "Open the demo",
-    tryDemo: "Just looking? Try the demo",
   },
 } as const
 
