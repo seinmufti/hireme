@@ -34,6 +34,9 @@ export function toPoolTalent(u: User, t: Talent, conversationId: string | null):
     experiences: t.experiences.map((e) => ({ ...e, reference: e.reference && HIDDEN_REFERENCE })),
     totalMonths: totalMonths(t.experiences),
     updatedAt: t.updatedAt,
+    hiddenSections: t.hiddenSections ?? [],
+    extraSections: t.extraSections ?? {},
+    sectionOrder: t.sectionOrder ?? [],
     conversationId,
   }
 }

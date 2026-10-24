@@ -51,6 +51,9 @@ export const toPortfolioInput = (t: Talent): TalentInput => ({
   projects: t.projects,
   workPreference: t.workPreference,
   published: t.published,
+  hiddenSections: t.hiddenSections ?? [],
+  extraSections: t.extraSections ?? {},
+  sectionOrder: t.sectionOrder ?? [],
 })
 
 const newExperience = (): Experience => ({

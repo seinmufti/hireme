@@ -1,7 +1,7 @@
 "use client"
 
 /* eslint-disable @next/next/no-img-element */
-import { useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   CameraIcon,
   FileTextIcon,
@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner"
 import { ProfilePhoto } from "@/components/cv/photo"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { saveUpload, UPLOAD_ACCEPT, useStoredFile } from "@/lib/files"
@@ -118,6 +119,68 @@ export function AttachmentThumb({ id, onRemove }: { id: string; onRemove?: () =>
 }
 
 /** Profile photo: upload (shrunk to a small square-ish image), change or remove. */
+/**
+ * Before a new profile photo is used: the current photo and the new one side by side, to compare.
+ * Nothing is uploaded until Save; `onSaved` gets the stored photo's id.
+ */
+export function PhotoConfirmDialog({
+  file,
+  current,
+  onSaved,
+  onClose,
+}: {
+  file: File | null
+  current: { photoId: string; name: string; color: string }
+  onSaved: (id: string) => void
+  onClose: () => void
+}) {
+  const t = useT()
+  const [busy, setBusy] = useState(false)
+  // A local preview of the picked file (freed when it changes or the dialog goes)
+  const preview = useMemo(() => (file ? URL.createObjectURL(file) : ""), [file])
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview)
+  }, [preview])
+
+  const save = async () => {
+    if (!file) return
+    setBusy(true)
+    const res = await saveUpload(file, { imagesOnly: true, maxSide: 600 })
+    setBusy(false)
+    if (!res.ok) return toast.error(res.error)
+    onSaved(res.id)
+    onClose()
+  }
+
+  return (
+    <Dialog open={!!file} onOpenChange={(open) => !open && !busy && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("form.photoConfirmTitle")}</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-6 py-2">
+          <figure className="flex flex-col items-center gap-2">
+            <ProfilePhoto photoId={current.photoId} name={current.name || "?"} color={current.color} size={120} />
+            <figcaption className="text-sm text-muted-foreground">{t("form.photoCurrent")}</figcaption>
+          </figure>
+          <figure className="flex flex-col items-center gap-2">
+            {preview && <img src={preview} alt="" className="size-[120px] rounded-full object-cover ring-2 ring-primary ring-offset-2" />}
+            <figcaption className="text-sm font-medium">{t("form.photoNew")}</figcaption>
+          </figure>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>
+            {t("common.cancel")}
+          </Button>
+          <Button type="button" onClick={save} disabled={busy}>
+            {busy && <LoaderCircleIcon className="animate-spin" />} {t("form.savePhoto")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function PhotoField({
   photoId,
   name,
@@ -131,9 +194,11 @@ export function PhotoField({
 }) {
   const t = useT()
   const input = useRef<HTMLInputElement>(null)
-  const [busy, setBusy] = useState(false)
+  // The picked photo, waiting for Save in the compare dialog
+  const [picked, setPicked] = useState<File | null>(null)
   return (
     <div className="flex items-center gap-4">
+      <PhotoConfirmDialog file={picked} current={{ photoId, name, color }} onSaved={onChange} onClose={() => setPicked(null)} />
       <ProfilePhoto photoId={photoId} name={name || "?"} color={color} size={72} />
       <div className="space-y-1.5">
         <input
@@ -141,20 +206,15 @@ export function PhotoField({
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={async (e) => {
+          onChange={(e) => {
             const file = e.target.files?.[0]
             e.target.value = ""
-            if (!file) return
-            setBusy(true)
-            const res = await saveUpload(file, { imagesOnly: true, maxSide: 600 })
-            setBusy(false)
-            if (res.ok) onChange(res.id)
-            else toast.error(res.error)
+            if (file) setPicked(file)
           }}
         />
         <div className="flex gap-2">
-          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => input.current?.click()}>
-            {busy ? <LoaderCircleIcon className="animate-spin" /> : <CameraIcon />} {photoId ? t("form.changePhoto") : t("form.addPhoto")}
+          <Button type="button" variant="outline" size="sm" onClick={() => input.current?.click()}>
+            <CameraIcon /> {photoId ? t("form.changePhoto") : t("form.addPhoto")}
           </Button>
           {photoId && (
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>

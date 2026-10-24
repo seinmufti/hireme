@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { FileTextIcon } from "lucide-react"
+import { BriefcaseIcon, FileTextIcon, SendIcon } from "lucide-react"
 import { BRAND_RED } from "@/components/brand-name"
 import { useT } from "@/i18n/provider"
 
@@ -10,7 +10,11 @@ export function ActionsPanel() {
   const t = useT()
 
   // Editing is from each part of the CV (its Edit button), so not here
-  const actions = [{ href: "/profile/cv", icon: FileTextIcon, label: t("home.previewCv") }]
+  const actions = [
+    { href: "/profile/cv", icon: FileTextIcon, label: t("home.previewCv") },
+    { href: "/jobs", icon: BriefcaseIcon, label: t("nav.jobs") },
+    { href: "/jobs/applied", icon: SendIcon, label: t("nav.applications") },
+  ]
 
   return (
     <aside className="space-y-4">

@@ -105,6 +105,9 @@ export type TalentInput = {
   projects: Project[]
   workPreference: WorkPreference
   published: boolean // no longer used: a complete portfolio is always listed (kept so saved data stays valid)
+  hiddenSections?: string[] // CV sections the job seeker chose not to show on their CV (e.g. "projects"); missing in older saved data
+  sectionOrder?: string[] // The order they put their CV's sections in (ids as in hiddenSections); missing = the usual order
+  extraSections?: Record<string, string[]> // Optional sections they added (marital status, volunteering...), by key (see cv-extras)
 }
 
 export type Talent = TalentInput & {

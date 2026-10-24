@@ -4,6 +4,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { CakeIcon, LinkIcon, MailIcon, MapPinIcon, PaperclipIcon, PhoneIcon } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { useStoredFile } from "@/lib/files"
+import { addedExtras, EXTRA_CV_TITLES, orderSections } from "@/lib/cv-extras"
 import { countryName } from "@/lib/options"
 import type { TalentInput, User } from "@/lib/types"
 import { firstName, jobPlace } from "@/lib/format"
@@ -235,9 +236,16 @@ type Block = { key: string; node: React.ReactNode }
 function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmployer: boolean, showAttachments: boolean): Block[] {
   const blocks: Block[] = [{ key: "header", node: <Header person={person} t={t} age={age} forEmployer={forEmployer} /> }]
 
+  // Sections the job seeker hid from their CV (the CV calls "about" its summary)
+  const hidden = new Set((t.hiddenSections ?? []).map((s) => (s === "about" ? "summary" : s)))
+  // Each section's blocks, put in the job seeker's order at the end
+  const sections = new Map<string, Block[]>()
   const section = (key: string, title: string, items: { key: string; node: React.ReactNode }[]) => {
+    if (hidden.has(key)) return
+    const own: Block[] = []
+    sections.set(key === "summary" ? "about" : key, own)
     items.forEach((item, i) =>
-      blocks.push({
+      own.push({
         key: `${key}-${item.key}`,
         node: i === 0 ? (
           <>
@@ -379,6 +387,12 @@ function buildBlocks(person: CvPerson, t: CvTalent, age: number | null, forEmplo
     }))
   )
 
+  // The optional sections they added (marital status, volunteering...), each on one line
+  for (const key of addedExtras(t, true)) {
+    section(`extra-${key}`, EXTRA_CV_TITLES[key], [{ key: "list", node: <p className="pb-[3mm]">{t.extraSections?.[key]?.join(" · ")}</p> }])
+  }
+
+  for (const id of orderSections([...sections.keys()], t.sectionOrder)) blocks.push(...sections.get(id)!)
   return blocks
 }
 

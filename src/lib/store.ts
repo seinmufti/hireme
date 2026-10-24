@@ -62,6 +62,8 @@ type Actions = {
   withdrawApplication: (applicationId: string) => void
   setApplicationStatus: (applicationId: string, status: string) => void
   toggleSavedJob: (jobId: string) => void
+  /** Show or hide one section of the signed-in job seeker's CV (its eye in the CV's categories) */
+  toggleCvSection: (section: string) => void
   toggleSavedTalent: (seekerId: string) => void
   toggleFollow: (employerId: string) => void
   resetDemo: () => void
@@ -271,7 +273,8 @@ export const useStore = create<Data & Actions>()(
             const existing = s.talents.find((t) => t.userId === user.id)
             return {
               talents: existing
-                ? s.talents.map((t) => (t.id === existing.id ? { ...t, ...data } : t))
+                // Which sections are hidden is set by their eye buttons, not by the form
+                ? s.talents.map((t) => (t.id === existing.id ? { ...t, ...data, hiddenSections: t.hiddenSections?.filter((id) => !id.startsWith("extra-") || !!data.extraSections?.[id.slice(6)]) } : t))
                 : [...s.talents, { ...data, id: newId("t"), userId: user.id, createdAt: data.updatedAt }],
             }
           })
@@ -464,6 +467,21 @@ export const useStore = create<Data & Actions>()(
         // The only way to replace everything on purpose; the previous data is kept as a backup (see safe-storage).
         // Starts over with the same demo a first-time visitor gets (see initialData).
         // Saved for later: a heart on a job (job seekers), a bookmark on a job seeker (employers, recruiters)
+        toggleCvSection: (section) => {
+          const userId = get().currentUserId
+          set((s) => ({
+            talents: s.talents.map((t) =>
+              t.userId !== userId
+                ? t
+                : {
+                    ...t,
+                    hiddenSections: (t.hiddenSections ?? []).includes(section)
+                      ? (t.hiddenSections ?? []).filter((x) => x !== section)
+                      : [...(t.hiddenSections ?? []), section],
+                  }
+            ),
+          }))
+        },
         toggleSavedJob: (jobId) => {
           const userId = get().currentUserId
           if (!userId) return

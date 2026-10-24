@@ -5,6 +5,9 @@ import type { Certification, Degree, Experience, LanguageSkill, Project, WorkPre
 // references or birth date.
 export type PoolTalent = {
   id: string
+  hiddenSections?: string[] // CV sections the job seeker doesn't show
+  sectionOrder?: string[] // The order of their CV's sections
+  extraSections?: Record<string, string[]> // Optional sections they added (see cv-extras)
   userId: string
   firstName: string
   avatarColor: string
