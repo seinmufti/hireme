@@ -28,7 +28,7 @@ export function CvStrengthBar({
     <div className={cn("space-y-4", className)}>
       <Meter
         label={t("home.cvCompleteness")}
-        value={t("home.percentComplete", { percent: complete.percent })}
+        value={`${complete.percent}%`}
         percent={complete.percent}
       />
       <Meter

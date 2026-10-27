@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useT } from "@/i18n/provider"
-import { BASE_PATH } from "@/lib/mode"
+import { BASE_PATH, IS_DEMO } from "@/lib/mode"
 import { reloadRealData, useBackend } from "@/lib/real-sync"
+import { useStore } from "@/lib/store"
 import { supabase } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 
@@ -105,7 +106,7 @@ export function AwaitingApproval() {
   )
 }
 
-/** Signs out of the real version (back to browsing as a visitor). */
+/** Signs out: the real version back to its sign-in page, the demo back to choosing an account. */
 export function SignOutButton({ className }: { className?: string }) {
   const t = useT()
   const email = useBackend((s) => s.email)
@@ -118,7 +119,8 @@ export function SignOutButton({ className }: { className?: string }) {
       title={email}
       aria-label={t("auth.signOut")}
       onClick={async () => {
-        await supabase()?.auth.signOut()
+        if (IS_DEMO) useStore.setState({ currentUserId: null })
+        else await supabase()?.auth.signOut()
         window.location.assign(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/login`)
       }}
     >

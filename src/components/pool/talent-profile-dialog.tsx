@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
 import { MessageSquareTextIcon, SendIcon } from "lucide-react"
 import { CvDocument } from "@/components/cv/cv-document"
@@ -7,6 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { PoolTalent } from "@/lib/filters"
 import { useT, useTimeAgo } from "@/i18n/provider"
+import { useStore } from "@/lib/store"
 import { latestJob } from "./talent-meta"
 
 /** A job seeker's CV as employers see it: no contact details, address or references, and no download. */
@@ -25,6 +27,12 @@ export function TalentProfileDialog({
 }) {
   const t = useT()
   const timeAgo = useTimeAgo()
+  const recordView = useStore((s) => s.recordProfileView)
+  // Opening the CV: the job seeker sees who looked (their Viewers)
+  const seekerId = open ? talent?.userId : undefined
+  useEffect(() => {
+    if (seekerId) recordView(seekerId)
+  }, [seekerId, recordView])
   if (!talent) return null
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

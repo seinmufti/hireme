@@ -282,4 +282,4 @@ export const SOFT_SKILLS = [
 ]
 
 // Where a job application stands; the employer moves it along
-export const APPLICATION_STATUSES = ["Applied", "Shortlisted", "Not selected"]
+export const APPLICATION_STATUSES = ["Applied", "Shortlisted", "Contacted", "Interview", "Accepted", "Not selected"]

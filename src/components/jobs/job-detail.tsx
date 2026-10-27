@@ -23,7 +23,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
   const jobFacts = useJobFacts()
   const employer = useStore((s) => s.users.find((u) => u.id === job.employerId)) ?? null
   const notified = useStore((s) => s.notifications.filter((n) => n.jobId === job.id).length)
-  const applicants = useStore((s) => s.applications.filter((a) => a.jobId === job.id).length)
+  const applicants = useStore((s) => s.applications.filter((a) => a.jobId === job.id && !a.withdrawnAt).length)
   const setJobOpen = useStore((s) => s.setJobOpen)
   const isOwner = viewer.id === job.employerId
   const isSeeker = viewer.role === "SEEKER"

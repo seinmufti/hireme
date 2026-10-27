@@ -56,7 +56,7 @@ export function MyJobsView() {
         <ul className="divide-y rounded-xl border bg-card">
           {jobs.map((j) => {
             const notified = notifications.filter((n) => n.jobId === j.id).length
-            const applied = applications.filter((a) => a.jobId === j.id).length
+            const applied = applications.filter((a) => a.jobId === j.id && !a.withdrawnAt).length
             return (
               // Phones: the job on its own line, its numbers and buttons wrapping underneath
               <li key={j.id} className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 sm:px-5 md:flex-nowrap", !j.open && "bg-muted/30")}>

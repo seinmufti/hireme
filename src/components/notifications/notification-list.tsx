@@ -3,7 +3,8 @@
 import { useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { BellIcon, Building2Icon, TargetIcon } from "lucide-react"
+import { BellIcon, Building2Icon, CheckIcon, EyeIcon, RefreshCwIcon, RotateCcwIcon, TargetIcon, UndoIcon, UserPlusIcon, XIcon } from "lucide-react"
+import { useStatusLabel } from "@/components/jobs/applications"
 import { Button } from "@/components/ui/button"
 import { useLocationLabel, useT, useTimeAgo, useExactDate } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
@@ -15,6 +16,32 @@ import { cn } from "@/lib/utils"
  * `onNavigate` runs when a notification is opened (e.g. to close the dropdown). With `limit`, only the newest
  * few show, followed by "See all notifications" when there are more.
  */
+/** Each kind's icon and colour */
+const KIND_ICON = {
+  match: TargetIcon,
+  follow: Building2Icon,
+  viewed: EyeIcon,
+  status: RefreshCwIcon,
+  rejected: XIcon,
+  applied: UserPlusIcon,
+  withdrawn: UndoIcon,
+  reinstateRequest: RotateCcwIcon,
+  reinstateAccepted: CheckIcon,
+  reinstateDeclined: XIcon,
+}
+const KIND_STYLE = {
+  match: "bg-emerald-50 text-emerald-700",
+  follow: "bg-muted text-foreground",
+  viewed: "bg-blue-50 text-blue-700",
+  status: "bg-violet-50 text-violet-700",
+  rejected: "bg-red-50 text-red-600",
+  applied: "bg-emerald-50 text-emerald-700",
+  withdrawn: "bg-muted text-foreground",
+  reinstateRequest: "bg-amber-50 text-amber-700",
+  reinstateAccepted: "bg-emerald-50 text-emerald-700",
+  reinstateDeclined: "bg-red-50 text-red-600",
+}
+
 export function NotificationList({
   onNavigate,
   section,
@@ -36,6 +63,10 @@ export function NotificationList({
   const jobs = useStore((s) => s.jobs)
   const markRead = useStore((s) => s.markNotificationRead)
   const markAllRead = useStore((s) => s.markAllNotificationsRead)
+  const users = useStore((s) => s.users)
+  const statusLabel = useStatusLabel()
+  // Who did it, by first name (employers see job seekers that way)
+  const actor = (id?: string) => users.find((u) => u.id === id)?.name.split(" ")[0] ?? ""
 
   const items = useMemo(
     () =>
@@ -89,7 +120,14 @@ export function NotificationList({
                 onClick={() => {
                   markRead(n.id)
                   onNavigate?.()
-                  router.push(`/jobs/${n.job.id}`)
+                  // About an application: the job seeker's applications, or the employer's applicants; otherwise the job
+                  router.push(
+                    n.kind === "rejected" || n.kind === "status" || n.kind === "viewed" || n.kind === "reinstateAccepted" || n.kind === "reinstateDeclined"
+                      ? "/jobs/applied"
+                      : n.kind === "applied" || n.kind === "withdrawn" || n.kind === "reinstateRequest"
+                        ? `/jobs/${n.job.id}#applicants`
+                        : `/jobs/${n.job.id}`
+                  )
                 }}
                 className={cn(
                   "flex w-full items-start gap-2.5 text-start hover:bg-muted",
@@ -97,20 +135,46 @@ export function NotificationList({
                   !n.readAt && "bg-brand-soft/60"
                 )}
               >
-                {/* A job that matches them, or one from a company they follow */}
+                {/* A job that matches them, one from a company they follow, or an application that wasn't selected */}
                 <span
                   className={cn(
                     "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full",
-                    n.kind === "follow" ? "bg-muted text-foreground" : "bg-emerald-50 text-emerald-700"
+                    KIND_STYLE[n.kind ?? "match"]
                   )}
                 >
-                  {n.kind === "follow" ? <Building2Icon className="size-3.5" /> : <TargetIcon className="size-3.5" />}
+                  {(() => {
+                    const Icon = KIND_ICON[n.kind ?? "match"]
+                    return <Icon className="size-3.5" />
+                  })()}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs text-muted-foreground">
-                    {n.kind === "follow" ? t("notifications.newFromFollowed", { company: n.job.company }) : t("notifications.newJob")}
+                    {n.kind === "rejected"
+                      ? t("notifications.notSelected", { company: n.job.company })
+                      : n.kind === "status"
+                        ? t("notifications.statusChanged", { company: n.job.company, status: statusLabel(n.status ?? "") })
+                        : n.kind === "viewed"
+                          ? t("notifications.applicationViewed", { company: n.job.company })
+                          : n.kind === "applied"
+                            ? t("notifications.newApplicant", { name: actor(n.actorId) })
+                            : n.kind === "withdrawn"
+                              ? t("notifications.applicantWithdrew", { name: actor(n.actorId) })
+                              : n.kind === "reinstateRequest"
+                                ? t("notifications.reinstateRequest", { name: actor(n.actorId) })
+                                : n.kind === "reinstateAccepted"
+                                  ? t("notifications.reinstateAccepted", { company: n.job.company })
+                                  : n.kind === "reinstateDeclined"
+                                    ? t("notifications.reinstateDeclined", { company: n.job.company })
+                              : n.kind === "follow"
+                                ? t("notifications.newFromFollowed", { company: n.job.company })
+                                : t("notifications.newJob")}
                   </span>
                   <span className="block truncate text-sm font-medium">{n.job.title}</span>
+                  {(n.kind === "rejected" || n.kind === "reinstateDeclined" || n.kind === "reinstateRequest") && n.reason && (
+                    <span className="mt-0.5 line-clamp-2 block text-xs text-red-900">
+                      {n.kind === "reinstateRequest" ? `“${n.reason}”` : `${t("notifications.reason")} ${n.reason}`}
+                    </span>
+                  )}
                   <span className="block truncate text-xs text-muted-foreground">
                     {n.job.company} · {locationLabel(n.job.location)} · <span title={exact(n.createdAt)}>{timeAgo(n.createdAt)}</span>
                   </span>

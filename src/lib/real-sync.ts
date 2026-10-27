@@ -48,7 +48,7 @@ const VISITOR: User = {
 }
 
 type Row = Record<string, unknown> & { id: string; data: Record<string, unknown> }
-type Key = "talents" | "jobs" | "applications" | "conversations" | "messages" | "notifications" | "savedJobs" | "savedTalents" | "follows"
+type Key = "talents" | "jobs" | "applications" | "conversations" | "messages" | "notifications" | "savedJobs" | "savedTalents" | "follows" | "profileViews"
 
 /** Each synced store list, its table, and the columns the database rules need. In write order (parents first). */
 const TABLES: { key: Key; table: string; rowId: (o: Record<string, unknown>) => string; columns: (o: Record<string, unknown>) => Record<string, unknown> }[] = [
@@ -62,6 +62,8 @@ const TABLES: { key: Key; table: string; rowId: (o: Record<string, unknown>) => 
   { key: "savedJobs", table: "saved_jobs", rowId: (o) => `${o.userId}:${o.id}`, columns: (o) => ({ user_id: o.userId }) },
   { key: "savedTalents", table: "saved_talents", rowId: (o) => `${o.userId}:${o.id}`, columns: (o) => ({ user_id: o.userId }) },
   { key: "follows", table: "follows", rowId: (o) => `${o.userId}:${o.employerId}`, columns: (o) => ({ user_id: o.userId, employer_id: o.employerId }) },
+  // Who opened a job seeker's CV: the viewer writes it, the job seeker reads it
+  { key: "profileViews", table: "profile_views", rowId: (o) => o.id as string, columns: (o) => ({ seeker_id: o.seekerId, viewer_id: o.viewerId }) },
 ]
 
 // True while data from the database goes into the store, so it isn't written back
@@ -229,6 +231,11 @@ async function save(prev: Data, next: Data) {
       if (added.length) {
         const res = await db.from(t.table).insert(added.map(([id, o]) => ({ id, ...t.columns(o), data: data(o) })))
         if (res.error) throw res.error
+        // Notifications for someone else are emailed to them too (see /api/notify)
+        if (t.key === "notifications")
+          for (const [id, o] of added)
+            if (o.userId !== uid)
+              fetch(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/notify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) }).catch(() => {})
       }
       for (const [id, o] of changed) {
         const res = await db.from(t.table).update({ ...t.columns(o), data: data(o) }).eq("id", id)

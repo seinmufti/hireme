@@ -24,7 +24,7 @@ export function HomeView() {
   const applications = useStore((s) => s.applications)
   const matches = useMemo(() => (talent ? matchingJobs(talent, jobs) : []), [talent, jobs])
   const applied = useMemo(
-    () => new Map(applications.filter((a) => a.seekerId === user?.id).map((a) => [a.jobId, a.status])),
+    () => new Map(applications.filter((a) => a.seekerId === user?.id && !a.withdrawnAt).map((a) => [a.jobId, a.status])),
     [applications, user?.id]
   )
   if (!user) return null

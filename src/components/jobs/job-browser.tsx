@@ -108,7 +108,7 @@ export function JobBrowser({
   const userId = useStore((s) => s.currentUserId)
   const allApplications = useStore((s) => s.applications)
   const applied = useMemo(
-    () => new Map(allApplications.filter((a) => a.seekerId === userId).map((a) => [a.jobId, a.status])),
+    () => new Map(allApplications.filter((a) => a.seekerId === userId && !a.withdrawnAt).map((a) => [a.jobId, a.status])),
     [allApplications, userId]
   )
 

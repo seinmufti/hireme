@@ -175,7 +175,15 @@ export type Notification = {
   jobId: string
   createdAt: string
   readAt: string | null
-  kind?: "match" | "follow" // the job matches them (missing in older saved data), or a company they follow posted it
+  // Job seekers: the job matches them (missing in older saved data), a company they follow posted it, the employer
+  // opened their application ("viewed"), moved it on ("status") or didn't select them ("rejected").
+  // Employers: someone applied to the job ("applied") or withdrew their application ("withdrawn").
+  // Asking to come back after withdrawing: "reinstateRequest" (to the employer), then "reinstateAccepted" or
+  // "reinstateDeclined" (to the job seeker, with the reason)
+  kind?: "match" | "follow" | "viewed" | "status" | "rejected" | "applied" | "withdrawn" | "reinstateRequest" | "reinstateAccepted" | "reinstateDeclined"
+  status?: string // "status": the application's new status
+  reason?: string // "rejected": the employer's reason
+  actorId?: string // who did it (the job seeker, for employers' notifications)
 }
 
 /** Something a user saved for later: a job (job seekers) or a job seeker (employers and recruiters). */
@@ -183,6 +191,9 @@ export type Saved = { userId: string; id: string; at: string }
 
 /** A job seeker following a company: they hear about every job it posts. */
 export type Follow = { userId: string; employerId: string; at: string }
+
+/** Someone opening a job seeker's CV (employers; recruiters aren't counted). One per viewer, with their latest visit. */
+export type ProfileView = { id: string; seekerId: string; viewerId: string; at: string }
 
 export type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string }
 
@@ -193,6 +204,13 @@ export type Application = {
   seekerId: string
   note: string // optional message to the employer
   status: string // an APPLICATION_STATUSES value
+  viewedAt?: string // when the employer first opened the CV
+  statusDates?: Record<string, string> // when the employer moved it to each status (e.g. { Interview: "2026-…" })
+  rejectionReason?: string // why the employer didn't select them, shown to the job seeker
+  withdrawnAt?: string // the job seeker withdrew it: kept in their archive, gone from the employer's applicants
+  // After withdrawing, the job seeker asked to come back (once); the employer accepts (it's back where it was) or
+  // declines with a reason
+  reinstateRequest?: { at: string; message: string; status: "pending" | "accepted" | "declined"; reason?: string; decidedAt?: string }
   createdAt: string
   updatedAt: string
 }

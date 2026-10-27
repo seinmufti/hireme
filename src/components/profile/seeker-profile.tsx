@@ -24,7 +24,6 @@ import {
   IdCardIcon,
   LanguagesIcon,
   LinkIcon,
-  LockIcon,
   MailIcon,
   MapPinIcon,
   MinusIcon,
@@ -411,7 +410,6 @@ function PortfolioView({ user, talent, onEdit, flat = false }: { user: User; tal
                     ) : (
                       <span className="truncate">{d.value}</span>
                     )}
-                    {d.private && <LockIcon className="size-3 shrink-0 text-muted-foreground" aria-label={t("seeker.onlyOnYourCv")} />}
                   </>
                 )}
               </dd>

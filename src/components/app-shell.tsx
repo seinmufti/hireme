@@ -51,7 +51,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, overview, jobs, applications]
+          ? [home, jobs, overview, applications]
           : role === "GUEST"
             ? [jobs]
             : []
@@ -75,10 +75,10 @@ function Shell({ children }: { children: React.ReactNode }) {
               {/* Messages: a mail icon, just before the bell */}
               {(role === "SEEKER" || role === "EMPLOYER") && <InboxButton unread={unread} />}
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
-              {role === "SEEKER" && <NotificationBell />}
+              {(role === "SEEKER" || role === "EMPLOYER") && <NotificationBell />}
               <LanguageSwitcher />
-              {/* Real version: sign out (the demo switches accounts in Dev tools) */}
-              {!IS_DEMO && role !== "GUEST" && <SignOutButton />}
+              {/* Sign out, on the far end of the bar */}
+              {role !== "GUEST" && <SignOutButton />}
               {/* Guests browse; signing in (or creating an account) is one click away */}
               {role === "GUEST" && (
                 <Link href="/login" className={buttonVariants({ size: "sm" })}>

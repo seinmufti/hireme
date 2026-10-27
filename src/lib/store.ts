@@ -3,6 +3,7 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { CORE_TALENTS, CORE_USERS, DEMO_CONVERSATIONS, DEMO_MESSAGES, DEMO_TALENTS, DEMO_USERS, EMPLOYER_USERS } from "@/data/demo"
+import { demoActivity, withNewerCvParts } from "@/data/demo-activity"
 import { DEMO_APPLICATIONS, DEMO_JOBS, DEMO_NOTIFICATIONS, DEMO_SALARIES } from "@/data/demo-jobs"
 import { findContactDetail } from "@/lib/contact-guard"
 import { takesApplications, today } from "@/lib/jobs"
@@ -13,7 +14,7 @@ import { ageFrom, PHONE_PATTERN } from "@/lib/format"
 import { EMPTY_WORK_PREFERENCE, professionFrom, withTalentDefaults, withUserDefaults, type LegacyTalent, type LegacyUser } from "@/lib/normalize"
 import { IS_DEMO } from "@/lib/mode"
 import { AVATAR_COLORS, toJobFunction, type Role } from "@/lib/options"
-import type { Application, Conversation, Degree, Follow, Job, JobInput, Message, Notification, ProfileInput, Result, Saved, Talent, TalentInput, User } from "@/lib/types"
+import type { Application, Conversation, Degree, Follow, Job, JobInput, Message, Notification, ProfileInput, ProfileView, Result, Saved, Talent, TalentInput, User } from "@/lib/types"
 
 // All app data lives here. It starts as the built-in demo data and every change
 // is saved to this browser's localStorage, so it only affects the current visitor.
@@ -41,6 +42,8 @@ export type Data = {
   savedJobs: Saved[] // job seekers' saved jobs
   savedTalents: Saved[] // employers' and recruiters' saved job seekers (id: the job seeker's user id)
   follows: Follow[]
+  // Who opened each job seeker's CV (see recordProfileView)
+  profileViews: ProfileView[]
   currentUserId: string | null
 }
 
@@ -62,7 +65,16 @@ type Actions = {
   checkJobMatches: () => void
   applyToJob: (jobId: string, note: string) => Result
   withdrawApplication: (applicationId: string) => void
-  setApplicationStatus: (applicationId: string, status: string) => void
+  /** `reason`: when not selecting them, why (shown to the job seeker) */
+  setApplicationStatus: (applicationId: string, status: string, reason?: string) => void
+  /** The signed-in account opened this job seeker's CV (not counted for recruiters, guests or the job seeker themself) */
+  recordProfileView: (seekerId: string) => void
+  /** The employer opened the applicant's CV (once; the job seeker sees it as "Viewed") */
+  /** A withdrawn application: the job seeker asks to come back (once), with an optional message */
+  requestReinstate: (applicationId: string, message: string) => Result
+  /** The employer answers that: back where it was, or declined with a reason */
+  answerReinstate: (applicationId: string, accept: boolean, reason?: string) => void
+  markApplicationViewed: (applicationId: string) => void
   toggleSavedJob: (jobId: string) => void
   /** Show or hide one section of the signed-in job seeker's CV (its eye in the CV's categories) */
   toggleCvSection: (section: string) => void
@@ -81,7 +93,7 @@ type Actions = {
 const initialData = (): Data => {
   // The real version starts empty; its data comes from the database once signed in (lib/real-sync.ts)
   if (!IS_DEMO) {
-    return { users: [], talents: [], conversations: [], messages: [], jobs: [], notifications: [], applications: [], savedJobs: [], savedTalents: [], follows: [], currentUserId: null }
+    return { users: [], talents: [], conversations: [], messages: [], jobs: [], notifications: [], applications: [], savedJobs: [], savedTalents: [], follows: [], profileViews: [], currentUserId: null }
   }
   const users = CORE_USERS
   const ids = new Set(users.map((u) => u.id))
@@ -98,6 +110,7 @@ const initialData = (): Data => {
     savedJobs: [],
     savedTalents: [],
     follows: [],
+    profileViews: [],
     currentUserId: null,
   }
 }
@@ -454,21 +467,124 @@ export const useStore = create<Data & Actions>()(
           if (contact) return fail(`Your note contains ${contact}. Remove it: the employer contacts you through HireMe messages.`)
           const at = now()
           const application: Application = { id: newId("a"), jobId, seekerId: seeker.id, note: text, status: "Applied", createdAt: at, updatedAt: at }
-          set((s) => ({ applications: [...s.applications, application] }))
+          const notice: Notification = { id: newId("n"), userId: job.employerId, jobId, createdAt: at, readAt: null, kind: "applied", actorId: seeker.id }
+          set((s) => ({ applications: [...s.applications, application], notifications: [...s.notifications, notice] }))
           return { ok: true }
         },
 
-        // Only while the employer hasn't looked at it yet
+        // At any point until the employer has decided against it. It's kept, in the job seeker's archive
         withdrawApplication: (applicationId) => {
           const seekerId = get().currentUserId
-          set((s) => ({ applications: s.applications.filter((a) => !(a.id === applicationId && a.seekerId === seekerId && a.status === "Applied")) }))
+          const application = get().applications.find((a) => a.id === applicationId && a.seekerId === seekerId && a.status !== "Not selected" && !a.withdrawnAt)
+          const job = application && get().jobs.find((j) => j.id === application.jobId)
+          if (!application || !seekerId) return
+          const notice: Notification[] = job
+            ? [{ id: newId("n"), userId: job.employerId, jobId: job.id, createdAt: now(), readAt: null, kind: "withdrawn", actorId: seekerId }]
+            : []
+          const at = now()
+          set((s) => ({
+            applications: s.applications.map((a) => (a.id === applicationId ? { ...a, withdrawnAt: at, updatedAt: at } : a)),
+            notifications: [...s.notifications, ...notice],
+          }))
         },
 
-        setApplicationStatus: (applicationId, status) => {
+        setApplicationStatus: (applicationId, status, reason) => {
           const employerId = get().currentUserId
           const application = get().applications.find((a) => a.id === applicationId)
-          if (!application || !get().jobs.some((j) => j.id === application.jobId && j.employerId === employerId)) return
-          set((s) => ({ applications: s.applications.map((a) => (a.id === applicationId ? { ...a, status, updatedAt: now() } : a)) }))
+          if (!application || application.withdrawnAt || !get().jobs.some((j) => j.id === application.jobId && j.employerId === employerId)) return
+          // The job seeker hears about every new status; not selected comes with the reason
+          const notice: Notification[] =
+            status === application.status
+              ? []
+              : status === "Not selected"
+                ? [{ id: newId("n"), userId: application.seekerId, jobId: application.jobId, createdAt: now(), readAt: null, kind: "rejected", reason: reason?.trim() ?? "", actorId: employerId ?? undefined }]
+                : [{ id: newId("n"), userId: application.seekerId, jobId: application.jobId, createdAt: now(), readAt: null, kind: "status", status, actorId: employerId ?? undefined }]
+          // When it reached each status, for the job seeker's progress
+          set((s) => ({
+            notifications: notice.length ? [...s.notifications, ...notice] : s.notifications,
+            applications: s.applications.map((a) =>
+              a.id === applicationId
+                ? {
+                    ...a,
+                    status,
+                    updatedAt: now(),
+                    statusDates: { ...a.statusDates, [status]: now() },
+                    // The reason goes with not being selected; moving them on clears it
+                    rejectionReason: status === "Not selected" ? reason?.trim() || a.rejectionReason || "" : "",
+                  }
+                : a
+            ),
+          }))
+        },
+
+        requestReinstate: (applicationId, message) => {
+          const seekerId = get().currentUserId
+          const application = get().applications.find((a) => a.id === applicationId && a.seekerId === seekerId)
+          if (!application?.withdrawnAt || application.reinstateRequest) return fail("You can't ask about this application again.")
+          const text = message.trim()
+          const contact = findContactDetail(text)
+          if (contact) return fail(`Your message contains ${contact}. Remove it: the employer contacts you through HireMe messages.`)
+          const job = get().jobs.find((j) => j.id === application.jobId)
+          const at = now()
+          const notice: Notification[] = job
+            ? [{ id: newId("n"), userId: job.employerId, jobId: job.id, createdAt: at, readAt: null, kind: "reinstateRequest", actorId: seekerId ?? undefined, reason: text }]
+            : []
+          set((s) => ({
+            applications: s.applications.map((a) => (a.id === applicationId ? { ...a, updatedAt: at, reinstateRequest: { at, message: text, status: "pending" } } : a)),
+            notifications: [...s.notifications, ...notice],
+          }))
+          return { ok: true }
+        },
+
+        answerReinstate: (applicationId, accept, reason) => {
+          const employerId = get().currentUserId
+          const application = get().applications.find((a) => a.id === applicationId)
+          if (!application?.withdrawnAt || application.reinstateRequest?.status !== "pending") return
+          if (!get().jobs.some((j) => j.id === application.jobId && j.employerId === employerId)) return
+          const at = now()
+          const notice: Notification = {
+            id: newId("n"),
+            userId: application.seekerId,
+            jobId: application.jobId,
+            createdAt: at,
+            readAt: null,
+            kind: accept ? "reinstateAccepted" : "reinstateDeclined",
+            reason: accept ? undefined : reason?.trim() ?? "",
+            actorId: employerId ?? undefined,
+          }
+          set((s) => ({
+            applications: s.applications.map((a) =>
+              a.id === applicationId
+                ? {
+                    ...a,
+                    updatedAt: at,
+                    // Accepted: back where it was, out of the archive
+                    withdrawnAt: accept ? undefined : a.withdrawnAt,
+                    reinstateRequest: { ...a.reinstateRequest!, status: accept ? "accepted" : "declined", reason: accept ? undefined : reason?.trim() ?? "", decidedAt: at },
+                  }
+                : a
+            ),
+            notifications: [...s.notifications, notice],
+          }))
+        },
+
+        recordProfileView: (seekerId) => {
+          const viewer = get().users.find((u) => u.id === get().currentUserId)
+          if (!viewer || viewer.id === seekerId || viewer.role === "RECRUITER" || viewer.role === "GUEST") return
+          const id = `${viewer.id}:${seekerId}`
+          const view: ProfileView = { id, seekerId, viewerId: viewer.id, at: now() }
+          set((s) => ({ profileViews: [...(s.profileViews ?? []).filter((v) => v.id !== id), view] }))
+        },
+
+        markApplicationViewed: (applicationId) => {
+          const employerId = get().currentUserId
+          const application = get().applications.find((a) => a.id === applicationId)
+          if (!application || application.viewedAt || !get().jobs.some((j) => j.id === application.jobId && j.employerId === employerId)) return
+          const notice: Notification = { id: newId("n"), userId: application.seekerId, jobId: application.jobId, createdAt: now(), readAt: null, kind: "viewed", actorId: employerId ?? undefined }
+          set((s) => ({
+            applications: s.applications.map((a) => (a.id === applicationId ? { ...a, viewedAt: now() } : a)),
+            notifications: [...s.notifications, notice],
+          }))
         },
 
         // The only way to replace everything on purpose; the previous data is kept as a backup (see safe-storage).
@@ -558,7 +674,7 @@ export const useStore = create<Data & Actions>()(
       // The demo saves to this browser; the real version saves nothing here (others' data mustn't stay on a
       // shared computer after signing out): the database is the store (lib/real-sync.ts)
       storage: createJSONStorage(() => (IS_DEMO ? safeStorage : NO_STORAGE)),
-      partialize: ({ users, talents, conversations, messages, jobs, notifications, applications, savedJobs, savedTalents, follows, currentUserId }) => ({
+      partialize: ({ users, talents, conversations, messages, jobs, notifications, applications, savedJobs, savedTalents, follows, profileViews, currentUserId }) => ({
         users,
         talents,
         conversations,
@@ -569,6 +685,7 @@ export const useStore = create<Data & Actions>()(
         savedJobs,
         savedTalents,
         follows,
+        profileViews,
         currentUserId,
       }),
       // Rehydrated from the client shell, so server and first client render match
@@ -905,30 +1022,58 @@ if (typeof window !== "undefined") {
   }
 }
 
-/** How many of the generated job seekers "Load demo data" adds. */
-const DEMO_SEEKER_COUNT = 20
+/** How many generated job seekers and other demo companies "Load demo data" adds. */
+const DEMO_SEEKER_COUNT = 30
+const DEMO_EMPLOYER_COUNT = 15
 
 /**
- * "Load demo data": the other demo companies with their jobs, and the first 20 generated job seekers, plus
- * the demo applications between them. Only what isn't there yet is added; everything saved stays as it is.
+ * "Load demo data": 15 other demo companies with their jobs and 30 generated job seekers, with everything
+ * the app shows: applications at every stage (with when each happened), the conversations employers started,
+ * saved jobs, followed companies and the newer CV parts (see demo-activity.ts). Only what isn't there yet is
+ * added; everything saved stays as it is.
  */
 function withDemoData(data: Data): Data {
   const seekers = DEMO_USERS.filter((u) => u.id.startsWith("u-seeker-")).slice(0, DEMO_SEEKER_COUNT)
-  const newUsers = [...EMPLOYER_USERS, ...seekers].filter((u) => !data.users.some((x) => x.id === u.id))
-  const users = [...data.users, ...newUsers]
+  const employers = EMPLOYER_USERS.slice(0, DEMO_EMPLOYER_COUNT)
+  const has = <T extends { id: string }>(list: T[], id: string) => list.some((x) => x.id === id)
+  const users = [...data.users, ...[...employers, ...seekers].filter((u) => !has(data.users, u.id))]
   const userIds = new Set(users.map((u) => u.id))
-  const newTalents = DEMO_TALENTS.filter((t) => seekers.some((u) => u.id === t.userId) && !data.talents.some((x) => x.id === t.id))
-  const newJobs = DEMO_JOBS.filter((j) => userIds.has(j.employerId) && !data.jobs.some((x) => x.id === j.id))
-  const jobs = [...data.jobs, ...newJobs]
-  const jobIds = new Set(jobs.map((j) => j.id))
-  const newApplications = DEMO_APPLICATIONS.filter(
-    (a) => userIds.has(a.seekerId) && jobIds.has(a.jobId) && !data.applications.some((x) => x.id === a.id)
+  const newTalents = DEMO_TALENTS.filter((t) => seekers.some((u) => u.id === t.userId) && !has(data.talents, t.id)).map((t, i) =>
+    withNewerCvParts(t, seekers.find((u) => u.id === t.userId), i)
   )
+  const talents = [...data.talents, ...newTalents]
+  const jobs = [...data.jobs, ...DEMO_JOBS.filter((j) => userIds.has(j.employerId) && !has(data.jobs, j.id))]
+  const jobIds = new Set(jobs.map((j) => j.id))
+
+  // The loaded job seekers' applications (to the loaded companies and the main demo employer)
+  const activity = demoActivity(seekers, talents, jobs)
+  const applications = [
+    ...data.applications,
+    ...[...DEMO_APPLICATIONS, ...activity.applications].filter(
+      (a) => userIds.has(a.seekerId) && jobIds.has(a.jobId) && !has(data.applications, a.id) && !data.applications.some((x) => x.jobId === a.jobId && x.seekerId === a.seekerId)
+    ),
+  ]
+  // Without repeats: one application per person per job, one conversation per employer and job seeker
+  const unique = applications.filter((a, i) => applications.findIndex((x) => x.jobId === a.jobId && x.seekerId === a.seekerId) === i)
+  const conversations = [
+    ...data.conversations,
+    ...activity.conversations.filter((c) => !has(data.conversations, c.id) && !data.conversations.some((x) => x.employerId === c.employerId && x.seekerId === c.seekerId)),
+  ]
+  const conversationIds = new Set(conversations.map((c) => c.id))
   return {
     ...data,
     users,
-    talents: [...data.talents, ...newTalents],
+    talents,
     jobs,
-    applications: [...data.applications, ...newApplications],
+    applications: unique,
+    conversations,
+    messages: [...data.messages, ...activity.messages.filter((m) => conversationIds.has(m.conversationId) && !has(data.messages, m.id))],
+    savedJobs: [...data.savedJobs, ...activity.savedJobs.filter((x) => !data.savedJobs.some((y) => y.userId === x.userId && y.id === x.id))],
+    follows: [...data.follows, ...activity.follows.filter((x) => !data.follows.some((y) => y.userId === x.userId && y.employerId === x.employerId))],
+    notifications: [...data.notifications, ...activity.notifications.filter((n) => userIds.has(n.userId) && !data.notifications.some((x) => x.id === n.id))],
+    profileViews: [
+      ...(data.profileViews ?? []),
+      ...activity.profileViews.filter((v) => userIds.has(v.viewerId) && !(data.profileViews ?? []).some((x) => x.id === v.id)),
+    ],
   }
 }

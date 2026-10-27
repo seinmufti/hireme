@@ -5,13 +5,21 @@ import type { StateStorage } from "zustand/middleware"
 // This storage layer makes that impossible:
 //  - saving never drops an item (account, portfolio, conversation, message, job, notification) that's already stored;
 //    anything a tab is missing is put back, and a warning with a stack trace is logged
-//  - the data can only be replaced on purpose, through replaceAllOnce (the reset button)
+//  - the data can only be replaced on purpose, through replaceAllOnce (the reset button), and single items
+//    removed on purpose through removeOnPurpose (e.g. a withdrawn application)
 //  - the previous version is always kept as a backup, so even a reset can be undone
 
 const BACKUP_KEY = "hireme-demo-backup"
 const LISTS = ["users", "talents", "conversations", "messages", "jobs", "notifications", "applications"] as const
 
 let replacing = false
+// Items removed on purpose (by id): not put back
+const removedOnPurpose = new Set<string>()
+
+/** Lets the next saves drop this item (it was removed on purpose, e.g. a withdrawn application). */
+export function removeOnPurpose(id: string) {
+  removedOnPurpose.add(id)
+}
 let onRestored: (() => void) | null = null
 
 /** Run a state change that is allowed to replace everything (reset, undo). */
@@ -67,7 +75,7 @@ export const safeStorage: StateStorage = {
               const stored = (before.state[key] ?? []) as WithId[]
               const incoming = (after.state[key] ?? []) as WithId[]
               const have = new Set(incoming.map((item) => item.id))
-              const missing = stored.filter((item) => !have.has(item.id))
+              const missing = stored.filter((item) => !have.has(item.id) && !removedOnPurpose.has(item.id))
               if (missing.length) {
                 after.state[key] = [...incoming, ...missing]
                 restored += missing.length
