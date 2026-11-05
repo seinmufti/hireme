@@ -8,6 +8,7 @@ import { useStore } from "@/lib/store"
 import { useMyTalent } from "@/lib/use-my-talent"
 import { ANYONE } from "@/lib/options"
 import { useRoleGuard } from "@/lib/use-role-guard"
+import { ActionsPanel } from "@/components/home/actions-panel"
 
 // Job seekers and recruiters search jobs; job seekers also see which ones match them, and set the work they want.
 // Employers don't search jobs: they're sent to their own posts.
@@ -29,7 +30,17 @@ export function JobsView({ initialQuery, welcome }: { initialQuery: string; welc
       talent={talent}
       initialQuery={initialQuery}
       welcome={welcome && viewer.role === "SEEKER"}
-      aside={viewer.role === "SEEKER" ? <WorkPreferenceCard user={viewer} talent={talent} /> : undefined}
+      aside={
+        viewer.role === "SEEKER" ? (
+          <div className="space-y-4">
+            {/* Wide screens: the Actions card, as on the other tabs (phones have the tabs at the bottom) */}
+            <div className="hidden lg:block">
+              <ActionsPanel />
+            </div>
+            <WorkPreferenceCard user={viewer} talent={talent} />
+          </div>
+        ) : undefined
+      }
     />
   )
 }

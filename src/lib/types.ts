@@ -164,9 +164,10 @@ export type Job = {
   open: boolean // closed jobs stay listed for their employer only
   deadline: string // "YYYY-MM-DD": the last day to apply; after it the job no longer takes applications
   salary: Salary | null // optional; null when the employer didn't give one
+  languages?: string[] // languages the job needs (LANGUAGES values); missing on jobs posted before this existed
 }
 
-export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description" | "deadline" | "salary">
+export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description" | "deadline" | "salary" | "languages">
 
 // "A new job matches your profile", sent to job seekers when an employer posts a job
 export type Notification = {

@@ -57,7 +57,7 @@ import { useCvEditor } from "@/lib/cv-editor"
 import { addedExtras, EXTRA_CHOICES, EXTRA_SECTIONS, extraKeyOf, keepFilledExtras, orderSections, type ExtraId, type ExtraKey } from "@/lib/cv-extras"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
-import { certificationComplete, degreeComplete, filled, jobComplete, listingSectionsMissing, sectionsMissingEntries, portfolioEntryProblem, useStore, type ListingSection } from "@/lib/store"
+import { certificationComplete, degreeComplete, filled, jobComplete, listingSectionsMissing, sectionsMissingEntries, portfolioEntryProblem, unreadCountFor, useStore, type ListingSection } from "@/lib/store"
 import type { Talent, TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { WithBrand } from "@/components/brand-name"
@@ -172,7 +172,13 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
           )}
         </div>
       </div>
-      <PoolStatus user={user} talent={talent} />
+      {/* Messages, then whether employers can see the CV */}
+      <div className="flex items-start gap-2">
+        <MessagesButton userId={user.id} />
+        <div className="min-w-0 flex-1">
+          <PoolStatus user={user} talent={talent} />
+        </div>
+      </div>
     </>
   )
   // CV strength: the next thing to add opens the form there
@@ -268,8 +274,8 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   )
 
   const status = (
-    <span className={cn("flex items-center gap-1.5 text-sm font-medium", inPool ? "text-emerald-900" : "text-amber-900")}>
-      {inPool ? <CircleCheckIcon className="size-4" /> : <CircleAlertIcon className="size-4" />}
+    <span className={cn("flex items-center gap-1.5 text-xs font-medium", inPool ? "text-emerald-900" : "text-amber-900")}>
+      {inPool ? <CircleCheckIcon className="size-3.5 shrink-0" /> : <CircleAlertIcon className="size-3.5 shrink-0" />}
       {inPool ? t("seeker.visible") : t("seeker.hidden")}
     </span>
   )
@@ -277,7 +283,7 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
   return (
     <div
       className={cn(
-        "flex items-start justify-between gap-3 rounded-xl border px-4 py-2.5",
+        "flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2",
         inPool ? "border-emerald-300 bg-emerald-50" : "border-amber-300 bg-amber-50"
       )}
     >
@@ -287,6 +293,27 @@ function PoolStatus({ user, talent }: { user: User; talent: Talent | null }) {
         {sections.length > 0 && <div className="mt-1.5 ps-5.5 text-sm text-amber-900">{missing}</div>}
       </div>
     </div>
+  )
+}
+
+/** The inbox, with how many messages are unread (as the envelope in the top bar). */
+function MessagesButton({ userId }: { userId: string }) {
+  const t = useT()
+  const unread = useStore((s) => unreadCountFor(s, userId))
+  return (
+    <Link
+      href="/inbox"
+      aria-label={t("nav.inbox")}
+      title={t("nav.inbox")}
+      className="relative flex size-11 shrink-0 items-center justify-center rounded-xl border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground"
+    >
+      <MailIcon className="size-5" />
+      {unread > 0 && (
+        <span className="absolute -top-1.5 -end-1.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 font-semibold text-primary-foreground">
+          {unread > 9 ? "9+" : unread}
+        </span>
+      )}
+    </Link>
   )
 }
 

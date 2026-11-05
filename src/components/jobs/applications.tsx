@@ -116,9 +116,9 @@ export function ApplyPanel({ job, viewer }: { job: Job; viewer: User }) {
         </p>
         {/* Withdraw at any point until it's decided against them, after confirming in a window */}
         {application.status !== "Not selected" && (
-          <Button variant="ghost" size="sm" className="-ms-2 text-muted-foreground" onClick={() => setConfirming(true)}>
+          <button type="button" className="text-sm text-blue-700 underline underline-offset-4 hover:text-blue-800" onClick={() => setConfirming(true)}>
             {t("applications.withdraw")}
-          </Button>
+          </button>
         )}
         <WithdrawDialog
           job={job}

@@ -4,7 +4,9 @@ import { useState } from "react"
 import { LinkIcon, MailIcon, MapPinIcon, PencilIcon, PhoneIcon } from "lucide-react"
 import { toast } from "sonner"
 import { PhoneInput } from "@/components/phone-input"
+import { CompanyLogo } from "@/components/company-logo"
 import { UserAvatar } from "@/components/user-avatar"
+import { PhotoField } from "./cv-fields"
 import { Badge } from "@/components/ui/badge"
 import { Button, EDIT_LINK } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,7 +45,8 @@ function StaffProfile({ user }: { user: User }) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-center gap-5">
-        <UserAvatar name={user.name} color={user.avatarColor} size={72} />
+        {/* Employers: their company's logo (shown on their jobs); recruiters: their initials */}
+        {user.role === "EMPLOYER" ? <CompanyLogo employer={user} size={72} /> : <UserAvatar name={user.name} color={user.avatarColor} size={72} />}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h1 className="truncate text-2xl font-semibold tracking-tight">{user.name}</h1>
@@ -137,6 +140,13 @@ function EditForm({ user, onDone }: { user: User; onDone: () => void }) {
 
   return (
     <form onSubmit={save} className="divide-y rounded-xl border bg-card">
+      {/* The company logo, on every job they post */}
+      {user.role === "EMPLOYER" && (
+        <section className="space-y-3 p-6">
+          <h2 className="font-medium">{t("profile.companyLogo")}</h2>
+          <PhotoField logo photoId={form.photoId} name={form.company || form.name} color={user.avatarColor} onChange={(photoId) => setForm((f) => ({ ...f, photoId }))} />
+        </section>
+      )}
       <section className="space-y-4 p-6">
         <h2 className="font-medium">{t("profile.aboutYou")}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

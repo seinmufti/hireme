@@ -1,5 +1,6 @@
 "use client"
 
+import { CompanyLogo } from "@/components/company-logo"
 import { useMemo } from "react"
 import Link from "next/link"
 import { ArrowLeftIcon, BellPlusIcon, BellRingIcon } from "lucide-react"
@@ -63,11 +64,14 @@ export function CompanyView({ id }: { id: string }) {
       </Link>
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_20rem]">
         <section className="space-y-4">
-          <div>
+          <div className="flex items-center gap-4">
+            <CompanyLogo employer={company} size={56} />
+            <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight">{company.company || company.name}</h1>
             <p className="text-sm text-muted-foreground">
               {jobs.length ? (jobs.length === 1 ? t("companies.openJobsOne") : t("companies.openJobs", { count: jobs.length })) : t("companies.noOpenJobs")}
             </p>
+          </div>
           </div>
           {/* Phones: Follow right under the name, not after all the jobs */}
           {follow && <div className="lg:hidden">{follow}</div>}

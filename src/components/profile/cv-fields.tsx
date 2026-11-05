@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { ProfilePhoto } from "@/components/cv/photo"
+import { CompanyLogo } from "@/components/company-logo"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -186,11 +187,14 @@ export function PhotoField({
   name,
   color,
   onChange,
+  logo,
 }: {
   photoId: string
   name: string
   color: string
   onChange: (id: string) => void
+  /** An employer's company logo: square, with "logo" on the buttons */
+  logo?: boolean
 }) {
   const t = useT()
   const input = useRef<HTMLInputElement>(null)
@@ -199,7 +203,11 @@ export function PhotoField({
   return (
     <div className="flex items-center gap-4">
       <PhotoConfirmDialog file={picked} current={{ photoId, name, color }} onSaved={onChange} onClose={() => setPicked(null)} />
-      <ProfilePhoto photoId={photoId} name={name || "?"} color={color} size={72} />
+      {logo ? (
+        <CompanyLogo employer={{ photoId, avatarColor: color, company: name, name }} size={72} />
+      ) : (
+        <ProfilePhoto photoId={photoId} name={name || "?"} color={color} size={72} />
+      )}
       <div className="space-y-1.5">
         <input
           ref={input}
@@ -214,7 +222,7 @@ export function PhotoField({
         />
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => input.current?.click()}>
-            <CameraIcon /> {photoId ? t("form.changePhoto") : t("form.addPhoto")}
+            <CameraIcon /> {logo ? (photoId ? t("form.changeLogo") : t("form.addLogo")) : photoId ? t("form.changePhoto") : t("form.addPhoto")}
           </Button>
           {photoId && (
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>

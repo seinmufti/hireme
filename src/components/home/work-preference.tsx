@@ -31,7 +31,7 @@ export function WorkPreferenceCard({ user, talent }: { user: HomeUser; talent: H
   return (
     <section id="work-type" className="scroll-mt-20 rounded-xl border bg-card p-4">
       <h3 className="mb-3 text-sm font-semibold">{t("home.workType")}</h3>
-      <fieldset disabled={!talent} className="space-y-2">
+      <fieldset disabled={!talent} className="min-w-0 space-y-2">
         <Toggle icon={WifiIcon} label={t("home.workRemote")} checked={pref.remote} onChange={(remote) => save({ ...pref, remote })} />
         <Toggle
           icon={MapPinIcon}

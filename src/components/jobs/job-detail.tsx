@@ -1,14 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeftIcon, BellIcon, LogInIcon, MailIcon, PencilIcon, PhoneIcon, TargetIcon, UsersIcon } from "lucide-react"
+import { ArrowLeftIcon, BellIcon, LogInIcon, MailIcon, PencilIcon, PhoneIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
-import { UserAvatar } from "@/components/user-avatar"
+import { CompanyLogo } from "@/components/company-logo"
+import { ActionsPanel } from "@/components/home/actions-panel"
 import { Button, buttonVariants, EDIT_LINK } from "@/components/ui/button"
-import { useT } from "@/i18n/provider"
+import { useMemo } from "react"
+import { useLocationLabel, useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
-import { matchJob, matchPoints, type MatchableTalent } from "@/lib/matching"
-import { useMatchLabel } from "./job-card"
+import { matchDetails, matchPercent, type MatchableTalent } from "@/lib/matching"
+import { MatchRing } from "./match-ring"
+import { CheckIcon, XIcon } from "lucide-react"
 import { JobPostingData } from "./job-posting-data"
 import { SaveJobButton } from "@/components/save-button"
 import { useStore } from "@/lib/store"
@@ -18,7 +21,21 @@ import { ApplicantsList, ApplyPanel, useMyApplication } from "./applications"
 import { JobDescription, SkillChips, useJobFacts } from "./job-meta"
 
 /** One job: what it is, why it suits the job seeker, and the company behind it. */
-export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; talent: MatchableTalent | null }) {
+export function JobDetail({
+  job,
+  viewer,
+  talent,
+  embedded,
+  below,
+}: {
+  job: Job
+  viewer: User
+  talent: MatchableTalent | null
+  /** Inside another page (an application's): no way back of its own */
+  embedded?: boolean
+  /** Shown right under the job (e.g. where the application stands) */
+  below?: React.ReactNode
+}) {
   const t = useT()
   const jobFacts = useJobFacts()
   const employer = useStore((s) => s.users.find((u) => u.id === job.employerId)) ?? null
@@ -27,20 +44,17 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
   const setJobOpen = useStore((s) => s.setJobOpen)
   const isOwner = viewer.id === job.employerId
   const isSeeker = viewer.role === "SEEKER"
-  // Matching ignores closed jobs, so check the job as if it were open
-  const match = isSeeker && talent ? matchJob(talent, { ...job, open: true }) : null
-  // How many things match, also when the job isn't a match
-  const points = talent ? matchPoints(talent, job) : 0
-  const matchLabel = useMatchLabel()
   const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       {/* For search engines: open jobs only */}
       {takesApplications(job) && <JobPostingData job={job} />}
-      <Link href={isOwner ? "/jobs/mine" : "/jobs"} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {isOwner ? t("jobs.myPosts") : t("jobs.allJobs")}
-      </Link>
+      {!embedded && (
+        <Link href={isOwner ? "/jobs/mine" : "/jobs"} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {isOwner ? t("jobs.myPosts") : t("jobs.allJobs")}
+        </Link>
+      )}
 
       {!takesApplications(job) && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -49,13 +63,19 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
       )}
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_20rem]">
+        <div className="min-w-0 space-y-6">
         <article className="space-y-6 rounded-xl border bg-card p-6">
           <header className="space-y-3">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">{job.title}</h1>
-              <Link href={`/companies/${job.employerId}`} className="text-muted-foreground hover:text-foreground hover:underline">
-                {job.company}
+            <div className="flex items-start gap-4">
+              <Link href={`/companies/${job.employerId}`} className="shrink-0" aria-label={job.company}>
+                <CompanyLogo employerId={job.employerId} name={job.company} size={56} />
               </Link>
+              <div className="min-w-0">
+                <h1 className="text-2xl font-semibold tracking-tight">{job.title}</h1>
+                <Link href={`/companies/${job.employerId}`} className="text-muted-foreground hover:text-foreground hover:underline">
+                  {job.company}
+                </Link>
+              </div>
             </div>
             <dl className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               {jobFacts(job)
@@ -77,11 +97,20 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
             </section>
           )}
 
+          {(job.languages?.length ?? 0) > 0 && (
+            <section>
+              <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.languages")}</h2>
+              <SkillChips skills={job.languages ?? []} have={(talent?.languages ?? []).map((l) => l.language)} />
+            </section>
+          )}
+
           <section>
             <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.about")}</h2>
             <JobDescription text={job.description} />
           </section>
         </article>
+        {below}
+        </div>
 
         {/* The employer's own job on phones: Edit, Close and the applicant count first, above the description */}
         <aside className={cn("space-y-4", isOwner && "order-first lg:order-none")}>
@@ -113,31 +142,7 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
             </div>
           ) : (
             <div className="space-y-3 rounded-xl border bg-card p-5">
-              {isSeeker && (
-                <div
-                  className={cn(
-                    "rounded-lg border p-3 text-sm",
-                    match ? "border-emerald-300 bg-emerald-50 text-emerald-950" : "bg-muted/40 text-muted-foreground"
-                  )}
-                >
-                  <p className="mb-1 flex items-center gap-1.5 font-medium">
-                    <TargetIcon className="size-4" /> {matchLabel(points, job)}
-                  </p>
-                  {match ? (
-                    <ul className="list-disc space-y-0.5 ps-5 text-xs">
-                      {match.category && <li>{t("jobs.reasonCategory", { category: job.category })}</li>}
-                      {match.skills.length > 0 && <li>{t("jobs.reasonSkills", { skills: match.skills.join(", ") })}</li>}
-                      {match.title && <li>{t("jobs.reasonTitle")}</li>}
-                    </ul>
-                  ) : (
-                    <p className="text-xs">
-                      <Link href="/overview" className="underline">{t("jobs.editProfile")}</Link>
-                    </p>
-                  )}
-                </div>
-              )}
               {isSeeker && <ApplyPanel job={job} viewer={viewer} />}
-              {isSeeker && <SaveJobButton jobId={job.id} withLabel className="w-full" />}
               {viewer.role === "GUEST" && takesApplications(job) && (
                 <Link href="/login" className={buttonVariants({ className: "w-full" })}>
                   <LogInIcon /> {t("applications.signInToApply")}
@@ -146,10 +151,21 @@ export function JobDetail({ job, viewer, talent }: { job: Job; viewer: User; tal
             </div>
           )}
 
-          {/* The employer doesn't need their own company card above their job on phones */}
-          {employer && (
-            <div className={cn(isOwner && "hidden lg:block")}>
-              <CompanyCard employer={employer} />
+          {/* Job seekers: how much of the job their profile matches */}
+          {isSeeker && talent && <ProfileMatch job={job} talent={talent} />}
+
+          {/* The employer's own job: their company card (not on phones); everyone else: other jobs like this one */}
+          {isOwner
+            ? employer && (
+                <div className="hidden lg:block">
+                  <CompanyCard employer={employer} />
+                </div>
+              )
+            : <RelatedJobs job={job} talent={isSeeker ? talent : null} />}
+          {/* Job seekers, wide screens: the Actions card, as on the other tabs */}
+          {isSeeker && (
+            <div className="hidden lg:block">
+              <ActionsPanel />
             </div>
           )}
         </aside>
@@ -192,13 +208,92 @@ function MobileApplyBar({ job, viewer }: { job: Job; viewer: User }) {
 }
 
 /** The company behind a job, with its contact details. */
+/**
+ * Other open jobs like this one: the same field, or at least two skills in common; the most alike first (the same
+ * city counts a little), at most 5.
+ */
+function RelatedJobs({ job, talent }: { job: Job; talent: MatchableTalent | null }) {
+  const t = useT()
+  const locationLabel = useLocationLabel()
+  const all = useStore((s) => s.jobs)
+  const related = useMemo(() => {
+    const skills = new Set(job.skills.map((s) => s.toLowerCase()))
+    return all
+      .filter((j) => j.id !== job.id && takesApplications(j))
+      .map((j) => {
+        const shared = j.skills.filter((s) => skills.has(s.toLowerCase())).length
+        const sameField = j.category === job.category
+        return {
+          job: j,
+          alike: sameField || shared >= 2,
+          score: (sameField ? 10 : 0) + shared * 2 + (j.location.iraqCity && j.location.iraqCity === job.location.iraqCity ? 1 : 0),
+        }
+      })
+      .filter((x) => x.alike)
+      .sort((a, b) => b.score - a.score || b.job.createdAt.localeCompare(a.job.createdAt))
+      .slice(0, 5)
+      .map((x) => x.job)
+  }, [all, job])
+  if (related.length === 0) return null
+  return (
+    <section className="rounded-xl border bg-card p-5 text-sm">
+      <h2 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("jobs.relatedJobs")}</h2>
+      <ul className="space-y-3">
+        {related.map((j) => (
+          <li key={j.id} className="flex items-center gap-3">
+            <CompanyLogo employerId={j.employerId} name={j.company} size={36} />
+            <div className="min-w-0">
+              <Link href={`/jobs/${j.id}`} className="block truncate font-medium hover:underline">
+                {j.title}
+              </Link>
+              <p className="truncate text-xs text-muted-foreground">{[j.company, locationLabel(j.location)].filter(Boolean).join(" · ")}</p>
+            </div>
+            {talent && <MatchRing percent={matchPercent(talent, j)} size={40} className="ms-auto" />}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+/** How much of the job the job seeker's profile matches: the ring, then what matches and what doesn't. */
+function ProfileMatch({ job, talent }: { job: Job; talent: MatchableTalent }) {
+  const t = useT()
+  const { skills, category, title, languages } = matchDetails(talent, job)
+  const percent = matchPercent(talent, job)
+  const rows = [
+    { ok: skills.length > 0, label: t("jobs.matchSkills", { have: skills.length, total: job.skills.length }) },
+    { ok: category, label: t("jobs.matchField") },
+    { ok: title, label: t("jobs.matchTitle") },
+    ...(job.languages?.length
+      ? [{ ok: languages.length > 0, label: t("jobs.matchLanguages", { have: languages.length, total: job.languages.length }) }]
+      : []),
+  ]
+  return (
+    <section className="rounded-xl border bg-card p-5 text-sm">
+      <h2 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("jobs.profileMatch")}</h2>
+      <div className="flex items-center gap-4">
+        <MatchRing percent={percent} size={72} />
+        <ul className="min-w-0 space-y-1.5">
+          {rows.map((r) => (
+            <li key={r.label} className="flex items-center gap-1.5">
+              {r.ok ? <CheckIcon className="size-4 shrink-0 text-emerald-600" /> : <XIcon className="size-4 shrink-0 text-muted-foreground" />}
+              <span className={r.ok ? "" : "text-muted-foreground"}>{r.label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
 /** The company; its contact details only on the company's own page (`showContact`), not on job pages. */
 export function CompanyCard({ employer, showContact }: { employer: User; showContact?: boolean }) {
   const t = useT()
   return (
     <div className="space-y-3 rounded-xl border bg-card p-5 text-sm">
       <div className="flex items-center gap-3">
-        <UserAvatar name={employer.company || employer.name} color={employer.avatarColor} size={40} />
+        <CompanyLogo employer={employer} size={40} />
         <div className="min-w-0">
           <Link href={`/companies/${employer.id}`} className="block truncate font-medium hover:underline">
             {employer.company || employer.name}

@@ -648,7 +648,7 @@ export const useStore = create<Data & Actions>()(
     {
       name: "hireme-demo",
       // Bump when the demo data or its shape changes so visitors start fresh
-      version: 18,
+      version: 19,
       // v9 -> v10: jobs record start and end dates instead of years and months (see withJobDates)
       // v10 -> v11: the generated demo job seekers are added (see withDemoSeekers)
       // v11 -> v12: CV builder fields (photo, location, summary, skills, projects, job descriptions and
@@ -659,6 +659,7 @@ export const useStore = create<Data & Actions>()(
       // v15 -> v16: the guest account is added (see withGuest)
       // v16 -> v17: job salaries, saved jobs and job seekers, followed companies (see withSalaries)
       // v17 -> v18: categories are job functions, not industries (see withJobFunctions)
+      // v18 -> v19: jobs list the languages they need (see withJobLanguages)
       migrate: (persisted, version) => {
         let data = withJobDates(migrateOlder(persisted, version))
         if (version < 11) data = withDemoSeekers(data)
@@ -669,6 +670,7 @@ export const useStore = create<Data & Actions>()(
         if (version < 16) data = withGuest(data)
         if (version < 17) data = withSalaries(data)
         if (version < 18) data = withJobFunctions(data)
+        if (version < 19) data = withJobLanguages(data)
         return data
       },
       // The demo saves to this browser; the real version saves nothing here (others' data mustn't stay on a
@@ -807,6 +809,14 @@ function withGuest(data: Data): Data {
   return { ...data, users: [...data.users, ...CORE_USERS.filter((u) => u.role === "GUEST")] }
 }
 
+/** Demo jobs saved before jobs had languages get theirs. */
+function withJobLanguages(data: Data): Data {
+  return {
+    ...data,
+    jobs: data.jobs.map((j) => (j.languages ? j : { ...j, languages: DEMO_JOBS.find((d) => d.id === j.id)?.languages ?? [] })),
+  }
+}
+
 function withDeadlines(data: Data): Data {
   return {
     ...data,
@@ -916,6 +926,8 @@ function cleanJob(input: JobInput): JobInput {
     salary: input.salary && (input.salary.min || input.salary.max) ? { min: input.salary.min || null, max: input.salary.max || null, currency: input.salary.currency } : null,
     // Each skill once, ignoring case
     skills: skills.filter((s, i) => skills.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i),
+    // Each language once
+    languages: [...new Set(input.languages ?? [])],
     // A job is in exactly one kind of place
     location: { remote: l.remote, international: !l.remote && l.international, iraqCity: l.remote || l.international ? "" : l.iraqCity },
   }

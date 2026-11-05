@@ -101,6 +101,11 @@ const job = (
   // A month to apply
   deadline: new Date(Date.parse(at(day)) + 30 * 86_400_000).toISOString().slice(0, 10),
   salary: DEMO_SALARIES[id] ?? null,
+  languages: location.remote || location.international
+    ? ["English"]
+    : ["Erbil", "Sulaymaniyah", "Duhok", "Halabja"].includes(location.iraqCity)
+      ? ["Kurdish", "English"]
+      : ["Arabic", "English"],
 })
 
 /** Most demo jobs show a salary (a month); a few don't, like real listings. */

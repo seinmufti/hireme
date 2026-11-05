@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { JOB_TEMPLATES } from "@/data/job-templates"
 import { useT } from "@/i18n/provider"
 import { JOB_CITIES, today, WORKPLACES, workplaceOf, type WorkplaceKind } from "@/lib/jobs"
-import { CONTRACT_TYPES, JOB_CATEGORIES } from "@/lib/options"
+import { CONTRACT_TYPES, JOB_CATEGORIES, LANGUAGES, MAIN_LANGUAGES } from "@/lib/options"
 import { CURRENCIES, parseAmount } from "@/lib/salary"
 import { jobInputProblem, useStore } from "@/lib/store"
 import type { Job, JobInput } from "@/lib/types"
@@ -27,6 +27,7 @@ const EMPTY: JobInput = {
   description: "",
   deadline: "",
   salary: null,
+  languages: [],
 }
 
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
@@ -55,7 +56,19 @@ function Choice({ label, value, options, onChange, placeholder }: { label: strin
 }
 
 /** Skills as chips: type one and press Enter (or comma). Suggestions come from other job posts. */
-function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChange: (v: string[]) => void; suggestions: string[] }) {
+function SkillsInput({
+  value,
+  onChange,
+  suggestions,
+  listId = "job-skill-suggestions",
+  placeholder,
+}: {
+  value: string[]
+  onChange: (v: string[]) => void
+  suggestions: string[]
+  listId?: string
+  placeholder?: string
+}) {
   const t = useT()
   const [draft, setDraft] = useState("")
   const add = (raw: string) => {
@@ -77,7 +90,7 @@ function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChan
         ))}
         <input
           value={draft}
-          list="job-skill-suggestions"
+          list={listId}
           onChange={(e) => (e.target.value.endsWith(",") ? add(e.target.value.slice(0, -1)) : setDraft(e.target.value))}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -86,11 +99,11 @@ function SkillsInput({ value, onChange, suggestions }: { value: string[]; onChan
             } else if (e.key === "Backspace" && !draft && value.length) onChange(value.slice(0, -1))
           }}
           onBlur={() => draft && add(draft)}
-          placeholder={value.length ? t("jobs.form.addAnother") : t("jobs.form.skillsPlaceholder")}
+          placeholder={value.length ? t("jobs.form.addAnother") : (placeholder ?? t("jobs.form.skillsPlaceholder"))}
           className="h-7 min-w-40 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           aria-label={t("jobs.form.addSkill")}
         />
-        <datalist id="job-skill-suggestions">
+        <datalist id={listId}>
           {left.map((s) => (
             <option key={s} value={s} />
           ))}
@@ -162,6 +175,7 @@ export function JobForm({ job, from }: { job?: Job; from?: Job }) {
           // A copy gets a fresh deadline
           deadline: job ? job.deadline : "",
           salary: source.salary,
+          languages: source.languages ?? [],
         }
       : EMPTY
   )
@@ -281,6 +295,17 @@ export function JobForm({ job, from }: { job?: Job; from?: Job }) {
       <section className="space-y-4 p-6">
         <h2 className="font-medium">{t("jobs.form.skills")}</h2>
         <SkillsInput value={value.skills} onChange={(v) => set("skills", v)} suggestions={suggestions} />
+      </section>
+
+      <section className="space-y-4 p-6">
+        <h2 className="font-medium">{t("jobs.form.languages")}</h2>
+        <SkillsInput
+          value={value.languages ?? []}
+          onChange={(v) => set("languages", v)}
+          suggestions={[...MAIN_LANGUAGES, ...LANGUAGES.filter((l) => !MAIN_LANGUAGES.includes(l))]}
+          listId="job-language-suggestions"
+          placeholder={t("jobs.form.languagesPlaceholder")}
+        />
       </section>
 
       <section className="space-y-3 p-6">

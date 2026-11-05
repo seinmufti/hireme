@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { BriefcaseIcon, MailIcon, MapPinIcon, PhoneIcon, SearchIcon } from "lucide-react"
-import { UserAvatar } from "@/components/user-avatar"
+import { CompanyLogo } from "@/components/company-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/provider"
@@ -67,7 +67,7 @@ export function CompaniesView({ initialQuery }: { initialQuery: string }) {
             return (
               <article key={c.id} className="relative flex flex-col rounded-xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-sm">
                 <div className="flex items-start gap-3">
-                  <UserAvatar name={c.company || c.name} color={c.avatarColor} size={44} />
+                  <CompanyLogo employer={c} size={44} />
                   <div className="min-w-0">
                     <h3 className="truncate font-semibold">
                       <Link href={`/companies/${c.id}`} className="after:absolute after:inset-0 hover:underline">

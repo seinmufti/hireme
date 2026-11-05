@@ -12,6 +12,7 @@ export type MatchableTalent = {
   experiences?: Experience[]
   hardSkills?: string[]
   softSkills?: string[]
+  languages?: { language: string }[]
   workPreference?: WorkPreference | null
 }
 
@@ -50,13 +51,25 @@ function overlap(talent: MatchableTalent, job: Job) {
   const category = experiences.some((e) => e.category && norm(e.category) === norm(job.category))
   const words = new Set(experiences.flatMap((e) => titleWords(e.title)))
   const title = titleWords(job.title).some((w) => words.has(w))
-  return { skills, category, title }
+  const spoken = new Set((talent.languages ?? []).map((l) => norm(l.language)))
+  const languages = (job.languages ?? []).filter((l) => spoken.has(norm(l)))
+  return { skills, category, title, languages }
 }
 
 /** How many things match, also for jobs that aren't a match (e.g. somewhere they don't want to work). */
 export function matchPoints(talent: MatchableTalent, job: Job) {
-  const { skills, category, title } = overlap(talent, job)
-  return skills.length + (category ? 1 : 0) + (title ? 1 : 0)
+  const { skills, category, title, languages } = overlap(talent, job)
+  return skills.length + (category ? 1 : 0) + (title ? 1 : 0) + languages.length
+}
+
+/** What matches, item by item: the job's skills they have, its field, a similar job title. */
+export function matchDetails(talent: MatchableTalent, job: Job) {
+  return overlap(talent, job)
+}
+
+/** How much of the job the profile matches, 0–100: its skills, languages, field and job title, each counting once. */
+export function matchPercent(talent: MatchableTalent, job: Job) {
+  return Math.round((matchPoints(talent, job) / matchTotal(job)) * 100)
 }
 
 /** How well one job suits the job seeker, or null when it doesn't match. */
@@ -74,8 +87,8 @@ export function matchJob(talent: MatchableTalent, job: Job): JobMatch | null {
 }
 
 /** How many things match: each of the job's skills they have, the job's field, a similar job title. */
-/** Out of how many: each of the job's skills, its field and its job title. */
-export const matchTotal = (job: Job) => job.skills.length + 2
+/** Out of how many: each of the job's skills and languages, its field and its job title. */
+export const matchTotal = (job: Job) => job.skills.length + (job.languages?.length ?? 0) + 2
 
 export const matchCount = (m: JobMatch) => m.skills.length + (m.category ? 1 : 0) + (m.title ? 1 : 0)
 

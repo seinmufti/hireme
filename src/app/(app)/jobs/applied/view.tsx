@@ -2,14 +2,15 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { ArchiveIcon, ChevronDownIcon, SearchIcon } from "lucide-react"
+import { ArchiveIcon, ChevronDownIcon } from "lucide-react"
 import { toast } from "sonner"
+import { CompanyLogo } from "@/components/company-logo"
+import { ActionsPanel } from "@/components/home/actions-panel"
 import { ApplicationProgress } from "@/components/jobs/application-progress"
 import { WithdrawDialog } from "@/components/jobs/applications"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useI18n, useLocationLabel, useT, useTimeAgo } from "@/i18n/provider"
 import { SEEKER_STAGES, seekerStage, type SeekerStage } from "@/lib/application-stage"
@@ -33,8 +34,6 @@ export function MyApplicationsView() {
   const withdraw = useStore((s) => s.withdrawApplication)
   // The tile picked (null: all of them)
   const [only, setOnly] = useState<SeekerStage | null>(null)
-  // Finding a job among them: its title, company or city
-  const [query, setQuery] = useState("")
   // The application being withdrawn, waiting for a second click to confirm
   const [withdrawing, setWithdrawing] = useState<string | null>(null)
   // The withdrawn application they're asking to come back to, and their message
@@ -50,9 +49,12 @@ export function MyApplicationsView() {
           if (!job) return []
           // Their conversation with the employer about it, if there is one
           const thread = conversations.find((c) => c.employerId === job.employerId && c.seekerId === a.seekerId && (!c.jobId || c.jobId === job.id))
-          return [{ application: a, job, stage: seekerStage(a, job, conversations), thread }]
+          return [{ application: a, job, stage: seekerStage(a, job, conversations), thread, number: 0 }]
         })
-        .sort((a, b) => b.application.createdAt.localeCompare(a.application.createdAt)),
+        .sort((a, b) => a.application.createdAt.localeCompare(b.application.createdAt))
+        // Numbered in the order they applied (#1 is the first); shown newest first, so the numbers count down
+        .map((x, i) => ({ ...x, number: i + 1 }))
+        .reverse(),
     [all, jobs, conversations, viewer]
   )
   // Withdrawn ones go to the archive
@@ -60,31 +62,16 @@ export function MyApplicationsView() {
   const archived = mine.filter((x) => x.application.withdrawnAt)
   const [archiveOpen, setArchiveOpen] = useState(false)
   if (!viewer) return null
-  const words = query.trim().toLowerCase().split(/s+/).filter(Boolean)
-  const shown = applications.filter(({ stage, job }) => {
-    if (only && stage !== only) return false
-    const text = `${job.title} ${job.company} ${locationLabel(job.location)}`.toLowerCase()
-    return words.every((w) => text.includes(w))
-  })
+  const shown = only ? applications.filter((x) => x.stage === only) : applications
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    // The applications, and on wide screens the Actions card on the right (as on the other tabs)
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start lg:gap-6">
+    <div className="min-w-0 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">{t("applications.myTitle")}</h1>
         {/* Show one stage: only the stages their applications are at (the tiles below do the same) */}
         {applications.length > 0 && (
-          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-          <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
-            <SearchIcon className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("applications.searchPlaceholder")}
-              aria-label={t("applications.searchPlaceholder")}
-              className="h-9 ps-9"
-            />
-          </div>
           <Select value={only ?? "all"} onValueChange={(v) => setOnly(!v || v === "all" ? null : (v as SeekerStage))}>
             <SelectTrigger className="h-9 w-48" aria-label={t("applications.filter")}>
               <SelectValue>
@@ -100,7 +87,6 @@ export function MyApplicationsView() {
               ))}
             </SelectContent>
           </Select>
-          </div>
         )}
       </div>
 
@@ -142,20 +128,25 @@ export function MyApplicationsView() {
           {shown.length === 0 ? (
             <p className="rounded-xl border bg-card px-5 py-8 text-center text-sm text-muted-foreground">{applications.length ? t("applications.noMatch") : t("applications.noActive")}</p>
           ) : (
-            <ul className="space-y-3">
-              {shown.map(({ application, job, stage, thread }) => (
+            <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {shown.map(({ application, job, stage, thread, number }) => (
                 <li key={application.id} className="rounded-xl border bg-card p-4 sm:p-5">
                   <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-                    <div className="min-w-0">
-                      <Link href={`/jobs/${job.id}`} className="font-medium hover:underline">
-                        {job.title}
-                      </Link>
-                      <p className="truncate text-sm text-muted-foreground">{[job.company, locationLabel(job.location)].filter(Boolean).join(" · ")}</p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">#{number}</span>
+                      <CompanyLogo employerId={job.employerId} name={job.company} size={40} />
+                      <div className="min-w-0">
+                        <Link href={`/jobs/applied/${application.id}`} className="font-medium hover:underline">
+                          {job.title}
+                        </Link>
+                        <p className="truncate text-sm text-muted-foreground">{[job.company, locationLabel(job.location)].filter(Boolean).join(" · ")}</p>
+                        {/* When they applied, under the company (the same place on every card) */}
+                        <p className="text-xs text-muted-foreground">
+                          {t("applications.appliedAgo", { time: timeAgo(application.createdAt) })}
+                          {!takesApplications(job) && ` · ${t("applications.jobClosed")}`}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t("applications.appliedAgo", { time: timeAgo(application.createdAt) })}
-                      {!takesApplications(job) && ` · ${t("applications.jobClosed")}`}
-                    </p>
                   </div>
 
                   <ApplicationProgress stage={stage} application={application} thread={thread} />
@@ -206,17 +197,21 @@ export function MyApplicationsView() {
               </button>
               {archiveOpen && (
                 // Laid out like the applications above: how far each had got, then when it was withdrawn
-                <ul className="space-y-3 border-t p-3 sm:p-4">
-                  {archived.map(({ application, job, stage, thread }) => (
+                <ul className="grid grid-cols-1 gap-3 border-t p-3 sm:p-4 md:grid-cols-2">
+                  {archived.map(({ application, job, stage, thread, number }) => (
                     <li key={application.id} className="rounded-xl border p-4 sm:p-5">
                       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-                        <div className="min-w-0">
-                          <Link href={`/jobs/${job.id}`} className="font-medium hover:underline">
-                            {job.title}
-                          </Link>
-                          <p className="truncate text-sm text-muted-foreground">{[job.company, locationLabel(job.location)].filter(Boolean).join(" · ")}</p>
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">#{number}</span>
+                          <CompanyLogo employerId={job.employerId} name={job.company} size={40} />
+                          <div className="min-w-0">
+                            <Link href={`/jobs/applied/${application.id}`} className="font-medium hover:underline">
+                              {job.title}
+                            </Link>
+                            <p className="truncate text-sm text-muted-foreground">{[job.company, locationLabel(job.location)].filter(Boolean).join(" · ")}</p>
+                            <p className="text-xs text-muted-foreground">{t("applications.appliedAgo", { time: timeAgo(application.createdAt) })}</p>
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">{t("applications.appliedAgo", { time: timeAgo(application.createdAt) })}</p>
                       </div>
                       <ApplicationProgress stage={stage} application={application} thread={thread} />
                       <p className="mt-3 flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
@@ -313,6 +308,10 @@ export function MyApplicationsView() {
           toast.success(t("applications.withdrawn"))
         }}
       />
+    </div>
+    <div className="no-scrollbar hidden lg:sticky lg:top-[calc(5.5rem+1px)] lg:block lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto">
+      <ActionsPanel />
+    </div>
     </div>
   )
 }
