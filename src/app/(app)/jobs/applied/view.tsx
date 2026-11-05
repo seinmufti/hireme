@@ -8,6 +8,8 @@ import { CompanyLogo } from "@/components/company-logo"
 import { ActionsPanel } from "@/components/home/actions-panel"
 import { ApplicationProgress } from "@/components/jobs/application-progress"
 import { WithdrawDialog } from "@/components/jobs/applications"
+import { RelatedJobs } from "@/components/jobs/job-detail"
+import { useMyTalent } from "@/lib/use-my-talent"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
@@ -29,6 +31,7 @@ export function MyApplicationsView() {
   const timeAgo = useTimeAgo()
   const locationLabel = useLocationLabel()
   const all = useStore((s) => s.applications)
+  const talent = useMyTalent()
   const jobs = useStore((s) => s.jobs)
   const conversations = useStore((s) => s.conversations)
   const withdraw = useStore((s) => s.withdrawApplication)
@@ -61,6 +64,9 @@ export function MyApplicationsView() {
   const applications = mine.filter((x) => !x.application.withdrawnAt)
   const archived = mine.filter((x) => x.application.withdrawnAt)
   const [archiveOpen, setArchiveOpen] = useState(false)
+  // Related jobs: like the ones still applied to, leaving out every job applied to (withdrawn too)
+  const appliedJobs = useMemo(() => mine.filter((x) => !x.application.withdrawnAt).map((x) => x.job), [mine])
+  const appliedIds = useMemo(() => mine.map((x) => x.job.id), [mine])
   if (!viewer) return null
   const shown = only ? applications.filter((x) => x.stage === only) : applications
 
@@ -310,7 +316,11 @@ export function MyApplicationsView() {
       />
     </div>
     <div className="no-scrollbar hidden lg:sticky lg:top-[calc(5.5rem+1px)] lg:block lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto">
-      <ActionsPanel />
+      <div className="space-y-4">
+        <ActionsPanel />
+        {/* Open jobs like the ones they applied to, that they haven't applied to yet */}
+        <RelatedJobs basis={appliedJobs} exclude={appliedIds} talent={talent} />
+      </div>
     </div>
     </div>
   )

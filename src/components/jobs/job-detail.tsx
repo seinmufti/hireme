@@ -161,7 +161,7 @@ export function JobDetail({
                   <CompanyCard employer={employer} />
                 </div>
               )
-            : <RelatedJobs job={job} talent={isSeeker ? talent : null} />}
+            : <RelatedJobs basis={[job]} talent={isSeeker ? talent : null} />}
           {/* Job seekers, wide screens: the Actions card, as on the other tabs */}
           {isSeeker && (
             <div className="hidden lg:block">
@@ -212,28 +212,28 @@ function MobileApplyBar({ job, viewer }: { job: Job; viewer: User }) {
  * Other open jobs like this one: the same field, or at least two skills in common; the most alike first (the same
  * city counts a little), at most 5.
  */
-function RelatedJobs({ job, talent }: { job: Job; talent: MatchableTalent | null }) {
+export function RelatedJobs({ basis, talent, exclude }: { basis: Job[]; talent: MatchableTalent | null; exclude?: string[] }) {
   const t = useT()
   const locationLabel = useLocationLabel()
   const all = useStore((s) => s.jobs)
   const related = useMemo(() => {
-    const skills = new Set(job.skills.map((s) => s.toLowerCase()))
+    const skip = new Set([...basis.map((b) => b.id), ...(exclude ?? [])])
+    // How alike a job is to one of the basis jobs; the best of them counts
+    const likeness = (j: Job, job: Job) => {
+      const skills = new Set(job.skills.map((s) => s.toLowerCase()))
+      const shared = j.skills.filter((s) => skills.has(s.toLowerCase())).length
+      const sameField = j.category === job.category
+      if (!sameField && shared < 2) return -1
+      return (sameField ? 10 : 0) + shared * 2 + (j.location.iraqCity && j.location.iraqCity === job.location.iraqCity ? 1 : 0)
+    }
     return all
-      .filter((j) => j.id !== job.id && takesApplications(j))
-      .map((j) => {
-        const shared = j.skills.filter((s) => skills.has(s.toLowerCase())).length
-        const sameField = j.category === job.category
-        return {
-          job: j,
-          alike: sameField || shared >= 2,
-          score: (sameField ? 10 : 0) + shared * 2 + (j.location.iraqCity && j.location.iraqCity === job.location.iraqCity ? 1 : 0),
-        }
-      })
-      .filter((x) => x.alike)
+      .filter((j) => !skip.has(j.id) && takesApplications(j))
+      .map((j) => ({ job: j, score: Math.max(-1, ...basis.map((b) => likeness(j, b))) }))
+      .filter((x) => x.score >= 0)
       .sort((a, b) => b.score - a.score || b.job.createdAt.localeCompare(a.job.createdAt))
       .slice(0, 5)
       .map((x) => x.job)
-  }, [all, job])
+  }, [all, basis, exclude])
   if (related.length === 0) return null
   return (
     <section className="rounded-xl border bg-card p-5 text-sm">
