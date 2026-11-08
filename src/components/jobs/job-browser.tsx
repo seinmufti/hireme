@@ -299,7 +299,6 @@ export function JobBrowser({
           <PartyPopperIcon className="mt-0.5 size-5 shrink-0" />
           <div className="min-w-0 flex-1 space-y-1">
             <p className="font-medium">{matches.length ? t("jobs.welcome", { count: matches.length }) : t("jobs.welcomeNone")}</p>
-            <a href="#work-type" className="text-sm underline">{t("jobs.welcomeAction")}</a>
           </div>
           <button type="button" onClick={() => setShowWelcome(false)} aria-label={t("common.close")} className="rounded-md p-1 hover:bg-emerald-100">
             <XIcon className="size-4" />

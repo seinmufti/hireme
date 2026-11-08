@@ -30,7 +30,8 @@ const ar: DeepPartial<Messages> = {
     GUEST: "زائر",
   },
   nav: {
-    jobs2: "الوظائف 2",
+    cvBuilder: "إنشاء السيرة الذاتية",
+    settings: "الإعدادات",
     applications: "طلباتي",
     signIn: "تسجيل الدخول",
     home: "الرئيسية",
@@ -431,7 +432,7 @@ const ar: DeepPartial<Messages> = {
     archive: "الأرشيف (المسحوبة)",
     youWithdrew: "سحبت طلبك {time}.",
     withdrawn: "تم سحب الطلب",
-    apply: "قدّم الآن",
+    apply: "تقديم سريع",
     finishCvFirst: "أكمل سيرتك الذاتية أولًا. الأقسام الصفراء ما زالت تحتاج إلى تفاصيل.",
     finishCv: "إكمال سيرتي الذاتية",
     dialogTitle: "التقديم على {job}",

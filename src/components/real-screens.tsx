@@ -107,6 +107,12 @@ export function AwaitingApproval() {
 }
 
 /** Signs out: the real version back to its sign-in page, the demo back to choosing an account. */
+export async function signOut() {
+  if (IS_DEMO) useStore.setState({ currentUserId: null })
+  else await supabase()?.auth.signOut()
+  window.location.assign(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/login`)
+}
+
 export function SignOutButton({ className }: { className?: string }) {
   const t = useT()
   const email = useBackend((s) => s.email)
@@ -118,11 +124,7 @@ export function SignOutButton({ className }: { className?: string }) {
       className={className}
       title={email}
       aria-label={t("auth.signOut")}
-      onClick={async () => {
-        if (IS_DEMO) useStore.setState({ currentUserId: null })
-        else await supabase()?.auth.signOut()
-        window.location.assign(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/login`)
-      }}
+      onClick={signOut}
     >
       <LogOutIcon /> <span className="hidden lg:inline">{t("auth.signOut")}</span>
     </Button>

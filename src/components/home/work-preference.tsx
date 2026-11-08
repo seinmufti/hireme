@@ -148,35 +148,6 @@ const CONTRACTS: { value: string; label: MessageKey; icon: typeof WifiIcon }[] =
   { value: "Internship", label: "home.internship", icon: GraduationCapIcon },
 ]
 
-/** The work they want as a button among the job filters (Jobs 2); it opens the card. Shows how many are chosen. */
-export function WorkPreferenceButton({ user, talent }: { user: HomeUser; talent: HomeTalent | null }) {
-  const t = useT()
-  const pref = { ...EMPTY_PREFERENCE, ...talent?.workPreference }
-  const chosen = (pref.remote ? 1 : 0) + (pref.international ? 1 : 0) + (pref.iraqCities.length ? 1 : 0) + (pref.contractTypes?.length ?? 0)
-  return (
-    <Popover>
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            className={cn(
-              "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
-              chosen ? "border-primary/40 bg-brand-soft text-foreground" : "hover:bg-muted"
-            )}
-          />
-        }
-      >
-        <BriefcaseIcon className="size-3.5" /> {t("home.workType")}
-        {chosen > 0 && <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular-nums">{chosen}</span>}
-        <ChevronDownIcon className="size-3.5 text-muted-foreground" />
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-80 p-0 [&>section]:border-0">
-        <WorkPreferenceCard user={user} talent={talent} />
-      </PopoverContent>
-    </Popover>
-  )
-}
-
 function Toggle({
   icon: Icon,
   label,

@@ -30,7 +30,8 @@ const ckb: DeepPartial<Messages> = {
     GUEST: "میوان",
   },
   nav: {
-    jobs2: "کارەکان 2",
+    cvBuilder: "دروستکردنی CV",
+    settings: "ڕێکخستنەکان",
     applications: "داواکارییەکانم",
     signIn: "چوونەژوورەوە",
     home: "سەرەکی",
@@ -431,7 +432,7 @@ const ckb: DeepPartial<Messages> = {
     archive: "ئەرشیف (کشێنراوەکان)",
     youWithdrew: "داواکارییەکەت کشاندەوە {time}.",
     withdrawn: "داواکارییەکە کشێنرایەوە",
-    apply: "داواکاری بنێرە",
+    apply: "داواکاری خێرا",
     finishCvFirst: "سەرەتا CV ـەکەت تەواو بکە. بەشە زەردەکان هێشتا زانیارییان پێویستە.",
     finishCv: "تەواوکردنی CV ـەکەم",
     dialogTitle: "داواکاری بۆ {job}",

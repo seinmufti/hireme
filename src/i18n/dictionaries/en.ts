@@ -30,7 +30,8 @@ const en = {
     GUEST: "Guest",
   },
   nav: {
-    jobs2: "Jobs 2",
+    cvBuilder: "CV builder",
+    settings: "Settings",
     applications: "Applications",
     signIn: "Sign in",
     home: "Home",
@@ -432,7 +433,7 @@ const en = {
     archive: "Archive (withdrawn)",
     youWithdrew: "You withdrew your application {time}.",
     withdrawn: "Application withdrawn",
-    apply: "Apply",
+    apply: "Easy apply",
     finishCvFirst: "Finish your CV first. The yellow sections still need details.",
     finishCv: "Finish my CV",
     dialogTitle: "Apply to {job}",

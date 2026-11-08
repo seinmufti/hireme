@@ -2,11 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BriefcaseIcon, Building2Icon, HomeIcon, LogInIcon, MailIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
+import { BriefcaseIcon, Building2Icon, HomeIcon, MailIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
 import { BottomNav } from "@/components/bottom-nav"
 import { GlobalSearch } from "@/components/global-search"
 import { DevTools } from "@/components/dev-tools"
-import { SignOutButton } from "@/components/real-screens"
+import { UserMenu } from "@/components/user-menu"
 import { IS_DEMO } from "@/lib/mode"
 import { homeFor } from "@/lib/options"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -14,7 +14,6 @@ import { Logo } from "@/components/logo"
 import { NavLinks, type NavLink } from "@/components/nav-links"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { StoreGate } from "@/components/store-gate"
-import { buttonVariants } from "@/components/ui/button"
 import { useI18n } from "@/i18n/provider"
 import { unreadCountFor, useCurrentUser, useStore } from "@/lib/store"
 import { BrandName } from "@/components/brand-name"
@@ -37,8 +36,6 @@ function Shell({ children }: { children: React.ReactNode }) {
   // The whole CV (view and edit), with stats, notifications and actions around it
   const overview = { href: "/overview", label: t("nav.profile"), icon: UserIcon }
   const jobs = { href: "/jobs", label: t("nav.jobs"), icon: BriefcaseIcon }
-  // A trial layout of the Jobs tab: list, job and Actions side by side
-  const jobs2 = { href: "/jobs2", label: t("nav.jobs2"), icon: BriefcaseIcon }
   // Employers don't search jobs; their Jobs tab is their own posts
   const myJobs = { href: "/jobs/mine", label: t("nav.jobs"), icon: BriefcaseIcon }
   // The list of all companies is for recruiters only; everyone can still open a company from its jobs
@@ -53,7 +50,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, jobs, jobs2, overview, applications]
+          ? [home, jobs, overview, applications]
           : role === "GUEST"
             ? [jobs]
             : []
@@ -73,20 +70,16 @@ function Shell({ children }: { children: React.ReactNode }) {
           </div>
           {user && (
             <div className="ms-auto flex items-center gap-1 sm:gap-2 lg:gap-4">
+              {/* The language, just before the search */}
+              <LanguageSwitcher />
               <GlobalSearch user={user} />
               {/* Messages: a mail icon, just before the bell */}
               {(role === "SEEKER" || role === "EMPLOYER") && <InboxButton unread={unread} />}
               {/* Job seekers hear about new jobs that match them; on the right, with the other actions */}
               {(role === "SEEKER" || role === "EMPLOYER") && <NotificationBell />}
-              <LanguageSwitcher />
-              {/* Sign out, on the far end of the bar */}
-              {role !== "GUEST" && <SignOutButton />}
-              {/* Guests browse; signing in (or creating an account) is one click away */}
-              {role === "GUEST" && (
-                <Link href="/login" className={buttonVariants({ size: "sm" })}>
-                  <LogInIcon /> {t("nav.signIn")}
-                </Link>
-              )}
+              {/* Their picture, on the far end of the bar: its menu has their Profile, the tabs, the CV builder,
+                  Settings and Sign out (guests: Sign in) */}
+              <UserMenu user={user} links={links} />
             </div>
           )}
         </div>

@@ -18,7 +18,7 @@ import { SaveJobButton } from "@/components/save-button"
 import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { ApplicantsList, ApplyPanel, useMyApplication } from "./applications"
+import { ApplicantsList, ApplyPanel, QuickApply, useMyApplication } from "./applications"
 import { JobDescription, SkillChips, useJobFacts } from "./job-meta"
 
 /** One job: what it is, why it suits the job seeker, and the company behind it. */
@@ -48,6 +48,9 @@ export function JobDetail({
   const setJobOpen = useStore((s) => s.setJobOpen)
   const isOwner = viewer.id === job.employerId
   const isSeeker = viewer.role === "SEEKER"
+  const myApplication = useMyApplication(job.id, isSeeker ? viewer.id : "")
+  // In a pane (the Jobs tab): "Easy apply" at the top right, until they've applied
+  const easyApply = pane && isSeeker && !myApplication && takesApplications(job)
   const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   return (
@@ -70,16 +73,17 @@ export function JobDetail({
         <div className="min-w-0 space-y-6">
         <article className={cn("space-y-6 p-6", !pane && "rounded-xl border bg-card")}>
           <header className="space-y-3">
-            <div className="flex items-start gap-4">
+            <div className="flex flex-wrap items-start gap-4">
               <Link href={`/companies/${job.employerId}`} className="shrink-0" aria-label={job.company}>
                 <CompanyLogo employerId={job.employerId} name={job.company} size={56} />
               </Link>
-              <div className="min-w-0">
+              <div className="min-w-40 flex-1">
                 <h1 className="text-2xl font-semibold tracking-tight">{job.title}</h1>
                 <Link href={`/companies/${job.employerId}`} className="text-muted-foreground hover:text-foreground hover:underline">
                   {job.company}
                 </Link>
               </div>
+              {easyApply && <QuickApply job={job} className="h-9 shrink-0 px-4" />}
             </div>
             <dl className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               {jobFacts(job)
@@ -144,7 +148,7 @@ export function JobDetail({
                 </Button>
               </div>
             </div>
-          ) : (
+          ) : easyApply ? null : (
             <div className="space-y-3 rounded-xl border bg-card p-5">
               {isSeeker && <ApplyPanel job={job} viewer={viewer} />}
               {viewer.role === "GUEST" && takesApplications(job) && (
