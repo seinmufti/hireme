@@ -148,7 +148,7 @@ export function JobDetail({
                 </Button>
               </div>
             </div>
-          ) : easyApply ? null : (
+          ) : (
             <div className="space-y-3 rounded-xl border bg-card p-5">
               {isSeeker && <ApplyPanel job={job} viewer={viewer} />}
               {viewer.role === "GUEST" && takesApplications(job) && (
