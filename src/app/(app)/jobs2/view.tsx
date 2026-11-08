@@ -1,7 +1,6 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { useRouter } from "next/navigation"
 import { CompanyLogo } from "@/components/company-logo"
 import { SaveJobButton } from "@/components/save-button"
 import { WorkPreferenceButton } from "@/components/home/work-preference"
@@ -64,7 +63,6 @@ function SplitResults({
   talent: ReturnType<typeof useMyTalent>
 }) {
   const t = useT()
-  const router = useRouter()
   const timeAgo = useTimeAgo()
   const deadline = useDeadlineLabel()
   const { locale } = useI18n()
@@ -80,8 +78,15 @@ function SplitResults({
     detailRef.current?.scrollTo({ top: 0 })
   }
   const job = results.find((j) => j.id === picked) ?? results[0] ?? null
-  // Wide screens: beside the list; phones: the job's own page
-  const open = (id: string) => (window.matchMedia("(min-width: 1024px)").matches ? pick(id) : router.push(`/jobs/${id}`))
+  // Phones: the job opens under its card (tap again to close)
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const open = (id: string) => {
+    if (window.matchMedia("(min-width: 1024px)").matches) return pick(id)
+    const next = expanded === id ? null : id
+    setExpanded(next)
+    // Keep the card in view (the one open before it may have been above it)
+    if (next) requestAnimationFrame(() => document.getElementById(`job-${id}`)?.scrollIntoView({ block: "start", behavior: "smooth" }))
+  }
 
   return (
     // One panel, like LinkedIn: the list and the job side by side, each scrolling on its own
@@ -107,11 +112,13 @@ function SplitResults({
         )}
         {results.map((j) => {
           const active = job?.id === j.id
+          const isOpen = expanded === j.id
           return (
-            // A div acting as a button, so the Save button can sit inside it
+            <div key={j.id} id={`job-${j.id}`} className="scroll-mt-32 space-y-2">
+            {/* A div acting as a button, so the Save button can sit inside it */}
             <div
-              key={j.id}
               role="button"
+              aria-expanded={isOpen}
               tabIndex={0}
               onClick={() => open(j.id)}
               onKeyDown={(e) => {
@@ -120,17 +127,19 @@ function SplitResults({
                   open(j.id)
                 }
               }}
-              aria-current={active || undefined}
+              aria-current={active || isOpen || undefined}
               className={cn(
                 // Each job its own card, apart from the others
                 "flex w-full cursor-pointer items-start gap-3 rounded-xl border bg-card px-4 py-3 text-start shadow-xs transition outline-none hover:border-primary/30 hover:shadow-sm focus-visible:ring-3 focus-visible:ring-ring/50",
-                active && "border-primary/60 bg-brand-soft/60 ring-1 ring-primary/30"
+                // Wide screens: the job open beside the list; phones: the one open under its card
+                active && "lg:border-primary/60 lg:bg-brand-soft/60 lg:ring-1 lg:ring-primary/30",
+                isOpen && "border-primary/60 bg-brand-soft/60 ring-1 ring-primary/30"
               )}
             >
               <CompanyLogo employerId={j.employerId} name={j.company} size={44} />
               {/* Position, company, type and when it was posted, the deadline */}
               <span className="min-w-0 flex-1">
-                <span className={cn("line-clamp-2 block text-sm leading-snug font-semibold", active ? "text-primary" : "text-blue-800")}>{j.title}</span>
+                <span className={cn("line-clamp-2 block text-sm leading-snug font-semibold text-blue-800", active && "lg:text-primary", isOpen && "text-primary")}>{j.title}</span>
                 <span className="block truncate text-sm">{j.company}</span>
                 <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
                   <MapPinIcon className="size-3 shrink-0" /> {place(j)}
@@ -149,6 +158,13 @@ function SplitResults({
                   </span>
                 )}
               </span>
+            </div>
+            {/* Phones: the job, under its card */}
+            {isOpen && (
+              <div className="overflow-hidden rounded-xl border bg-card lg:hidden">
+                <JobDetail job={j} viewer={viewer} talent={talent} pane />
+              </div>
+            )}
             </div>
           )
         })}
