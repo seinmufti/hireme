@@ -50,6 +50,7 @@ function SplitResults({
   results,
   countLabel,
   savedFilter,
+  sort,
   clearFilters,
   viewer,
   talent,
@@ -57,6 +58,7 @@ function SplitResults({
   results: Job[]
   countLabel: string
   savedFilter: React.ReactNode
+  sort: React.ReactNode
   clearFilters: (() => void) | null
   viewer: User
   talent: ReturnType<typeof useMyTalent>
@@ -88,7 +90,10 @@ function SplitResults({
         {/* The list's heading: how many jobs (wide screens; phones have it above) and the Saved filter */}
         <div className="flex items-center justify-between gap-2 px-1 pt-3">
           <p className="hidden text-xs font-medium text-muted-foreground lg:block">{countLabel}</p>
-          {savedFilter}
+          <div className="flex items-center gap-2">
+            {sort}
+            {savedFilter}
+          </div>
         </div>
         {results.length === 0 && (
           <div className="rounded-xl border border-dashed bg-card px-4 py-10 text-center text-sm">

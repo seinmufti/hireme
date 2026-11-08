@@ -87,7 +87,7 @@ export function JobBrowser({
   /** The page's heading (default: Jobs) */
   title?: string
   /** Shows the results its own way (Jobs 2: a list with the job beside it) instead of the cards */
-  renderResults?: (results: Job[], extras: { countLabel: string; savedFilter: ReactNode; clearFilters: (() => void) | null }) => ReactNode
+  renderResults?: (results: Job[], extras: { countLabel: string; savedFilter: ReactNode; sort: ReactNode; clearFilters: (() => void) | null }) => ReactNode
   /** After the filters, in the same row (Jobs 2: the work they want). Also makes the top compact: one bar with the
    * search, filters, how many jobs and the sort. */
   filterExtra?: ReactNode
@@ -268,9 +268,6 @@ export function JobBrowser({
             />
           ))}
           {filterExtra}
-          {compact && (
-            <div className="ms-auto hidden lg:block">{sortSelect}</div>
-          )}
         </div>
 
         {hasFilters && (
@@ -331,6 +328,8 @@ export function JobBrowser({
             <HeartIcon className={cn("size-3.5", onlySaved && "fill-current text-primary")} /> {t("common.savedForLater")}
           </button>
         ) : null,
+        // Jobs 2: the sort goes at the top of the list too (wide screens; phones keep it in the bar)
+        sort: <div className="hidden lg:block [&_[data-slot=select-trigger]]:w-32!">{sortSelect}</div>,
         clearFilters: hasFilters ? clearAll : null,
       }) : (
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
