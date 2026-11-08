@@ -87,7 +87,7 @@ export function JobBrowser({
   /** The page's heading (default: Jobs) */
   title?: string
   /** Shows the results its own way (Jobs 2: a list with the job beside it) instead of the cards */
-  renderResults?: (results: Job[], countLabel: string) => ReactNode
+  renderResults?: (results: Job[], extras: { countLabel: string; savedFilter: ReactNode; clearFilters: (() => void) | null }) => ReactNode
   /** After the filters, in the same row (Jobs 2: the work they want). Also makes the top compact: one bar with the
    * search, filters, how many jobs and the sort. */
   filterExtra?: ReactNode
@@ -230,18 +230,21 @@ export function JobBrowser({
           <div className="contents sm:hidden">
             {sortSelect}
           </div>
-          <button
-            type="button"
-            aria-pressed={withSalary}
-            onClick={() => setWithSalary((v) => !v)}
-            className={cn(
-              "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
-              withSalary ? "border-primary/40 bg-brand-soft text-foreground" : "hover:bg-muted"
-            )}
-          >
-            <BanknoteIcon className="size-3.5" /> {t("jobs.salaryShown")}
-          </button>
-          {isSeeker && (
+          {/* Not in Jobs 2 */}
+          {!compact && (
+            <button
+              type="button"
+              aria-pressed={withSalary}
+              onClick={() => setWithSalary((v) => !v)}
+              className={cn(
+                "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
+                withSalary ? "border-primary/40 bg-brand-soft text-foreground" : "hover:bg-muted"
+              )}
+            >
+              <BanknoteIcon className="size-3.5" /> {t("jobs.salaryShown")}
+            </button>
+          )}
+          {isSeeker && !compact && (
             <button
               type="button"
               aria-pressed={onlySaved}
@@ -312,7 +315,24 @@ export function JobBrowser({
         {query.trim() && <> {t("jobs.resultFor", { q: query.trim() })}</>}
       </p>
 
-      {renderResults && results.length > 0 ? renderResults(results, t("jobs.resultCount", { shown: results.length, total: open.length })) : (
+      {renderResults ? renderResults(results, {
+        countLabel: t("jobs.resultCount", { shown: results.length, total: open.length }),
+        // Jobs 2: "Saved" goes at the top of the list
+        savedFilter: isSeeker ? (
+          <button
+            type="button"
+            aria-pressed={onlySaved}
+            onClick={() => setOnlySaved((v) => !v)}
+            className={cn(
+              "flex h-7 items-center gap-1.5 rounded-full border bg-card px-2.5 text-xs transition",
+              onlySaved ? "border-primary/40 bg-brand-soft text-foreground" : "hover:bg-muted"
+            )}
+          >
+            <HeartIcon className={cn("size-3.5", onlySaved && "fill-current text-primary")} /> {t("common.savedForLater")}
+          </button>
+        ) : null,
+        clearFilters: hasFilters ? clearAll : null,
+      }) : (
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
           {results.length === 0 ? (

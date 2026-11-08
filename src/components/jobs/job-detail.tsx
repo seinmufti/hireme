@@ -156,7 +156,7 @@ export function JobDetail({
           )}
 
           {/* Job seekers: how much of the job their profile matches */}
-          {isSeeker && talent && <ProfileMatch job={job} talent={talent} />}
+          {isSeeker && talent && !pane && <ProfileMatch job={job} talent={talent} />}
 
           {/* The employer's own job: their company card (not on phones); everyone else: other jobs like this one */}
           {isOwner
@@ -165,7 +165,7 @@ export function JobDetail({
                   <CompanyCard employer={employer} />
                 </div>
               )
-            : <RelatedJobs basis={[job]} talent={isSeeker ? talent : null} />}
+            : !pane && <RelatedJobs basis={[job]} talent={isSeeker ? talent : null} />}
           {/* Job seekers, wide screens: the Actions card, as on the other tabs */}
           {isSeeker && !pane && (
             <div className="hidden lg:block">
