@@ -184,10 +184,6 @@ export function JobBrowser({
       <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-6">
         <div className={cn(compact && "flex flex-wrap items-baseline gap-x-3")}>
           <h1 className="text-2xl font-semibold tracking-tight">{title ?? t("jobs.title")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {open.length === 1 ? t("jobs.openOne") : t("jobs.openCount", { count: open.length })}
-            {isSeeker && talent && <> · {t("jobs.matchProfile", { count: matches.length })}</>}
-          </p>
         </div>
         {role === "EMPLOYER" && (
           <div className="flex gap-2">

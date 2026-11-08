@@ -1,6 +1,7 @@
 "use client"
 
 import { CompanyLogo } from "@/components/company-logo"
+import { ActionsPanel } from "@/components/home/actions-panel"
 import { useMemo } from "react"
 import Link from "next/link"
 import { ArrowLeftIcon, BellPlusIcon, BellRingIcon } from "lucide-react"
@@ -52,7 +53,7 @@ export function CompanyView({ id }: { id: string }) {
   }
 
   const follow = viewer.role === "SEEKER" && (
-    <Button variant={following ? "outline" : "default"} className="w-full" onClick={() => toggleFollow(company.id)} aria-pressed={following}>
+    <Button variant={following ? "outline" : "default"} size="sm" onClick={() => toggleFollow(company.id)} aria-pressed={following}>
       {following ? <BellRingIcon /> : <BellPlusIcon />} {following ? t("companies.following") : t("companies.follow")}
     </Button>
   )
@@ -64,17 +65,17 @@ export function CompanyView({ id }: { id: string }) {
       </Link>
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_20rem]">
         <section className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start gap-4">
             <CompanyLogo employer={company} size={56} />
             <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight">{company.company || company.name}</h1>
             <p className="text-sm text-muted-foreground">
               {jobs.length ? (jobs.length === 1 ? t("companies.openJobsOne") : t("companies.openJobs", { count: jobs.length })) : t("companies.noOpenJobs")}
             </p>
+            {/* Follow, under the name */}
+            {follow && <div className="mt-2.5">{follow}</div>}
           </div>
           </div>
-          {/* Phones: Follow right under the name, not after all the jobs */}
-          {follow && <div className="lg:hidden">{follow}</div>}
           {jobs.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {jobs.map((j) => (
@@ -84,8 +85,13 @@ export function CompanyView({ id }: { id: string }) {
           )}
         </section>
         <aside className="space-y-3">
-          {follow && <div className="hidden lg:block">{follow}</div>}
           <CompanyCard employer={company} showContact />
+          {/* Job seekers, wide screens: the Actions card, as on the other tabs */}
+          {viewer.role === "SEEKER" && (
+            <div className="hidden pt-1 lg:block">
+              <ActionsPanel />
+            </div>
+          )}
         </aside>
       </div>
     </div>
