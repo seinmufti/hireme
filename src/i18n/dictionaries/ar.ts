@@ -30,6 +30,7 @@ const ar: DeepPartial<Messages> = {
     GUEST: "زائر",
   },
   nav: {
+    jobs2: "الوظائف 2",
     applications: "طلباتي",
     signIn: "تسجيل الدخول",
     home: "الرئيسية",

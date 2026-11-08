@@ -7,6 +7,7 @@ import { takesApplications } from "@/lib/jobs"
 import { matchTotal } from "@/lib/matching"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { CompanyLink } from "@/components/company-link"
 import { CompanyLogo } from "@/components/company-logo"
 import { SaveJobButton } from "@/components/save-button"
 import { QuickApply } from "./applications"
@@ -57,7 +58,9 @@ export function JobCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-        <CompanyLogo employerId={job.employerId} name={job.company} size={44} />
+        <CompanyLink employerId={job.employerId} label={job.company} className="shrink-0">
+          <CompanyLogo employerId={job.employerId} name={job.company} size={44} />
+        </CompanyLink>
         <div className="min-w-0">
           {/* Long titles wrap to a second line instead of being cut off next to the match tag */}
           <h3 className="line-clamp-2 font-semibold leading-snug">
@@ -67,7 +70,7 @@ export function JobCard({
             </Link>
           </h3>
           <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
-            {job.company} · {job.category}
+            <CompanyLink employerId={job.employerId}>{job.company}</CompanyLink> · {job.category}
           </p>
         </div>
         </div>

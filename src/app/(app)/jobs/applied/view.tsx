@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { ArchiveIcon, ChevronDownIcon } from "lucide-react"
 import { toast } from "sonner"
+import { CompanyLink } from "@/components/company-link"
 import { CompanyLogo } from "@/components/company-logo"
 import { ActionsPanel } from "@/components/home/actions-panel"
 import { ApplicationProgress } from "@/components/jobs/application-progress"
@@ -76,8 +77,8 @@ export function MyApplicationsView() {
     <div className="min-w-0 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">{t("applications.myTitle")}</h1>
-        {/* Show one stage: only the stages their applications are at (the tiles below do the same) */}
-        {applications.length > 0 && (
+        {/* Show one stage: every stage, with how many are at it (the tiles below do the same) */}
+        {(
           <Select value={only ?? "all"} onValueChange={(v) => setOnly(!v || v === "all" ? null : (v as SeekerStage))}>
             <SelectTrigger className="h-9 w-48" aria-label={t("applications.filter")}>
               <SelectValue>
@@ -86,7 +87,7 @@ export function MyApplicationsView() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("applications.allStages")} ({applications.length})</SelectItem>
-              {SEEKER_STAGES.filter((stage) => applications.some((x) => x.stage === stage)).map((stage) => (
+              {SEEKER_STAGES.map((stage) => (
                 <SelectItem key={stage} value={stage}>
                   {t(`applications.stages.${stage}`)} ({applications.filter((x) => x.stage === stage).length})
                 </SelectItem>
@@ -140,12 +141,16 @@ export function MyApplicationsView() {
                   <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">#{number}</span>
-                      <CompanyLogo employerId={job.employerId} name={job.company} size={40} />
+                      <CompanyLink employerId={job.employerId} label={job.company} className="shrink-0">
+                        <CompanyLogo employerId={job.employerId} name={job.company} size={40} />
+                      </CompanyLink>
                       <div className="min-w-0">
                         <Link href={`/jobs/applied/${application.id}`} className="font-medium hover:underline">
                           {job.title}
                         </Link>
-                        <p className="truncate text-sm text-muted-foreground">{[job.company, locationLabel(job.location)].filter(Boolean).join(" · ")}</p>
+                        <p className="truncate text-sm text-muted-foreground"><CompanyLink employerId={job.employerId}>{job.company}</CompanyLink>
+                          {locationLabel(job.location) && ` · ${locationLabel(job.location)}`}
+                        </p>
                         {/* When they applied, under the company (the same place on every card) */}
                         <p className="text-xs text-muted-foreground">
                           {t("applications.appliedAgo", { time: timeAgo(application.createdAt) })}
@@ -209,12 +214,16 @@ export function MyApplicationsView() {
                       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
                         <div className="flex min-w-0 items-center gap-3">
                           <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">#{number}</span>
-                          <CompanyLogo employerId={job.employerId} name={job.company} size={40} />
+                          <CompanyLink employerId={job.employerId} label={job.company} className="shrink-0">
+                        <CompanyLogo employerId={job.employerId} name={job.company} size={40} />
+                      </CompanyLink>
                           <div className="min-w-0">
                             <Link href={`/jobs/applied/${application.id}`} className="font-medium hover:underline">
                               {job.title}
                             </Link>
-                            <p className="truncate text-sm text-muted-foreground">{[job.company, locationLabel(job.location)].filter(Boolean).join(" · ")}</p>
+                            <p className="truncate text-sm text-muted-foreground"><CompanyLink employerId={job.employerId}>{job.company}</CompanyLink>
+                          {locationLabel(job.location) && ` · ${locationLabel(job.location)}`}
+                        </p>
                             <p className="text-xs text-muted-foreground">{t("applications.appliedAgo", { time: timeAgo(application.createdAt) })}</p>
                           </div>
                         </div>

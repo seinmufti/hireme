@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import Link from "next/link"
-import { BanknoteIcon, BriefcaseIcon, HeartIcon, PartyPopperIcon, PlusIcon, SearchIcon, TargetIcon, XIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, HeartIcon, PartyPopperIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
@@ -72,6 +72,9 @@ export function JobBrowser({
   initialQuery,
   aside,
   welcome,
+  title,
+  renderResults,
+  filterExtra,
 }: {
   jobs: Job[]
   role: Role
@@ -81,7 +84,25 @@ export function JobBrowser({
   aside?: ReactNode
   /** A job seeker who just finished their CV: how many jobs match it, and where to say what work they want */
   welcome?: boolean
+  /** The page's heading (default: Jobs) */
+  title?: string
+  /** Shows the results its own way (Jobs 2: a list with the job beside it) instead of the cards */
+  renderResults?: (results: Job[], countLabel: string) => ReactNode
+  /** After the filters, in the same row (Jobs 2: the work they want). Also makes the top compact: one bar with the
+   * search, filters, how many jobs and the sort. */
+  filterExtra?: ReactNode
 }) {
+  const compact = filterExtra !== undefined
+  // Compact: how tall the pinned bar is (--bar-h), so what's pinned under it starts right below it
+  const barRef = useRef<HTMLDivElement>(null)
+  const [barHeight, setBarHeight] = useState(0)
+  useEffect(() => {
+    const bar = barRef.current
+    if (!compact || !bar) return
+    const observer = new ResizeObserver(() => setBarHeight(bar.offsetHeight))
+    observer.observe(bar)
+    return () => observer.disconnect()
+  }, [compact])
   const t = useT()
   const isSeeker = role === "SEEKER"
   const SORTS = [
@@ -92,7 +113,6 @@ export function JobBrowser({
   const defs = useMemo(() => buildDefs(open, t), [open, t])
   const [state, setState] = useState<State>({})
   const [query, setQuery] = useState(initialQuery)
-  const [onlyMatches, setOnlyMatches] = useState(false)
   // Only jobs that show a salary
   const [withSalary, setWithSalary] = useState(false)
   // Job seekers: only the jobs they saved
@@ -120,8 +140,8 @@ export function JobBrowser({
   }
 
   const base = useMemo(
-    () => open.filter((j) => jobMatchesQuery(j, query) && (!onlyMatches || score.has(j.id)) && (!withSalary || !!j.salary) && (!onlySaved || savedIds.split(" ").includes(j.id))),
-    [open, query, onlyMatches, withSalary, onlySaved, savedIds, score]
+    () => open.filter((j) => jobMatchesQuery(j, query) && (!withSalary || !!j.salary) && (!onlySaved || savedIds.split(" ").includes(j.id))),
+    [open, query, withSalary, onlySaved, savedIds]
   )
   const results = useMemo(() => {
     const list = base.filter((j) => passes(j, defs, state))
@@ -141,26 +161,11 @@ export function JobBrowser({
   const clearAll = () => {
     setState({})
     setSearch("")
-    setOnlyMatches(false)
     setWithSalary(false)
     setOnlySaved(false)
   }
-  const hasFilters = active.length > 0 || query.trim() !== "" || onlyMatches || withSalary || onlySaved
+  const hasFilters = active.length > 0 || query.trim() !== "" || withSalary || onlySaved
 
-  const matchingButton = isSeeker && talent && (
-    <button
-      type="button"
-      aria-pressed={onlyMatches}
-      onClick={() => setOnlyMatches((v) => !v)}
-      className={cn(
-        "flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition",
-        onlyMatches ? "border-emerald-400 bg-emerald-50 text-emerald-900" : "hover:bg-muted"
-      )}
-    >
-      <TargetIcon className="size-3.5" /> {t("jobs.matchingMine")}
-      <span className="rounded-full bg-muted px-1.5 text-xs tabular-nums">{matches.length}</span>
-    </button>
-  )
   const sortSelect = (
     <Select items={isSeeker ? SORTS : SORTS.slice(1)} value={sort} onValueChange={(v) => v && setSort(v)}>
       <SelectTrigger size="sm" className="w-auto shrink-0 sm:w-36" aria-label={t("common.sort")}>
@@ -175,10 +180,10 @@ export function JobBrowser({
   )
 
   return (
-    <div className="space-y-6">
+    <div className={compact ? "space-y-4" : "space-y-6"} style={compact ? ({ "--bar-h": `${barHeight}px` } as CSSProperties) : undefined}>
       <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("jobs.title")}</h1>
+        <div className={cn(compact && "flex flex-wrap items-baseline gap-x-3")}>
+          <h1 className="text-2xl font-semibold tracking-tight">{title ?? t("jobs.title")}</h1>
           <p className="text-sm text-muted-foreground">
             {open.length === 1 ? t("jobs.openOne") : t("jobs.openCount", { count: open.length })}
             {isSeeker && talent && <> · {t("jobs.matchProfile", { count: matches.length })}</>}
@@ -196,8 +201,8 @@ export function JobBrowser({
         )}
       </div>
 
-      <div className="z-30 -mx-4 space-y-3 border-b bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:sticky lg:top-14 lg:-mx-8 lg:px-8">
-        <div className="flex flex-wrap items-center gap-3">
+      <div ref={barRef} className="z-30 -mx-4 space-y-3 border-b bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:sticky lg:top-14 lg:-mx-8 lg:px-8">
+        <div className={cn("flex flex-wrap items-center gap-3", compact && "lg:hidden")}>
           <div className="relative w-full sm:w-96">
             <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -208,8 +213,6 @@ export function JobBrowser({
               aria-label={t("jobs.searchLabel")}
             />
           </div>
-          {/* Wide screens: beside the search; phones: first in the chip row below */}
-          <div className="hidden sm:contents">{matchingButton}</div>
           <div className="ms-auto hidden items-center gap-2 text-sm sm:flex">
             <span className="text-muted-foreground">{t("common.sort")}</span>
             {sortSelect}
@@ -218,8 +221,13 @@ export function JobBrowser({
 
         {/* Phones: one row that scrolls sideways (like Indeed or LinkedIn), so the jobs start right below */}
         <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
+          {compact && (
+            <div className="relative hidden w-56 lg:block">
+              <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={(e) => setSearch(e.target.value)} placeholder={t("jobs.searchPlaceholder")} className="h-8 ps-8" aria-label={t("jobs.searchLabel")} />
+            </div>
+          )}
           <div className="contents sm:hidden">
-            {matchingButton}
             {sortSelect}
           </div>
           <button
@@ -256,6 +264,10 @@ export function JobBrowser({
               onChange={(values) => setState((s) => ({ ...s, [def.key]: values }))}
             />
           ))}
+          {filterExtra}
+          {compact && (
+            <div className="ms-auto hidden lg:block">{sortSelect}</div>
+          )}
         </div>
 
         {hasFilters && (
@@ -295,11 +307,12 @@ export function JobBrowser({
         </div>
       )}
 
-      <p className="text-sm text-muted-foreground">
+      <p className={cn("text-sm text-muted-foreground", compact && "lg:hidden")}>
         {t("jobs.resultCount", { shown: results.length, total: open.length })}
         {query.trim() && <> {t("jobs.resultFor", { q: query.trim() })}</>}
       </p>
 
+      {renderResults && results.length > 0 ? renderResults(results, t("jobs.resultCount", { shown: results.length, total: open.length })) : (
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
           {results.length === 0 ? (
@@ -322,6 +335,7 @@ export function JobBrowser({
         </div>
         {aside && <aside className="w-full lg:w-72 lg:shrink-0">{aside}</aside>}
       </div>
+      )}
     </div>
   )
 }

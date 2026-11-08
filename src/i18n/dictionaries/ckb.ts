@@ -30,6 +30,7 @@ const ckb: DeepPartial<Messages> = {
     GUEST: "میوان",
   },
   nav: {
+    jobs2: "کارەکان 2",
     applications: "داواکارییەکانم",
     signIn: "چوونەژوورەوە",
     home: "سەرەکی",

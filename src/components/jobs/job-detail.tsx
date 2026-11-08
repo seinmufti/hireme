@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ArrowLeftIcon, BellIcon, LogInIcon, MailIcon, PencilIcon, PhoneIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
+import { CompanyLink } from "@/components/company-link"
 import { CompanyLogo } from "@/components/company-logo"
 import { ActionsPanel } from "@/components/home/actions-panel"
 import { Button, buttonVariants, EDIT_LINK } from "@/components/ui/button"
@@ -27,6 +28,7 @@ export function JobDetail({
   talent,
   embedded,
   below,
+  pane,
 }: {
   job: Job
   viewer: User
@@ -35,6 +37,8 @@ export function JobDetail({
   embedded?: boolean
   /** Shown right under the job (e.g. where the application stands) */
   below?: React.ReactNode
+  /** In a pane beside a list (Jobs 2): one column, no way back, no Actions card */
+  pane?: boolean
 }) {
   const t = useT()
   const jobFacts = useJobFacts()
@@ -47,10 +51,10 @@ export function JobDetail({
   const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className={pane ? "space-y-6" : "mx-auto max-w-5xl space-y-6"}>
       {/* For search engines: open jobs only */}
       {takesApplications(job) && <JobPostingData job={job} />}
-      {!embedded && (
+      {!embedded && !pane && (
         <Link href={isOwner ? "/jobs/mine" : "/jobs"} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeftIcon className="size-4 rtl:rotate-180" /> {isOwner ? t("jobs.myPosts") : t("jobs.allJobs")}
         </Link>
@@ -62,9 +66,9 @@ export function JobDetail({
         </div>
       )}
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_20rem]">
+      <div className={cn("grid grid-cols-1 items-start", pane ? "gap-0" : "gap-6 lg:grid-cols-[1fr_20rem]")}>
         <div className="min-w-0 space-y-6">
-        <article className="space-y-6 rounded-xl border bg-card p-6">
+        <article className={cn("space-y-6 p-6", !pane && "rounded-xl border bg-card")}>
           <header className="space-y-3">
             <div className="flex items-start gap-4">
               <Link href={`/companies/${job.employerId}`} className="shrink-0" aria-label={job.company}>
@@ -113,7 +117,7 @@ export function JobDetail({
         </div>
 
         {/* The employer's own job on phones: Edit, Close and the applicant count first, above the description */}
-        <aside className={cn("space-y-4", isOwner && "order-first lg:order-none")}>
+        <aside className={cn("space-y-4", isOwner && "order-first lg:order-none", pane && "px-6 pb-6")}>
           {isOwner ? (
             <div className="space-y-3 rounded-xl border bg-card p-5">
               <p className="flex items-center gap-2 text-sm">
@@ -163,7 +167,7 @@ export function JobDetail({
               )
             : <RelatedJobs basis={[job]} talent={isSeeker ? talent : null} />}
           {/* Job seekers, wide screens: the Actions card, as on the other tabs */}
-          {isSeeker && (
+          {isSeeker && !pane && (
             <div className="hidden lg:block">
               <ActionsPanel />
             </div>
@@ -173,7 +177,7 @@ export function JobDetail({
 
       {isOwner && <ApplicantsList job={job} viewer={viewer} />}
 
-      {!isOwner && <MobileApplyBar job={job} viewer={viewer} />}
+      {!isOwner && !pane && <MobileApplyBar job={job} viewer={viewer} />}
     </div>
   )
 }
@@ -241,12 +245,16 @@ export function RelatedJobs({ basis, talent, exclude }: { basis: Job[]; talent: 
       <ul className="space-y-3">
         {related.map((j) => (
           <li key={j.id} className="flex items-center gap-3">
-            <CompanyLogo employerId={j.employerId} name={j.company} size={36} />
+            <CompanyLink employerId={j.employerId} label={j.company} className="shrink-0">
+              <CompanyLogo employerId={j.employerId} name={j.company} size={36} />
+            </CompanyLink>
             <div className="min-w-0">
               <Link href={`/jobs/${j.id}`} className="block truncate font-medium hover:underline">
                 {j.title}
               </Link>
-              <p className="truncate text-xs text-muted-foreground">{[j.company, locationLabel(j.location)].filter(Boolean).join(" · ")}</p>
+              <p className="truncate text-xs text-muted-foreground"><CompanyLink employerId={j.employerId}>{j.company}</CompanyLink>
+                {locationLabel(j.location) && ` · ${locationLabel(j.location)}`}
+              </p>
             </div>
             {talent && <MatchRing percent={matchPercent(talent, j)} size={40} className="ms-auto" />}
           </li>

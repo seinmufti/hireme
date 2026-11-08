@@ -37,6 +37,8 @@ function Shell({ children }: { children: React.ReactNode }) {
   // The whole CV (view and edit), with stats, notifications and actions around it
   const overview = { href: "/overview", label: t("nav.profile"), icon: UserIcon }
   const jobs = { href: "/jobs", label: t("nav.jobs"), icon: BriefcaseIcon }
+  // A trial layout of the Jobs tab: list, job and Actions side by side
+  const jobs2 = { href: "/jobs2", label: t("nav.jobs2"), icon: BriefcaseIcon }
   // Employers don't search jobs; their Jobs tab is their own posts
   const myJobs = { href: "/jobs/mine", label: t("nav.jobs"), icon: BriefcaseIcon }
   // The list of all companies is for recruiters only; everyone can still open a company from its jobs
@@ -51,7 +53,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       : role === "RECRUITER"
         ? [pool, jobs, companies, profile]
         : role === "SEEKER"
-          ? [home, jobs, overview, applications]
+          ? [home, jobs, jobs2, overview, applications]
           : role === "GUEST"
             ? [jobs]
             : []
