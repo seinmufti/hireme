@@ -265,6 +265,9 @@ const ckb: DeepPartial<Messages> = {
   },
   jobs: {
     relatedJobs: "کاری هاوشێوە",
+    share: "هاوبەشکردن",
+    linkCopied: "بەستەرەکە کۆپی کرا",
+    linkNotCopied: "نەتوانرا بەستەرەکە کۆپی بکرێت",
     profileMatch: "گونجان لەگەڵ پرۆفایلەکەت",
     matchSkills: "{have} لە {total} لێهاتوویی",
     matchField: "لەم بوارەدا کارت کردووە",

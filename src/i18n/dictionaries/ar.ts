@@ -265,6 +265,9 @@ const ar: DeepPartial<Messages> = {
   },
   jobs: {
     relatedJobs: "وظائف مشابهة",
+    share: "مشاركة",
+    linkCopied: "تم نسخ الرابط",
+    linkNotCopied: "تعذّر نسخ الرابط",
     profileMatch: "مدى التطابق مع ملفك",
     matchSkills: "{have} من {total} مهارات",
     matchField: "عملت في هذا المجال",

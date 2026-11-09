@@ -12,6 +12,7 @@ import { useLocationLabel, useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
 import { matchDetails, matchPercent, type MatchableTalent } from "@/lib/matching"
 import { MatchRing } from "./match-ring"
+import { ShareJobButton } from "./share-job"
 import { CheckIcon, XIcon } from "lucide-react"
 import { JobPostingData } from "./job-posting-data"
 import { SaveJobButton } from "@/components/save-button"
@@ -83,7 +84,11 @@ export function JobDetail({
                   {job.company}
                 </Link>
               </div>
-              {easyApply && <QuickApply job={job} className="h-9 shrink-0 px-4" />}
+              {/* Share the job's link, and (Jobs tab, not yet applied) Easy apply */}
+              <div className="flex shrink-0 items-center gap-2">
+                <ShareJobButton job={job} className="h-9" />
+                {easyApply && <QuickApply job={job} className="h-9 shrink-0 px-4" />}
+              </div>
             </div>
             <dl className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               {jobFacts(job)

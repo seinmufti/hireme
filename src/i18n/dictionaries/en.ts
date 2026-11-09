@@ -266,6 +266,9 @@ const en = {
   },
   jobs: {
     relatedJobs: "Related jobs",
+    share: "Share",
+    linkCopied: "Link copied",
+    linkNotCopied: "Couldn't copy the link",
     profileMatch: "Profile match",
     matchSkills: "{have} of {total} skills",
     matchField: "Worked in this field",
