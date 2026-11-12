@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react"
+import { useCallback, useMemo, useState, type CSSProperties, type ReactNode } from "react"
 import Link from "next/link"
 import { BanknoteIcon, BriefcaseIcon, HeartIcon, PartyPopperIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
@@ -94,15 +94,17 @@ export function JobBrowser({
 }) {
   const compact = filterExtra !== undefined
   // Compact: how tall the pinned bar is (--bar-h), so what's pinned under it starts right below it
-  const barRef = useRef<HTMLDivElement>(null)
   const [barHeight, setBarHeight] = useState(0)
-  useEffect(() => {
-    const bar = barRef.current
-    if (!compact || !bar) return
-    const observer = new ResizeObserver(() => setBarHeight(bar.offsetHeight))
-    observer.observe(bar)
-    return () => observer.disconnect()
-  }, [compact])
+  // A callback ref: measures whenever the bar is there (and again when its height changes)
+  const barRef = useCallback(
+    (bar: HTMLDivElement | null) => {
+      if (!compact || !bar) return
+      const observer = new ResizeObserver(() => setBarHeight(bar.offsetHeight))
+      observer.observe(bar)
+      return () => observer.disconnect()
+    },
+    [compact]
+  )
   const t = useT()
   const isSeeker = role === "SEEKER"
   const SORTS = [

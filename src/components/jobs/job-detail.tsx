@@ -92,7 +92,8 @@ export function JobDetail({
             </div>
             <dl className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               {jobFacts(job)
-                .filter((f) => f.key !== "company")
+                // Not the company (it is under the title), the salary or when it was posted
+                .filter((f) => f.key !== "company" && f.key !== "salary" && f.key !== "posted")
                 .map((f) => (
                   <div key={f.key} className="flex items-center gap-1.5" title={f.hint}>
                     <f.icon className="size-4 shrink-0" />
@@ -305,10 +306,13 @@ function ProfileMatch({ job, talent }: { job: Job; talent: MatchableTalent }) {
 }
 
 /** The company; its contact details only on the company's own page (`showContact`), not on job pages. */
-export function CompanyCard({ employer, showContact }: { employer: User; showContact?: boolean }) {
+export function CompanyCard({ employer, showContact, hideName }: { employer: User; showContact?: boolean; /** The page's heading already names it */ hideName?: boolean }) {
   const t = useT()
   return (
     <div className="space-y-3 rounded-xl border bg-card p-5 text-sm">
+      {hideName ? (
+        employer.city && <p className="text-xs text-muted-foreground">{employer.city}</p>
+      ) : (
       <div className="flex items-center gap-3">
         <CompanyLogo employer={employer} size={40} />
         <div className="min-w-0">
@@ -318,6 +322,7 @@ export function CompanyCard({ employer, showContact }: { employer: User; showCon
           {employer.city && <p className="truncate text-xs text-muted-foreground">{employer.city}</p>}
         </div>
       </div>
+      )}
       {employer.bio && <p className="text-muted-foreground">{employer.bio}</p>}
       {showContact && (
         <dl className="space-y-1.5">
