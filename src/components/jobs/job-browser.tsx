@@ -70,6 +70,7 @@ export function JobBrowser({
   role,
   talent,
   initialQuery,
+  initialFilters,
   aside,
   welcome,
   title,
@@ -80,6 +81,8 @@ export function JobBrowser({
   role: Role
   talent: MatchableTalent | null
   initialQuery: string
+  /** Filters already on (?location= and ?contract= from Home's search) */
+  initialFilters?: { location?: string[]; contract?: string[] }
   /** Shown beside the results (the job seeker's work preference) */
   aside?: ReactNode
   /** A job seeker who just finished their CV: how many jobs match it, and where to say what work they want */
@@ -113,7 +116,7 @@ export function JobBrowser({
   ]
   const open = useMemo(() => jobs.filter(takesApplications), [jobs])
   const defs = useMemo(() => buildDefs(open, t), [open, t])
-  const [state, setState] = useState<State>({})
+  const [state, setState] = useState<State>(() => ({ ...initialFilters }))
   const [query, setQuery] = useState(initialQuery)
   // Only jobs that show a salary
   const [withSalary, setWithSalary] = useState(false)

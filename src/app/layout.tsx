@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono, Lato, Noto_Sans_Arabic } from "next/font/google"
+import { PageBackground } from "@/components/page-background"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { dirFor } from "@/i18n/locales"
@@ -33,6 +34,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${notoArabic.variable} ${cvText.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        <PageBackground />
         <I18nProvider locale={locale}>
           <div className="flex min-h-dvh flex-col">
             <TooltipProvider>{children}</TooltipProvider>

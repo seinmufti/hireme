@@ -17,7 +17,15 @@ import { cn } from "@/lib/utils"
  * Jobs: the heading, one bar with the search and filters, and under it the jobs as a list on the left with the job
  * picked open beside it (phones: under its card). Employers don't search jobs: they're sent to their own posts.
  */
-export function JobsView({ initialQuery, welcome }: { initialQuery: string; welcome?: boolean }) {
+export function JobsView({
+  initialQuery,
+  initialFilters,
+  welcome,
+}: {
+  initialQuery: string
+  initialFilters?: { location?: string[]; contract?: string[] }
+  welcome?: boolean
+}) {
   const viewer = useRoleGuard(ANYONE)
   const jobs = useStore((s) => s.jobs)
   const talent = useMyTalent()
@@ -34,6 +42,7 @@ export function JobsView({ initialQuery, welcome }: { initialQuery: string; welc
       role={viewer.role}
       talent={talent}
       initialQuery={initialQuery}
+      initialFilters={initialFilters}
       welcome={welcome && viewer.role === "SEEKER"}
       renderResults={(results, extras) => <SplitResults results={results} {...extras} viewer={viewer} talent={talent} />}
       // Nothing extra among the filters; giving it makes the top one compact bar
