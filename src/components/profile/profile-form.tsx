@@ -15,6 +15,7 @@ import { useI18n, useT } from "@/i18n/provider"
 import { useStore } from "@/lib/store"
 import type { ProfileInput, User } from "@/lib/types"
 import { Field } from "./portfolio-fields"
+import { cn } from "@/lib/utils"
 import { SeekerProfile } from "./seeker-profile"
 
 const toInput = (u: User): ProfileInput => ({
@@ -44,18 +45,19 @@ function StaffProfile({ user }: { user: User }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex items-center gap-5">
+      {/* Phones: the name and role wrap instead of being cut short, and Edit profile goes under them */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         {/* Employers: their company's logo (shown on their jobs); recruiters: their initials */}
         {user.role === "EMPLOYER" ? <CompanyLogo employer={user} size={72} /> : <UserAvatar name={user.name} color={user.avatarColor} size={72} />}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="truncate text-2xl font-semibold tracking-tight">{user.name}</h1>
+        <div className="min-w-0 grow basis-48">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h1 className="text-xl font-semibold tracking-tight break-words sm:truncate sm:text-2xl">{user.name}</h1>
             <Badge variant="secondary">{t(`roles.${user.role}`)}</Badge>
           </div>
-          {subtitle && <p className="truncate text-muted-foreground">{subtitle}</p>}
+          {subtitle && <p className="text-muted-foreground sm:truncate">{subtitle}</p>}
         </div>
         {!editing && (
-          <Button variant="ghost" className={EDIT_LINK} onClick={() => setEditing(true)}>
+          <Button variant="ghost" className={cn(EDIT_LINK, "max-sm:-ms-2")} onClick={() => setEditing(true)}>
             <PencilIcon /> {t("profile.editProfile")}
           </Button>
         )}

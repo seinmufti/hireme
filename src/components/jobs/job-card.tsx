@@ -48,10 +48,25 @@ export function JobCard({
   const all = useJobFacts()(job)
   const facts = all.filter((f) => f.key === "location" || f.key === "salary" || f.key === "contract")
   const dates = all.filter((f) => f.key === "posted" || f.key === "deadline")
+  // Applied, or how much matches the CV: beside the title on a wide card, under the company on a narrow one (phones)
+  const tag = applied ? (
+    <span className="flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
+      <CheckIcon className="size-3" /> {t("jobs.applied")}
+    </span>
+  ) : matches !== undefined ? (
+    <span
+      className={cn(
+        "flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium",
+        isMatch ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "bg-muted text-muted-foreground"
+      )}
+    >
+      <TargetIcon className="size-3" /> {matchLabel(matches, job)}
+    </span>
+  ) : null
   return (
     <article
       className={cn(
-        "relative flex flex-col rounded-xl border bg-card p-4 shadow-xs sm:p-5 transition hover:border-primary/30 hover:shadow-sm",
+        "@container relative flex flex-col rounded-xl border bg-card p-4 shadow-xs sm:p-5 transition hover:border-primary/30 hover:shadow-sm",
         !takesApplications(job) && "opacity-70",
         className
       )}
@@ -72,22 +87,10 @@ export function JobCard({
           <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
             <CompanyLink employerId={job.employerId}>{job.company}</CompanyLink> · {job.category}
           </p>
+          {tag && <div className="mt-1.5 flex @sm:hidden">{tag}</div>}
         </div>
         </div>
-        {applied ? (
-          <span className="flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
-            <CheckIcon className="size-3" /> {t("jobs.applied")}
-          </span>
-        ) : matches !== undefined && (
-          <span
-            className={cn(
-              "flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium",
-              isMatch ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "bg-muted text-muted-foreground"
-            )}
-          >
-            <TargetIcon className="size-3" /> {matchLabel(matches, job)}
-          </span>
-        )}
+        {tag && <span className="hidden shrink-0 @sm:flex">{tag}</span>}
         {!takesApplications(job) && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}
       </div>
 

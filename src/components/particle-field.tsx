@@ -2,8 +2,13 @@
 
 import { useEffect, useRef } from "react"
 
-// The logo's maroon and red
-const COLORS = ["138, 21, 56", "240, 56, 56"]
+// The logo's maroon, red and black
+const COLORS = ["138, 21, 56", "240, 56, 56", "17, 17, 17"]
+// About half maroon, a quarter red, a quarter black
+const pickColor = () => {
+  const r = Math.random()
+  return COLORS[r < 0.48 ? 0 : r < 0.74 ? 1 : 2]
+}
 // Dots closer than this are joined by a faint line
 const LINK = 120
 // The pointer pushes dots within this distance away, gently
@@ -12,7 +17,7 @@ const PUSH = 140
 type Dot = { x: number; y: number; vx: number; vy: number; r: number; depth: number; color: string; alpha: number; glow: boolean }
 
 /**
- * A field of small dots in the logo's colours drifting slowly behind the page, some nearer (bigger, brighter, a soft
+ * A field of small dots in the logo's colours (maroon, red and black) drifting slowly behind the page, some nearer (bigger, brighter, a soft
  * glow) and some farther away; dots that pass near each other are joined by a faint line (people and jobs connecting),
  * and they drift away from the pointer. Scrolling moves them too, at different speeds by depth (parallax), and gives
  * the job icons (the --scroll-kick variable on the parent) a little push that settles back. Drawn on a canvas; stops while the tab is hidden, and stands still for people
@@ -48,7 +53,7 @@ export function ParticleField() {
         vy: Math.sin(angle) * speed - 0.05 * depth, // a slight drift upwards
         r: 0.6 + depth * 2.2,
         depth,
-        color: COLORS[Math.random() < 0.65 ? 0 : 1],
+        color: pickColor(),
         alpha: 0.2 + depth * 0.5,
         glow: Math.random() < 0.14,
       }

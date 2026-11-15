@@ -187,11 +187,11 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
   // of an Actions panel at the end of the page. Wide screens have that panel beside the CV.
   const actions = !editing && (
     <div className="flex gap-2 lg:hidden">
-      <Link href="/overview?edit=1" className={buttonVariants({ variant: "ghost", className: cn(EDIT_LINK, "h-10 shrink-0 px-4") })}>
+      <Link href="/overview?edit=1" className={buttonVariants({ variant: "ghost", className: cn(EDIT_LINK, "h-10 shrink-0 px-3") })}>
         <PencilIcon /> {t("common.edit")}
       </Link>
       <Link href="/profile/cv" className={buttonVariants({ className: "h-10 min-w-0 flex-1" })}>
-        <FileTextIcon /> {t("home.previewCv")}
+        <FileTextIcon /> <span className="truncate">{t("home.previewCv")}</span>
       </Link>
       <Link href="/account" aria-label={t("account.title")} title={t("account.title")} className={buttonVariants({ variant: "outline", className: "size-10 shrink-0 p-0" })}>
         <SettingsIcon />

@@ -307,13 +307,14 @@ export function JobBrowser({
         </div>
       )}
 
-      <p className={cn("text-sm text-muted-foreground", compact && "lg:hidden")}>
+      {/* Jobs: the count is at the top of the list instead (with Saved and the sort) */}
+      <p className={cn("text-sm text-muted-foreground", compact && "hidden")}>
         {t("jobs.resultCount", { shown: results.length, total: open.length })}
         {query.trim() && <> {t("jobs.resultFor", { q: query.trim() })}</>}
       </p>
 
       {renderResults ? renderResults(results, {
-        countLabel: t("jobs.resultCount", { shown: results.length, total: open.length }),
+        countLabel: t("jobs.resultCount", { shown: results.length, total: open.length }) + (query.trim() ? " " + t("jobs.resultFor", { q: query.trim() }) : ""),
         // Jobs 2: "Saved" goes at the top of the list
         savedFilter: isSeeker ? (
           <button

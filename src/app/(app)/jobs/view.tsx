@@ -93,10 +93,10 @@ function SplitResults({
     // One panel, like LinkedIn: the list and the job side by side, each scrolling on its own
     <div className="lg:sticky lg:overflow-hidden lg:rounded-xl lg:border lg:bg-card lg:top-[calc(3.5rem+var(--bar-h)+1rem)] lg:grid lg:-mb-20 lg:h-[calc(100dvh-var(--bar-h)-10.5625rem)] lg:grid-cols-[22rem_minmax(0,1fr)]">
       <nav className="no-scrollbar space-y-2 lg:overflow-y-auto lg:border-e lg:bg-muted/30 lg:px-3 lg:pb-3" aria-label={t("nav.jobs")}>
-        {/* The list's heading: how many jobs (wide screens; phones have it above) and the Saved filter */}
+        {/* The list's heading: how many jobs, the sort (wide screens) and the Saved filter */}
         <div className="flex items-center justify-between gap-2 px-1 pt-3">
-          <p className="hidden text-xs font-medium text-muted-foreground lg:block">{countLabel}</p>
-          <div className="flex items-center gap-2">
+          <p className="min-w-0 truncate text-xs font-medium text-muted-foreground">{countLabel}</p>
+          <div className="flex shrink-0 items-center gap-2">
             {sort}
             {savedFilter}
           </div>
