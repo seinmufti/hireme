@@ -1,66 +1,43 @@
 "use client"
 
 import Link from "next/link"
-import { CheckIcon, TargetIcon } from "lucide-react"
+import { CheckIcon } from "lucide-react"
 import { useT } from "@/i18n/provider"
 import { takesApplications } from "@/lib/jobs"
-import { matchTotal } from "@/lib/matching"
 import type { Job } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { CompanyLink } from "@/components/company-link"
 import { CompanyLogo } from "@/components/company-logo"
 import { SaveJobButton } from "@/components/save-button"
 import { QuickApply } from "./applications"
-import { SkillChips, useJobFacts } from "./job-meta"
+import { useJobFacts } from "./job-meta"
+import { MatchDot } from "./match-ring"
 
-/** "3/8 matches": how many of the job's skills, field and title match the CV */
-export function useMatchLabel() {
-  const t = useT()
-  return (count: number, job: Job) => t("jobs.matchCount", { count, total: matchTotal(job) })
-}
-
-/**
- * One job in a list. For job seekers, `matches` is how many things match their CV (no tag when left out);
- * `isMatch` colours the tag green when the job is a match for them.
- */
+/** One job in a list. For job seekers, `percent` is how well it matches their CV, in a filled circle at the top right. */
 /** `applied` is the signed-in job seeker's application status, if they applied; `canApply` shows an Apply button. */
 export function JobCard({
   job,
-  matches,
-  isMatch,
-  have,
+  percent,
   applied,
   canApply,
   canSave,
   className,
 }: {
   job: Job
-  matches?: number
-  isMatch?: boolean
-  have?: string[]
+  percent?: number
   applied?: string
   canApply?: boolean
   canSave?: boolean
   className?: string
 }) {
   const t = useT()
-  const matchLabel = useMatchLabel()
   const all = useJobFacts()(job)
   const facts = all.filter((f) => f.key === "location" || f.key === "salary" || f.key === "contract")
   const dates = all.filter((f) => f.key === "posted" || f.key === "deadline")
-  // Applied, or how much matches the CV: beside the title on a wide card, under the company on a narrow one (phones)
+  // Applied: beside the title on a wide card, under the company on a narrow one (phones)
   const tag = applied ? (
     <span className="flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
       <CheckIcon className="size-3" /> {t("jobs.applied")}
-    </span>
-  ) : matches !== undefined ? (
-    <span
-      className={cn(
-        "flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium",
-        isMatch ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "bg-muted text-muted-foreground"
-      )}
-    >
-      <TargetIcon className="size-3" /> {matchLabel(matches, job)}
     </span>
   ) : null
   return (
@@ -91,6 +68,7 @@ export function JobCard({
         </div>
         </div>
         {tag && <span className="hidden shrink-0 @sm:flex">{tag}</span>}
+        {percent !== undefined && <MatchDot percent={percent} />}
         {!takesApplications(job) && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("jobs.closed")}</span>}
       </div>
 
@@ -104,7 +82,6 @@ export function JobCard({
         ))}
       </dl>
 
-      <SkillChips skills={job.skills} have={have} limit={5} className="mt-4" />
       <p className="mt-3 text-xs text-muted-foreground">
         {dates.map((f, i) => (
           <span key={f.key} title={f.hint}>

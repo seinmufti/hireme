@@ -5,7 +5,6 @@ import { useExactDate, useI18n, useLocationLabel, useTimeAgo } from "@/i18n/prov
 import { daysLeft } from "@/lib/jobs"
 import { formatMoney, formatRange } from "@/lib/salary"
 import type { Job, Salary } from "@/lib/types"
-import { cn } from "@/lib/utils"
 
 export type JobFact = "company" | "location" | "salary" | "contract" | "category" | "posted" | "deadline"
 
@@ -56,29 +55,6 @@ export function useJobFacts() {
     { key: "posted" as JobFact, icon: ClockIcon, label: t("jobs.factPosted"), value: t("jobs.posted", { time: timeAgo(job.createdAt) }), hint: exact(job.createdAt) },
     { key: "deadline" as JobFact, icon: CalendarClockIcon, label: t("jobs.factDeadline"), value: deadline(job) },
   ].filter((f) => f.value)
-}
-
-/** The job's skills as chips; the ones the job seeker has are highlighted. */
-export function SkillChips({ skills, have = [], limit, className }: { skills: string[]; have?: string[]; limit?: number; className?: string }) {
-  if (!skills.length) return null
-  const mine = new Set(have.map((s) => s.toLowerCase()))
-  const shown = limit ? skills.slice(0, limit) : skills
-  return (
-    <ul className={cn("flex flex-wrap gap-1.5", className)}>
-      {shown.map((s) => (
-        <li
-          key={s}
-          className={cn(
-            "rounded-full border px-2 py-0.5 text-xs",
-            mine.has(s.toLowerCase()) ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "bg-muted/50 text-foreground"
-          )}
-        >
-          {s}
-        </li>
-      ))}
-      {limit && skills.length > limit && <li className="px-1 py-0.5 text-xs text-muted-foreground">+{skills.length - limit}</li>}
-    </ul>
-  )
 }
 
 /** The description as written: lines starting with "-" or "•" become bullet points, the rest paragraphs. */

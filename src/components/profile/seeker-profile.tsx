@@ -25,6 +25,7 @@ import {
   LanguagesIcon,
   LinkIcon,
   MailIcon,
+  MessageCircleIcon,
   MapPinIcon,
   MinusIcon,
   NewspaperIcon,
@@ -61,6 +62,7 @@ import { certificationComplete, degreeComplete, filled, jobComplete, listingSect
 import type { Talent, TalentInput, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { WithBrand } from "@/components/brand-name"
+import { useProfileViewers, ViewersDialog } from "@/components/home/viewers-dialog"
 import { AttachmentThumb, LocationFields, PhotoConfirmDialog, PhotoField, ProjectFields, TagPicker } from "./cv-fields"
 import {
   CertificationFields,
@@ -159,7 +161,7 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
       <div className="flex items-center gap-5">
         <PhotoWithPencil user={user} />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-2xl font-semibold tracking-tight">{user.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight break-words">{user.name}</h1>
           {user.title ? (
             <p className="truncate text-muted-foreground">{user.title}</p>
           ) : (
@@ -181,21 +183,31 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
       </div>
     </>
   )
+  const viewers = useProfileViewers(user.id)
+  const [viewersOpen, setViewersOpen] = useState(false)
   // CV strength: the next thing to add opens the form there
   const strength = <CvStrengthBar user={user} talent={talent} skipPhoto />
-  // Phones and tablets: the actions as buttons right under the name (as on LinkedIn's profile), instead
-  // of an Actions panel at the end of the page. Wide screens have that panel beside the CV.
+  // The actions as buttons right under the name (as on LinkedIn's profile): Edit (phones; wide screens have it at
+  // the card's top right), the CV, who viewed it and the settings
   const actions = !editing && (
-    <div className="flex gap-2 lg:hidden">
-      <Link href="/overview?edit=1" className={buttonVariants({ variant: "ghost", className: cn(EDIT_LINK, "h-10 shrink-0 px-3") })}>
+    <div className="flex flex-wrap gap-2">
+      <Link href="/overview?edit=1" className={buttonVariants({ variant: "ghost", className: cn(EDIT_LINK, "h-10 shrink-0 px-3 lg:hidden") })}>
         <PencilIcon /> {t("common.edit")}
       </Link>
-      <Link href="/profile/cv" className={buttonVariants({ className: "h-10 min-w-0 flex-1" })}>
+      {/* The CV on a row of its own, so its name fits; Edit, Viewers and Settings under it */}
+      <Link href="/profile/cv" className={buttonVariants({ className: "order-first h-10 w-full" })}>
         <FileTextIcon /> <span className="truncate">{t("home.previewCv")}</span>
       </Link>
+      <Button type="button" variant="outline" className="relative size-10 shrink-0 p-0" aria-label={t("home.viewers")} title={t("home.viewers")} onClick={() => setViewersOpen(true)}>
+        <EyeIcon />
+        {viewers.length > 0 && (
+          <span className="absolute -top-1.5 -end-1.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 font-semibold text-primary-foreground">{viewers.length}</span>
+        )}
+      </Button>
       <Link href="/account" aria-label={t("account.title")} title={t("account.title")} className={buttonVariants({ variant: "outline", className: "size-10 shrink-0 p-0" })}>
         <SettingsIcon />
       </Link>
+      <ViewersDialog seekerId={user.id} open={viewersOpen} onOpenChange={setViewersOpen} />
     </div>
   )
 
@@ -307,7 +319,7 @@ function MessagesButton({ userId }: { userId: string }) {
       title={t("nav.inbox")}
       className="relative flex size-11 shrink-0 items-center justify-center rounded-xl border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground"
     >
-      <MailIcon className="size-5" />
+      <MessageCircleIcon className="size-5" />
       {unread > 0 && (
         <span className="absolute -top-1.5 -end-1.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 font-semibold text-primary-foreground">
           {unread > 9 ? "9+" : unread}

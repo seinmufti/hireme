@@ -1,6 +1,5 @@
 "use client"
 
-import { ActionsPanel } from "@/components/home/actions-panel"
 import { CvContents, SeekerProfile } from "@/components/profile/seeker-profile"
 import type { HomeTalent, HomeUser } from "@/components/home/home-data"
 import { OverallPanel } from "@/components/home/overall-panel"
@@ -29,11 +28,9 @@ export function OverviewView() {
           {/* The whole CV: one card while reading it, a card per section while editing. Keyed so switching accounts resets the form */}
           <SeekerProfile key={account.id} user={account} embedded />
         </div>
-        {/* Wide screens only: the CV's sections to jump to, then the actions (phones have them as buttons
-            under the name, see SeekerProfile) */}
+        {/* Wide screens only: the CV's sections to jump to (the actions are buttons under the name, see SeekerProfile) */}
         <div dir={dir} className="no-scrollbar hidden space-y-4 lg:sticky lg:top-[calc(5.5rem+1px)] lg:block lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-y-contain">
           <CvContents />
-          <ActionsPanel />
         </div>
       </div>
     </div>

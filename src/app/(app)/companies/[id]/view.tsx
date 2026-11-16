@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeftIcon, BellPlusIcon, BellRingIcon } from "lucide-react"
 import { CompanyLogo } from "@/components/company-logo"
-import { ActionsPanel } from "@/components/home/actions-panel"
 import { CompanyCard } from "@/components/jobs/job-detail"
 import { JobListCard } from "@/components/jobs/job-list-card"
 import { Button } from "@/components/ui/button"
@@ -85,15 +84,14 @@ export function CompanyView({ id }: { id: string }) {
           <CompanyCard employer={company} showContact hideName />
         </section>
 
-        {/* The right column: the Actions card on top (job seekers, wide screens), then its open jobs as a list */}
+        {/* The right column: its open jobs as a list */}
         <div className="min-w-0 space-y-4">
-        {isSeeker && (
-          <div className="hidden lg:block">
-            <ActionsPanel />
-          </div>
-        )}
         <aside className="no-scrollbar space-y-2 rounded-xl border bg-muted/30 p-3 lg:sticky lg:top-[calc(3.5rem+1.5rem)] lg:max-h-[calc(100dvh-7.5rem)] lg:overflow-y-auto">
-          <h2 className="px-1 pt-1 text-xs font-medium text-muted-foreground">{openJobs}</h2>
+          <h2 className="px-1 pt-1 text-xs font-medium text-muted-foreground">
+            {jobs.length === 1
+              ? t("companies.openJobsAtOne", { company: company.company || company.name })
+              : t("companies.openJobsAt", { count: jobs.length, company: company.company || company.name })}
+          </h2>
           {jobs.length === 0 && <p className="rounded-xl border border-dashed bg-card px-4 py-8 text-center text-sm text-muted-foreground">{t("companies.noOpenJobs")}</p>}
           {jobs.map((j) => (
             <JobListCard key={j.id} job={j} onOpen={() => router.push(`/jobs/${j.id}`)} talent={talent} isSeeker={isSeeker} />

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BriefcaseIcon, Building2Icon, HomeIcon, MailIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
+import { BriefcaseIcon, Building2Icon, HomeIcon, MessageCircleIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react"
 import { BottomNav } from "@/components/bottom-nav"
 import { GlobalSearch } from "@/components/global-search"
 import { DevTools } from "@/components/dev-tools"
@@ -105,7 +105,7 @@ function InboxButton({ unread }: { unread: number }) {
       aria-current={active ? "page" : undefined}
       className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
     >
-      <MailIcon className="size-5" />
+      <MessageCircleIcon className="size-5" />
       {unread > 0 && (
         <span className="absolute -top-0.5 -end-0.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 font-semibold text-primary-foreground">
           {unread > 9 ? "9+" : unread}

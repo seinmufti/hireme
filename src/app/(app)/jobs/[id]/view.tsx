@@ -1,8 +1,11 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { JobDetail } from "@/components/jobs/job-detail"
 import { useT } from "@/i18n/provider"
+import { takesApplications } from "@/lib/jobs"
 import { useStore } from "@/lib/store"
 import { useMyTalent } from "@/lib/use-my-talent"
 import { ANYONE } from "@/lib/options"
@@ -12,7 +15,13 @@ export function JobView({ id }: { id: string }) {
   const viewer = useRoleGuard(ANYONE)
   const job = useStore((s) => s.jobs.find((j) => j.id === id)) ?? null
   const talent = useMyTalent()
-  if (!viewer) return null
+  const router = useRouter()
+  // Job seekers and visitors: an open job opens in the Jobs tab (the list with this job open beside it)
+  const toJobsTab = !!viewer && (viewer.role === "SEEKER" || viewer.role === "GUEST") && !!job && takesApplications(job)
+  useEffect(() => {
+    if (toJobsTab) router.replace(`/jobs?job=${id}`)
+  }, [toJobsTab, id, router])
+  if (!viewer || toJobsTab) return null
   if (!job) return <JobNotFound href={viewer.role === "EMPLOYER" ? "/jobs/mine" : "/jobs"} />
   return <JobDetail job={job} viewer={viewer} talent={talent} />
 }

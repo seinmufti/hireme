@@ -31,3 +31,17 @@ export function MatchRing({ percent, size = 40, className }: { percent: number; 
     </span>
   )
 }
+
+/** A percentage in a filled circle (job cards): green for a strong match, amber for some, grey for little. */
+export function MatchDot({ percent, size = 44, className }: { percent: number; size?: number; className?: string }) {
+  const value = Math.min(100, Math.max(0, Math.round(percent)))
+  const color = value >= 60 ? "bg-emerald-600 text-white" : value >= 30 ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+  return (
+    <span
+      className={cn("inline-flex shrink-0 items-center justify-center rounded-full font-semibold tabular-nums shadow-xs", color, className)}
+      style={{ width: size, height: size, fontSize: Math.max(10, size * 0.27) }}
+    >
+      {value}%
+    </span>
+  )
+}

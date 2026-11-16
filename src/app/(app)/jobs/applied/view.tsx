@@ -6,7 +6,6 @@ import { ArchiveIcon, ChevronDownIcon } from "lucide-react"
 import { toast } from "sonner"
 import { CompanyLink } from "@/components/company-link"
 import { CompanyLogo } from "@/components/company-logo"
-import { ActionsPanel } from "@/components/home/actions-panel"
 import { ApplicationProgress } from "@/components/jobs/application-progress"
 import { WithdrawDialog } from "@/components/jobs/applications"
 import { RelatedJobs } from "@/components/jobs/job-detail"
@@ -135,9 +134,13 @@ export function MyApplicationsView() {
           {shown.length === 0 ? (
             <p className="rounded-xl border bg-card px-5 py-8 text-center text-sm text-muted-foreground">{applications.length ? t("applications.noMatch") : t("applications.noActive")}</p>
           ) : (
-            <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <ul className="space-y-3">
               {shown.map(({ application, job, stage, thread, number }) => (
                 <li key={application.id} className="rounded-xl border bg-card p-4 sm:p-5">
+                  {/* One row: the job on the left (with Withdraw and the conversation), how far it got on the right
+                      (stacked on smaller screens) */}
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
+                  <div className="min-w-0 lg:w-80 lg:shrink-0">
                   <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">#{number}</span>
@@ -160,19 +163,9 @@ export function MyApplicationsView() {
                     </div>
                   </div>
 
-                  <ApplicationProgress stage={stage} application={application} thread={thread} />
-
-                  {/* Not selected: the employer's reason */}
-                  {stage === "rejected" && application.rejectionReason && (
-                    <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
-                      <p className="text-xs font-medium">{t("applications.rejectionReason")}</p>
-                      <p className="mt-0.5 whitespace-pre-line">{application.rejectionReason}</p>
-                    </div>
-                  )}
-
                   {/* Withdraw at any point until it's decided against them (asks first, in a window); the conversation once the employer wrote */}
                   {(stage !== "rejected" || thread) && (
-                    <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                    <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm lg:ps-11">
                       {stage !== "rejected" && (
                         <button type="button" className="text-blue-700 underline underline-offset-4 hover:text-blue-800" onClick={() => setWithdrawing(application.id)}>
                           {t("applications.withdrawShort")}
@@ -184,6 +177,19 @@ export function MyApplicationsView() {
                         </Link>
                       )}
                     </p>
+                  )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <ApplicationProgress stage={stage} application={application} thread={thread} className="mt-0" />
+                  </div>
+                  </div>
+
+                  {/* Not selected: the employer's reason */}
+                  {stage === "rejected" && application.rejectionReason && (
+                    <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
+                      <p className="text-xs font-medium">{t("applications.rejectionReason")}</p>
+                      <p className="mt-0.5 whitespace-pre-line">{application.rejectionReason}</p>
+                    </div>
                   )}
                 </li>
               ))}
@@ -208,10 +214,11 @@ export function MyApplicationsView() {
               </button>
               {archiveOpen && (
                 // Laid out like the applications above: how far each had got, then when it was withdrawn
-                <ul className="grid grid-cols-1 gap-3 border-t p-3 sm:p-4 md:grid-cols-2">
+                <ul className="space-y-3 border-t p-3 sm:p-4">
                   {archived.map(({ application, job, stage, thread, number }) => (
                     <li key={application.id} className="rounded-xl border p-4 sm:p-5">
-                      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
+                      <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-4 gap-y-1 lg:w-80 lg:shrink-0">
                         <div className="flex min-w-0 items-center gap-3">
                           <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">#{number}</span>
                           <CompanyLink employerId={job.employerId} label={job.company} className="shrink-0">
@@ -228,7 +235,10 @@ export function MyApplicationsView() {
                           </div>
                         </div>
                       </div>
-                      <ApplicationProgress stage={stage} application={application} thread={thread} />
+                      <div className="min-w-0 flex-1">
+                        <ApplicationProgress stage={stage} application={application} thread={thread} className="mt-0" />
+                      </div>
+                      </div>
                       <p className="mt-3 flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
                         <ArchiveIcon className="size-4 shrink-0" />
                         {t("applications.withdrawnOn", {
@@ -326,7 +336,6 @@ export function MyApplicationsView() {
     </div>
     <div className="no-scrollbar hidden lg:sticky lg:top-[calc(5.5rem+1px)] lg:block lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto">
       <div className="space-y-4">
-        <ActionsPanel />
         {/* Open jobs like the ones they applied to, that they haven't applied to yet */}
         <RelatedJobs basis={appliedJobs} exclude={appliedIds} talent={talent} />
       </div>

@@ -20,10 +20,12 @@ import { cn } from "@/lib/utils"
 export function JobsView({
   initialQuery,
   initialFilters,
+  initialJob,
   welcome,
 }: {
   initialQuery: string
   initialFilters?: { location?: string[]; contract?: string[] }
+  initialJob?: string
   welcome?: boolean
 }) {
   const viewer = useRoleGuard(ANYONE)
@@ -44,7 +46,7 @@ export function JobsView({
       initialQuery={initialQuery}
       initialFilters={initialFilters}
       welcome={welcome && viewer.role === "SEEKER"}
-      renderResults={(results, extras) => <SplitResults results={results} {...extras} viewer={viewer} talent={talent} />}
+      renderResults={(results, extras) => <SplitResults results={results} {...extras} viewer={viewer} talent={talent} initialJob={initialJob} />}
       // Nothing extra among the filters; giving it makes the top one compact bar
       filterExtra={null}
     />
@@ -60,6 +62,7 @@ function SplitResults({
   clearFilters,
   viewer,
   talent,
+  initialJob,
 }: {
   results: Job[]
   countLabel: string
@@ -68,9 +71,10 @@ function SplitResults({
   clearFilters: (() => void) | null
   viewer: User
   talent: ReturnType<typeof useMyTalent>
+  initialJob?: string
 }) {
   const t = useT()
-  const [picked, setPicked] = useState<string | null>(null)
+  const [picked, setPicked] = useState<string | null>(initialJob ?? null)
   const isSeeker = viewer.role === "SEEKER"
   // The job's side: back to its top when another job is picked
   const detailRef = useRef<HTMLDivElement>(null)
@@ -80,7 +84,11 @@ function SplitResults({
   }
   const job = results.find((j) => j.id === picked) ?? results[0] ?? null
   // Phones: the job opens under its card (tap again to close)
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<string | null>(initialJob ?? null)
+  // A job opened from elsewhere: its card scrolled into view
+  useEffect(() => {
+    if (initialJob) requestAnimationFrame(() => document.getElementById(`job-${initialJob}`)?.scrollIntoView({ block: "nearest" }))
+  }, [initialJob])
   const open = (id: string) => {
     if (window.matchMedia("(min-width: 1024px)").matches) return pick(id)
     const next = expanded === id ? null : id

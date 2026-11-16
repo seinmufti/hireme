@@ -10,7 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { JOB_CITIES, jobMatchesQuery, locationValue, takesApplications } from "@/lib/jobs"
-import { matchingJobs, matchPoints, type MatchableTalent } from "@/lib/matching"
+import { matchingJobs, matchPercent, type MatchableTalent } from "@/lib/matching"
 import { CONTRACT_TYPES, JOB_CATEGORIES, type Role } from "@/lib/options"
 import { useStore } from "@/lib/store"
 import type { Job } from "@/lib/types"
@@ -46,8 +46,9 @@ function buildDefs(jobs: Job[], t: Translate): Def[] {
       key: "location",
       label: t("jobs.filterLocation"),
       mode: "any",
-      pinned: { title: t("jobs.remoteAbroad"), values: ["Remote", "International"] },
+      pinned: { title: t("jobs.remoteAbroad"), values: [ON_SITE, "Remote", "International"] },
       options: [
+        { value: ON_SITE, label: t("jobs.form.onSite") },
         { value: "Remote", label: t("jobs.remote") },
         { value: "International", label: t("jobs.international") },
         ...plain(withExtras(JOB_CITIES, cities)),
@@ -58,7 +59,14 @@ function buildDefs(jobs: Job[], t: Translate): Def[] {
   ]
 }
 
-const passes = (j: Job, defs: Def[], state: State) => defs.every((d) => !state[d.key]?.length || state[d.key]!.includes(d.value(j)))
+// "On site in Iraq" in the location filter: any job in a city (not remote, not abroad)
+const ON_SITE = "OnSite"
+/** Whether a job counts for one option of a filter */
+const hits = (d: Def, j: Job, option: string) => {
+  const v = d.value(j)
+  return v === option || (d.key === "location" && option === ON_SITE && v !== "Remote" && v !== "International")
+}
+const passes = (j: Job, defs: Def[], state: State) => defs.every((d) => !state[d.key]?.length || state[d.key]!.some((o) => hits(d, j, o)))
 
 
 /**
@@ -128,7 +136,6 @@ export function JobBrowser({
 
   const matches = useMemo(() => (talent ? matchingJobs(talent, open) : []), [talent, open])
   const score = useMemo(() => new Map(matches.map((m) => [m.job.id, m.score])), [matches])
-  const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
   // The signed-in job seeker's applications, by job
   const userId = useStore((s) => s.currentUserId)
   const allApplications = useStore((s) => s.applications)
@@ -158,7 +165,7 @@ export function JobBrowser({
   const countsFor = (def: Def) => {
     const others = base.filter((j) => passes(j, defs, { ...state, [def.key]: undefined }))
     const counts = new Map<string, number>()
-    for (const o of def.options) counts.set(o.value, others.filter((j) => def.value(j) === o.value).length)
+    for (const o of def.options) counts.set(o.value, others.filter((j) => hits(def, j, o.value)).length)
     return counts
   }
 
@@ -347,8 +354,8 @@ export function JobBrowser({
           ) : (
             <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", !aside && "xl:grid-cols-3")}>
               {results.map((j) => (
-                <JobCard key={j.id} job={j} matches={isSeeker && talent ? matchPoints(talent, j) : undefined}
-                  isMatch={score.has(j.id)} have={have} applied={applied.get(j.id)} canApply={isSeeker || role === "GUEST"} canSave={isSeeker} />
+                <JobCard key={j.id} job={j} percent={isSeeker && talent ? matchPercent(talent, j) : undefined}
+                  applied={applied.get(j.id)} canApply={isSeeker || role === "GUEST"} canSave={isSeeker} />
               ))}
             </div>
           )}

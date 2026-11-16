@@ -5,7 +5,6 @@ import { ArrowLeftIcon, BellIcon, LogInIcon, MailIcon, PencilIcon, PhoneIcon, Us
 import { toast } from "sonner"
 import { CompanyLink } from "@/components/company-link"
 import { CompanyLogo } from "@/components/company-logo"
-import { ActionsPanel } from "@/components/home/actions-panel"
 import { Button, buttonVariants, EDIT_LINK } from "@/components/ui/button"
 import { useMemo } from "react"
 import { useLocationLabel, useT } from "@/i18n/provider"
@@ -20,7 +19,7 @@ import { useStore } from "@/lib/store"
 import type { Job, User } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { ApplicantsList, ApplyPanel, QuickApply, useMyApplication } from "./applications"
-import { JobDescription, SkillChips, useJobFacts } from "./job-meta"
+import { JobDescription, useJobFacts } from "./job-meta"
 
 /** One job: what it is, why it suits the job seeker, and the company behind it. */
 export function JobDetail({
@@ -52,7 +51,6 @@ export function JobDetail({
   const myApplication = useMyApplication(job.id, isSeeker ? viewer.id : "")
   // In a pane (the Jobs tab): "Easy apply" at the top right, until they've applied
   const easyApply = pane && isSeeker && !myApplication && takesApplications(job)
-  const have = [...(talent?.hardSkills ?? []), ...(talent?.softSkills ?? [])]
 
   return (
     <div className={pane ? "space-y-6" : "mx-auto max-w-5xl space-y-6"}>
@@ -103,20 +101,6 @@ export function JobDetail({
                 ))}
             </dl>
           </header>
-
-          {job.skills.length > 0 && (
-            <section>
-              <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.skills")}</h2>
-              <SkillChips skills={job.skills} have={have} />
-            </section>
-          )}
-
-          {(job.languages?.length ?? 0) > 0 && (
-            <section>
-              <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.languages")}</h2>
-              <SkillChips skills={job.languages ?? []} have={(talent?.languages ?? []).map((l) => l.language)} />
-            </section>
-          )}
 
           <section>
             <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.about")}</h2>
@@ -176,12 +160,6 @@ export function JobDetail({
                 </div>
               )
             : !pane && <RelatedJobs basis={[job]} talent={isSeeker ? talent : null} />}
-          {/* Job seekers, wide screens: the Actions card, as on the other tabs */}
-          {isSeeker && !pane && (
-            <div className="hidden lg:block">
-              <ActionsPanel />
-            </div>
-          )}
         </aside>
       </div>
 

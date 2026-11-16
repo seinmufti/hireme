@@ -30,7 +30,18 @@ function stepDates(application: Application, thread: Conversation | undefined): 
  * The steps from applied to accepted, each with the date it happened: done ones filled, the current one
  * ringed, the rest grey. A rejected application ends in a red cross after the last step it reached.
  */
-export function ApplicationProgress({ stage, application, thread }: { stage: SeekerStage; application: Application; thread: Conversation | undefined }) {
+export function ApplicationProgress({
+  stage,
+  application,
+  thread,
+  className = "mt-4",
+}: {
+  stage: SeekerStage
+  application: Application
+  thread: Conversation | undefined
+  /** The steps' row (spacing) */
+  className?: string
+}) {
   const t = useT()
   const { locale } = useI18n()
   const dates = stepDates(application, thread)
@@ -45,7 +56,7 @@ export function ApplicationProgress({ stage, application, thread }: { stage: See
   const label = (step: SeekerStage) => (step === "pending" ? t("applications.statusApplied") : t(`applications.stages.${step}`))
   return (
     <>
-      <ol className="mt-4 flex items-start">
+      <ol className={cn("flex items-start", className)}>
         {steps.map((step, i) => {
           const done = i < reached || (step === "accepted" && stage === "accepted")
           const current = i === reached && !done
@@ -73,12 +84,10 @@ export function ApplicationProgress({ stage, application, thread }: { stage: See
               >
                 {label(step)}
               </span>
-              {/* When it happened: the day, and the time under it */}
+              {/* When it happened: the day, and the time beside it */}
               {when && (
-                <span className="hidden text-[11px] leading-tight text-muted-foreground tabular-nums sm:block">
-                  {day(when)}
-                  <br />
-                  {time(when)}
+                <span className="hidden px-0.5 text-[11px] leading-tight whitespace-nowrap text-muted-foreground tabular-nums sm:block">
+                  {day(when)} {time(when)}
                 </span>
               )}
             </li>
