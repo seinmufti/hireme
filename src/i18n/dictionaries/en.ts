@@ -318,6 +318,7 @@ const en = {
     filterCategory: "Field",
     filterLocation: "Location",
     filterContract: "Contract type",
+    filterCompany: "Company",
     remoteAbroad: "Workplace",
     remote: "Remote",
     international: "International",

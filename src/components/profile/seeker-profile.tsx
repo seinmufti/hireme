@@ -187,10 +187,10 @@ export function SeekerProfile({ user, embedded = false }: { user: User; embedded
   const [viewersOpen, setViewersOpen] = useState(false)
   // CV strength: the next thing to add opens the form there
   const strength = <CvStrengthBar user={user} talent={talent} skipPhoto />
-  // The actions as buttons right under the name (as on LinkedIn's profile): Edit (phones; wide screens have it at
-  // the card's top right), the CV, who viewed it and the settings
+  // Phones and tablets: the actions as buttons right under the name (as on LinkedIn's profile): the CV, Edit, who
+  // viewed it and the settings. Wide screens have the Actions card beside the CV instead.
   const actions = !editing && (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 lg:hidden">
       <Link href="/overview?edit=1" className={buttonVariants({ variant: "ghost", className: cn(EDIT_LINK, "h-10 shrink-0 px-3 lg:hidden") })}>
         <PencilIcon /> {t("common.edit")}
       </Link>

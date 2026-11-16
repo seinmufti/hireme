@@ -21,11 +21,13 @@ export function JobsView({
   initialQuery,
   initialFilters,
   initialJob,
+  initialCompany,
   welcome,
 }: {
   initialQuery: string
   initialFilters?: { location?: string[]; contract?: string[] }
   initialJob?: string
+  initialCompany?: string
   welcome?: boolean
 }) {
   const viewer = useRoleGuard(ANYONE)
@@ -45,6 +47,7 @@ export function JobsView({
       talent={talent}
       initialQuery={initialQuery}
       initialFilters={initialFilters}
+      initialCompany={initialCompany}
       welcome={welcome && viewer.role === "SEEKER"}
       renderResults={(results, extras) => <SplitResults results={results} {...extras} viewer={viewer} talent={talent} initialJob={initialJob} />}
       // Nothing extra among the filters; giving it makes the top one compact bar

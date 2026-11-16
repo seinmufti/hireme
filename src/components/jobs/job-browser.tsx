@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo, useState, type CSSProperties, type ReactNode } from "react"
 import Link from "next/link"
-import { BanknoteIcon, BriefcaseIcon, HeartIcon, PartyPopperIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react"
+import { BanknoteIcon, BellPlusIcon, BellRingIcon, BriefcaseIcon, HeartIcon, PartyPopperIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react"
+import { CompanyLogo } from "@/components/company-logo"
 import { FilterDropdown } from "@/components/pool/filter-dropdown"
 import { useT } from "@/i18n/provider"
 import type { Translate } from "@/i18n/translate"
@@ -79,6 +80,7 @@ export function JobBrowser({
   talent,
   initialQuery,
   initialFilters,
+  initialCompany,
   aside,
   welcome,
   title,
@@ -91,6 +93,8 @@ export function JobBrowser({
   initialQuery: string
   /** Filters already on (?location= and ?contract= from Home's search) */
   initialFilters?: { location?: string[]; contract?: string[] }
+  /** Only this company's jobs (a company opened from anywhere opens Jobs like this) */
+  initialCompany?: string
   /** Shown beside the results (the job seeker's work preference) */
   aside?: ReactNode
   /** A job seeker who just finished their CV: how many jobs match it, and where to say what work they want */
@@ -126,6 +130,11 @@ export function JobBrowser({
   const defs = useMemo(() => buildDefs(open, t), [open, t])
   const [state, setState] = useState<State>(() => ({ ...initialFilters }))
   const [query, setQuery] = useState(initialQuery)
+  // One company's jobs only (the employer's id), with Follow for job seekers
+  const [companyId, setCompanyId] = useState(initialCompany ?? null)
+  const company = useStore((s) => (companyId ? s.users.find((u) => u.id === companyId && u.role === "EMPLOYER") : undefined))
+  const following = useStore((s) => !!companyId && s.follows.some((f) => f.userId === s.currentUserId && f.employerId === companyId))
+  const toggleFollow = useStore((s) => s.toggleFollow)
   // Only jobs that show a salary
   const [withSalary, setWithSalary] = useState(false)
   // Job seekers: only the jobs they saved
@@ -152,8 +161,15 @@ export function JobBrowser({
   }
 
   const base = useMemo(
-    () => open.filter((j) => jobMatchesQuery(j, query) && (!withSalary || !!j.salary) && (!onlySaved || savedIds.split(" ").includes(j.id))),
-    [open, query, withSalary, onlySaved, savedIds]
+    () =>
+      open.filter(
+        (j) =>
+          (!companyId || j.employerId === companyId) &&
+          jobMatchesQuery(j, query) &&
+          (!withSalary || !!j.salary) &&
+          (!onlySaved || savedIds.split(" ").includes(j.id))
+      ),
+    [open, companyId, query, withSalary, onlySaved, savedIds]
   )
   const results = useMemo(() => {
     const list = base.filter((j) => passes(j, defs, state))
@@ -172,11 +188,12 @@ export function JobBrowser({
   const active = defs.flatMap((d) => (state[d.key] ?? []).map((v) => ({ def: d, value: v })))
   const clearAll = () => {
     setState({})
+    setCompanyId(null)
     setSearch("")
     setWithSalary(false)
     setOnlySaved(false)
   }
-  const hasFilters = active.length > 0 || query.trim() !== "" || withSalary || onlySaved
+  const hasFilters = !!companyId || active.length > 0 || query.trim() !== "" || withSalary || onlySaved
 
   const sortSelect = (
     <Select items={isSeeker ? SORTS : SORTS.slice(1)} value={sort} onValueChange={(v) => v && setSort(v)}>
@@ -280,6 +297,25 @@ export function JobBrowser({
 
         {hasFilters && (
           <div className="no-scrollbar -mx-4 flex items-center gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
+            {/* One company's jobs: its name (tap to see every job again), and Follow for its new jobs */}
+            {companyId && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setCompanyId(null)}
+                  className="flex items-center gap-1.5 rounded-full border bg-card py-0.5 ps-1 pe-1.5 text-xs hover:bg-muted"
+                >
+                  {company && <CompanyLogo employer={company} size={18} />}
+                  <span className="text-muted-foreground">{t("jobs.filterCompany")}:</span> {company?.company || company?.name || companyId}
+                  <XIcon className="size-3 text-muted-foreground" />
+                </button>
+                {isSeeker && company && (
+                  <Button variant={following ? "outline" : "default"} size="xs" onClick={() => toggleFollow(company.id)} aria-pressed={following}>
+                    {following ? <BellRingIcon /> : <BellPlusIcon />} {following ? t("companies.following") : t("companies.follow")}
+                  </Button>
+                )}
+              </>
+            )}
             {active.map(({ def, value }) => (
               <button
                 key={def.key + value}

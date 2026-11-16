@@ -317,6 +317,7 @@ const ckb: DeepPartial<Messages> = {
     filterCategory: "بوار",
     filterLocation: "شوێن",
     filterContract: "جۆری گرێبەست",
+    filterCompany: "کۆمپانیا",
     remoteAbroad: "شوێنی کار",
     remote: "لە دوورەوە",
     international: "دەرەوەی عێراق",

@@ -317,6 +317,7 @@ const ar: DeepPartial<Messages> = {
     filterCategory: "المجال",
     filterLocation: "الموقع",
     filterContract: "نوع العقد",
+    filterCompany: "الشركة",
     remoteAbroad: "مكان العمل",
     remote: "عن بُعد",
     international: "خارج العراق",

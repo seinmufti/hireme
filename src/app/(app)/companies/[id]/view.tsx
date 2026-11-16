@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeftIcon, BellPlusIcon, BellRingIcon } from "lucide-react"
@@ -32,7 +32,13 @@ export function CompanyView({ id }: { id: string }) {
   const following = useStore((s) => s.follows.some((f) => f.userId === s.currentUserId && f.employerId === id))
   const toggleFollow = useStore((s) => s.toggleFollow)
 
-  if (!viewer) return null
+  // Job seekers, recruiters and visitors: the company's jobs in the Jobs tab (this page is for employers)
+  const toJobsTab = !!viewer && viewer.role !== "EMPLOYER"
+  useEffect(() => {
+    if (toJobsTab) router.replace(`/jobs?company=${id}`)
+  }, [toJobsTab, id, router])
+
+  if (!viewer || toJobsTab) return null
   const isSeeker = viewer.role === "SEEKER"
   // Back to all companies (recruiters), or to the jobs this company came from
   const back =

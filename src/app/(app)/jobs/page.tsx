@@ -4,7 +4,7 @@ export const metadata = { title: "Jobs · HireMe" }
 
 // "/jobs?q=sales" opens the search with "sales" already typed in
 export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
-  const { q, welcome, location, contract, job } = await searchParams
+  const { q, welcome, location, contract, job, company } = await searchParams
   // ?location=Erbil&contract=Full-time (from Home's search): those filters start on
   const many = (v: string | string[] | undefined) => {
     const list = (Array.isArray(v) ? v : [v]).filter((x): x is string => !!x)
@@ -18,6 +18,8 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
       welcome={welcome === "1"}
       // ?job=… (a job opened from anywhere else): that job is the one open
       initialJob={typeof job === "string" ? job : undefined}
+      // ?company=… (a company opened from anywhere): only its jobs
+      initialCompany={typeof company === "string" ? company : undefined}
     />
   )
 }
