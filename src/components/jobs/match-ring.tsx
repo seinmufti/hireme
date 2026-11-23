@@ -1,7 +1,16 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
-/** A percentage as a ring that fills up, with the number in the middle. */
-export function MatchRing({ percent, size = 40, className }: { percent: number; size?: number; className?: string }) {
+/** A percentage as a ring that fills up, with the number in the middle; `animate`: it fills from empty when it appears. */
+export function MatchRing({ percent, size = 40, className, animate }: { percent: number; size?: number; className?: string; animate?: boolean }) {
+  const [shown, setShown] = useState(!animate)
+  useEffect(() => {
+    if (!animate) return
+    const frame = requestAnimationFrame(() => setShown(true))
+    return () => cancelAnimationFrame(frame)
+  }, [animate])
   const stroke = Math.max(3, Math.round(size / 11))
   const r = (size - stroke) / 2
   const length = 2 * Math.PI * r
@@ -21,7 +30,7 @@ export function MatchRing({ percent, size = 40, className }: { percent: number; 
           strokeLinecap="round"
           stroke="currentColor"
           strokeDasharray={length}
-          strokeDashoffset={length * (1 - value / 100)}
+          strokeDashoffset={length * (1 - (shown ? value : 0) / 100)}
           className={cn("transition-[stroke-dashoffset] duration-700", color)}
         />
       </svg>

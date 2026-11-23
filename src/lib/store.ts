@@ -308,11 +308,13 @@ export const useStore = create<Data & Actions>()(
           const name = input.name.trim()
           const email = input.email.trim()
           const linkedin = input.linkedin.trim()
+          const facebook = (input.facebook ?? "").trim()
           if (!name) return fail("Name is required.")
           const phone = input.phone.trim()
           if (phone && !PHONE_PATTERN.test(phone)) return fail("Phone number must look like +964 750 000 0103.")
           if (email && !EMAIL_PATTERN.test(email)) return fail("That email doesn't look right.")
           if (linkedin && !/^https?:\/\//.test(linkedin)) return fail("LinkedIn should be a full link starting with https://")
+          if (facebook && !/^https?:\/\//.test(facebook)) return fail("Facebook should be a full link starting with https://")
           // Job seekers have a profession (title) but no company
           const isSeeker = user.role === "SEEKER"
           const title = input.title.trim()
@@ -321,6 +323,7 @@ export const useStore = create<Data & Actions>()(
             name,
             email,
             linkedin,
+            facebook,
             phone,
             city: input.city.trim(),
             bio: input.bio.trim(),
@@ -904,6 +907,14 @@ export function jobInputProblem(input: JobInput) {
   if (!input.contractType) return "Please choose a contract type."
   const l = input.location
   if (!l.remote && !l.international && !l.iraqCity) return "Please choose the city the job is in."
+  if (!input.education?.level) return "Please choose the education needed."
+  const req = input.requirements
+  if (req) {
+    const ages = [req.ageMin, req.ageMax].filter((n): n is number => n !== null)
+    if (ages.some((n) => n < 16 || n > 80)) return "Please enter an age between 16 and 80."
+    if (req.ageMin !== null && req.ageMax !== null && req.ageMin > req.ageMax) return "The lowest age can't be more than the highest."
+    if (req.experienceYears !== null && req.experienceYears > 50) return "Please enter the years of experience as a number up to 50."
+  }
   if (!input.description.trim()) return "Please describe the job."
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.deadline ?? "")) return "Please choose the last day to apply."
   if (input.deadline < today()) return "The last day to apply can't be in the past."
@@ -928,6 +939,17 @@ function cleanJob(input: JobInput): JobInput {
     skills: skills.filter((s, i) => skills.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i),
     // Each language once
     languages: [...new Set(input.languages ?? [])],
+    education: { level: input.education?.level ?? "", field: input.education?.field.trim() ?? "" },
+    requirements: {
+      gender: input.requirements?.gender ?? "",
+      ageMin: input.requirements?.ageMin ?? null,
+      ageMax: input.requirements?.ageMax ?? null,
+      experienceYears: input.requirements?.experienceYears || null,
+    },
+    // Each license or certificate once, ignoring case
+    certifications: (input.certifications ?? [])
+      .map((c) => c.trim().replace(/\s+/g, " "))
+      .filter((c, i, all) => c && all.findIndex((x) => x.toLowerCase() === c.toLowerCase()) === i),
     // A job is in exactly one kind of place
     location: { remote: l.remote, international: !l.remote && l.international, iraqCity: l.remote || l.international ? "" : l.iraqCity },
   }

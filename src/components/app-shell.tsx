@@ -36,8 +36,8 @@ function Shell({ children }: { children: React.ReactNode }) {
   // The whole CV (view and edit), with stats, notifications and actions around it
   const overview = { href: "/overview", label: t("nav.profile"), icon: UserIcon }
   const jobs = { href: "/jobs", label: t("nav.jobs"), icon: BriefcaseIcon }
-  // Employers don't search jobs; their Jobs tab is their own posts
-  const myJobs = { href: "/jobs/mine", label: t("nav.jobs"), icon: BriefcaseIcon }
+  // Employers don't search jobs; their tab is the jobs they published
+  const myJobs = { href: "/jobs/mine", label: t("nav.publishedJobs"), icon: BriefcaseIcon }
   // The list of all companies is for recruiters only; everyone can still open a company from its jobs
   // The jobs a job seeker applied to
   const applications = { href: "/jobs/applied", label: t("nav.applications"), icon: SendIcon }

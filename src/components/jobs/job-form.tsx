@@ -1,22 +1,45 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { LoaderCircleIcon, SparklesIcon, XIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronUpIcon, GripVerticalIcon, LayoutTemplateIcon, ListOrderedIcon, LoaderCircleIcon, SparklesIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { JOB_TEMPLATES } from "@/data/job-templates"
+import { TagPicker } from "@/components/profile/cv-fields"
 import { useT } from "@/i18n/provider"
 import { JOB_CITIES, today, WORKPLACES, workplaceOf, type WorkplaceKind } from "@/lib/jobs"
-import { CONTRACT_TYPES, JOB_CATEGORIES, LANGUAGES, MAIN_LANGUAGES } from "@/lib/options"
+import { JOB_TEMPLATES } from "@/data/job-templates"
+import { CONTRACT_TYPES, EDUCATION, FIELDS_OF_STUDY, GENDERS, HARD_SKILLS, JOB_CATEGORIES, LANGUAGES, MAIN_LANGUAGES, SOFT_SKILLS } from "@/lib/options"
 import { CURRENCIES, parseAmount } from "@/lib/salary"
 import { jobInputProblem, useStore } from "@/lib/store"
-import type { Job, JobInput } from "@/lib/types"
+import type { Job, JobInput, JobRequirements } from "@/lib/types"
 import { cn } from "@/lib/utils"
+
+/** Licenses and certificates often asked for in Iraq, offered while typing (any other can be written) */
+const COMMON_CERTIFICATES = [
+  "Driving licence",
+  "Heavy vehicle licence",
+  "First aid",
+  "IELTS",
+  "TOEFL",
+  "PMP",
+  "CPA",
+  "ACCA",
+  "CMA",
+  "CCNA",
+  "CompTIA A+",
+  "Microsoft Office Specialist",
+  "NEBOSH",
+  "OSHA safety",
+  "Engineers Union membership",
+  "Medical practice licence",
+  "Pharmacy licence",
+  "Nursing licence",
+]
 
 const EMPTY: JobInput = {
   title: "",
@@ -28,7 +51,11 @@ const EMPTY: JobInput = {
   deadline: "",
   salary: null,
   languages: [],
+  education: { level: "", field: "" },
+  certifications: [],
+  requirements: { gender: "", ageMin: null, ageMax: null, experienceYears: null },
 }
+const NO_REQUIREMENTS: JobRequirements = { gender: "", ageMin: null, ageMax: null, experienceYears: null }
 
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -153,8 +180,7 @@ function SalaryFields({ value, onChange }: { value: JobInput["salary"]; onChange
 }
 
 /**
- * Post a new job, or edit one (`job`). A new one can start from a copy of another post (`from`, "Duplicate")
- * or from one of the templates.
+ * Post a new job, or edit one (`job`). A new one can start from a copy of another post (`from`, "Duplicate").
  */
 export function JobForm({ job, from }: { job?: Job; from?: Job }) {
   const t = useT()
@@ -176,6 +202,9 @@ export function JobForm({ job, from }: { job?: Job; from?: Job }) {
           deadline: job ? job.deadline : "",
           salary: source.salary,
           languages: source.languages ?? [],
+          education: source.education ?? { level: "", field: "" },
+          certifications: source.certifications ?? [],
+          requirements: source.requirements ?? NO_REQUIREMENTS,
         }
       : EMPTY
   )
@@ -205,6 +234,15 @@ export function JobForm({ job, from }: { job?: Job; from?: Job }) {
     }
   }
   const suggestions = useMemo(() => [...new Set(jobs.flatMap((j) => j.skills))].sort(), [jobs])
+  // Core competencies: the same list job seekers pick from, and what other jobs ask for
+  const competencies = useMemo(() => [...new Set([...HARD_SKILLS, ...SOFT_SKILLS, ...suggestions])], [suggestions])
+  // Licenses and certificates: common ones, and what other jobs ask for
+  const certificates = useMemo(
+    () => [...new Set([...COMMON_CERTIFICATES, ...jobs.flatMap((j) => j.certifications ?? [])])],
+    [jobs]
+  )
+  const education = value.education ?? { level: "", field: "" }
+  const [order, saveOrder] = useSectionOrder()
   const set = <K extends keyof JobInput>(key: K, v: JobInput[K]) => setValue((p) => ({ ...p, [key]: v }))
 
   const pickWorkplace = (w: WorkplaceKind) => {
@@ -230,75 +268,70 @@ export function JobForm({ job, from }: { job?: Job; from?: Job }) {
     }
   }
 
-  return (
-    <form onSubmit={submit} className="divide-y rounded-xl border bg-card">
-      {/* New posts: start from a template (fills the title, category, contract, skills and description) */}
-      {!source && (
-        <section className="space-y-2 p-6">
-          <h2 className="font-medium">{t("jobs.form.template")}</h2>
-          <div className="flex flex-wrap gap-1.5">
-            {JOB_TEMPLATES.map((tpl) => (
+  const requirements = value.requirements ?? NO_REQUIREMENTS
+  const setRequirement = <K extends keyof JobRequirements>(key: K, v: JobRequirements[K]) => set("requirements", { ...requirements, [key]: v })
+  const number = (text: string) => {
+    const n = parseInt(text.replace(/\D/g, ""), 10)
+    return Number.isFinite(n) ? n : null
+  }
+
+  // Each part of the form, by its key; shown in the employer's order (see SectionsCard)
+  const parts: Record<SectionKey, { title: string; action?: React.ReactNode; body: React.ReactNode }> = {
+    field: {
+      title: t("jobs.form.category"),
+      body: (
+        <Choice label={t("jobs.form.category")} value={value.category} options={JOB_CATEGORIES.includes(value.category) || !value.category ? JOB_CATEGORIES : [value.category, ...JOB_CATEGORIES]} onChange={(v) => set("category", v)} />
+      ),
+    },
+    job: {
+      title: t("jobs.form.theJob"),
+      body: (
+        <>
+          <Field label={t("jobs.form.jobTitle")}>
+            <Input className="h-9" value={value.title} onChange={(e) => set("title", e.target.value)} placeholder={t("jobs.form.jobTitlePlaceholder")} />
+          </Field>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label={t("jobs.form.contractType")}>
+              <Choice label={t("jobs.form.contractType")} value={value.contractType} options={CONTRACT_TYPES} onChange={(v) => set("contractType", v)} />
+            </Field>
+          </div>
+        </>
+      ),
+    },
+    where: {
+      title: t("jobs.form.where"),
+      body: (
+        <>
+          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={t("jobs.form.whereLabel")}>
+            {WORKPLACES.map((w) => (
               <button
-                key={tpl.title}
+                key={w.value}
                 type="button"
-                onClick={() => setValue((v) => ({ ...v, ...tpl }))}
-                className={cn("rounded-full border px-3 py-1 text-sm hover:bg-muted", value.title === tpl.title && "border-primary bg-brand-soft")}
+                role="radio"
+                aria-checked={workplace === w.value}
+                onClick={() => pickWorkplace(w.value)}
+                className={cn("rounded-full border px-3 py-1 text-sm", workplace === w.value ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted")}
               >
-                {tpl.title}
+                {w.value === "city" ? t("jobs.form.onSite") : w.value === "remote" ? t("jobs.remote") : t("jobs.international")}
               </button>
             ))}
           </div>
-        </section>
-      )}
-
-      <section className="space-y-4 p-6">
-        <h2 className="font-medium">{t("jobs.form.theJob")}</h2>
-        <Field label={t("jobs.form.jobTitle")}>
-          <Input className="h-9" value={value.title} onChange={(e) => set("title", e.target.value)} placeholder={t("jobs.form.jobTitlePlaceholder")} autoFocus={!job} />
-        </Field>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label={t("jobs.form.category")}>
-            <Choice label={t("jobs.form.category")} value={value.category} options={JOB_CATEGORIES.includes(value.category) || !value.category ? JOB_CATEGORIES : [value.category, ...JOB_CATEGORIES]} onChange={(v) => set("category", v)} />
-          </Field>
-          <Field label={t("jobs.form.contractType")}>
-            <Choice label={t("jobs.form.contractType")} value={value.contractType} options={CONTRACT_TYPES} onChange={(v) => set("contractType", v)} />
-          </Field>
-        </div>
-      </section>
-
-      <section className="space-y-4 p-6">
-        <h2 className="font-medium">{t("jobs.form.where")}</h2>
-        <div className="flex gap-1.5" role="radiogroup" aria-label={t("jobs.form.whereLabel")}>
-          {WORKPLACES.map((w) => (
-            <button
-              key={w.value}
-              type="button"
-              role="radio"
-              aria-checked={workplace === w.value}
-              onClick={() => pickWorkplace(w.value)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-sm",
-                workplace === w.value ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted"
-              )}
-            >
-              {w.value === "city" ? t("jobs.form.onSite") : w.value === "remote" ? t("jobs.remote") : t("jobs.international")}
-            </button>
-          ))}
-        </div>
-        {workplace === "city" && (
-          <Field label={t("jobs.form.city")} className="w-1/2">
-            <Choice label={t("jobs.form.city")} value={value.location.iraqCity} options={JOB_CITIES} onChange={(iraqCity) => set("location", { ...value.location, iraqCity })} placeholder={t("jobs.form.chooseCity")} />
-          </Field>
-        )}
-      </section>
-
-      <section className="space-y-4 p-6">
-        <h2 className="font-medium">{t("jobs.form.skills")}</h2>
-        <SkillsInput value={value.skills} onChange={(v) => set("skills", v)} suggestions={suggestions} />
-      </section>
-
-      <section className="space-y-4 p-6">
-        <h2 className="font-medium">{t("jobs.form.languages")}</h2>
+          {workplace === "city" && (
+            <Field label={t("jobs.form.city")} className="sm:w-1/2">
+              <Choice label={t("jobs.form.city")} value={value.location.iraqCity} options={JOB_CITIES} onChange={(iraqCity) => set("location", { ...value.location, iraqCity })} placeholder={t("jobs.form.chooseCity")} />
+            </Field>
+          )}
+        </>
+      ),
+    },
+    skills: {
+      title: t("jobs.form.skills"),
+      // Picked like a job seeker's core competencies, so the two match up
+      body: <TagPicker value={value.skills} onChange={(v) => set("skills", v)} suggestions={competencies} placeholder={t("seeker.hardSkillsPlaceholder")} />,
+    },
+    languages: {
+      title: t("jobs.form.languages"),
+      body: (
         <SkillsInput
           value={value.languages ?? []}
           onChange={(v) => set("languages", v)}
@@ -306,47 +339,254 @@ export function JobForm({ job, from }: { job?: Job; from?: Job }) {
           listId="job-language-suggestions"
           placeholder={t("jobs.form.languagesPlaceholder")}
         />
-      </section>
-
-      <section className="space-y-3 p-6">
-        <h2 className="font-medium">{t("jobs.form.salary")}</h2>
-        <SalaryFields value={value.salary} onChange={(salary) => set("salary", salary)} />
-      </section>
-
-      <section className="space-y-3 p-6">
-        <h2 className="font-medium">{t("jobs.form.deadline")}</h2>
-        <Input
-          type="date"
-          className="h-9 w-56"
-          value={value.deadline}
-          min={today()}
-          onChange={(e) => set("deadline", e.target.value)}
-          aria-label={t("jobs.form.deadline")}
-        />
-      </section>
-
-      <section className="space-y-3 p-6">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-medium">{t("jobs.form.description")}</h2>
-          <Button type="button" variant="outline" size="sm" onClick={refine} disabled={refining}>
-            {refining ? <LoaderCircleIcon className="animate-spin" /> : <SparklesIcon />} {t("jobs.form.improveWording")}
-          </Button>
+      ),
+    },
+    // The education needed: the lowest level, and the field of study if it matters
+    education: {
+      title: t("jobs.form.education"),
+      body: (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={t("jobs.form.educationLevel")}>
+            <Choice label={t("jobs.form.educationLevel")} value={education.level} options={EDUCATION} onChange={(level) => set("education", { ...education, level })} />
+          </Field>
+          <Field label={t("jobs.form.educationField")}>
+            <Input
+              className="h-9"
+              list="job-study-fields"
+              value={education.field}
+              onChange={(e) => set("education", { ...education, field: e.target.value })}
+              placeholder={t("jobs.form.educationFieldPlaceholder")}
+            />
+            <datalist id="job-study-fields">
+              {FIELDS_OF_STUDY.map((f) => (
+                <option key={f} value={f} />
+              ))}
+            </datalist>
+          </Field>
         </div>
-        <Textarea
-          disabled={refining}
-          value={value.description}
-          onChange={(e) => set("description", e.target.value)}
-          className="min-h-48"
-          placeholder={t("jobs.form.descriptionPlaceholder")}
-        />
-      </section>
-
-      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] flex lg:bottom-0 justify-end gap-2 rounded-b-xl bg-card/95 p-4 backdrop-blur">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>
-          {t("common.cancel")}
+      ),
+    },
+    // Licenses and certificates the job asks for (optional); any can be added
+    certifications: {
+      title: t("jobs.form.certifications"),
+      body: <TagPicker value={value.certifications ?? []} onChange={(v) => set("certifications", v)} suggestions={certificates} placeholder={t("jobs.form.certificationsPlaceholder")} />,
+    },
+    // Who the job is for, like a job seeker's details: gender, age and years of experience (all optional)
+    requirements: {
+      title: t("jobs.form.requirements"),
+      body: (
+        <>
+          <Field label={t("jobs.form.reqGender")}>
+            <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={t("jobs.form.reqGender")}>
+              {["", ...GENDERS].map((g) => (
+                <button
+                  key={g || "any"}
+                  type="button"
+                  role="radio"
+                  aria-checked={requirements.gender === g}
+                  onClick={() => setRequirement("gender", g)}
+                  className={cn("rounded-full border px-3 py-1 text-sm", requirements.gender === g ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted")}
+                >
+                  {g || t("jobs.form.anyGender")}
+                </button>
+              ))}
+            </div>
+          </Field>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <Field label={t("jobs.form.ageFrom")}>
+              <Input className="h-9" inputMode="numeric" value={requirements.ageMin ?? ""} onChange={(e) => setRequirement("ageMin", number(e.target.value))} placeholder="18" />
+            </Field>
+            <Field label={t("jobs.form.ageTo")}>
+              <Input className="h-9" inputMode="numeric" value={requirements.ageMax ?? ""} onChange={(e) => setRequirement("ageMax", number(e.target.value))} placeholder="45" />
+            </Field>
+            <Field label={t("jobs.form.reqExperience")} className="col-span-2 sm:col-span-1">
+              <Input className="h-9" inputMode="numeric" value={requirements.experienceYears ?? ""} onChange={(e) => setRequirement("experienceYears", number(e.target.value))} placeholder="2" />
+            </Field>
+          </div>
+        </>
+      ),
+    },
+    salary: {
+      title: t("jobs.form.salary"),
+      body: <SalaryFields value={value.salary} onChange={(salary) => set("salary", salary)} />,
+    },
+    deadline: {
+      title: t("jobs.form.deadline"),
+      body: (
+        <Input type="date" className="h-9 w-56" value={value.deadline} min={today()} onChange={(e) => set("deadline", e.target.value)} aria-label={t("jobs.form.deadline")} />
+      ),
+    },
+    description: {
+      title: t("jobs.form.description"),
+      action: (
+        <Button type="button" variant="outline" size="sm" onClick={refine} disabled={refining}>
+          {refining ? <LoaderCircleIcon className="animate-spin" /> : <SparklesIcon />} {t("jobs.form.improveWording")}
         </Button>
-        <Button type="submit">{job ? t("jobs.form.saveChanges") : t("jobs.form.post")}</Button>
+      ),
+      body: (
+        <Textarea disabled={refining} value={value.description} onChange={(e) => set("description", e.target.value)} className="min-h-48" placeholder={t("jobs.form.descriptionPlaceholder")} />
+      ),
+    },
+  }
+  // New posts: a template fills the title, field, contract, competencies and description
+  const applyTemplate = (tpl: (typeof JOB_TEMPLATES)[number]) => setValue((v) => ({ ...v, ...tpl }))
+
+  return (
+    // Wide screens: templates on the left (new posts), the form, and its sections on the right to jump to and reorder
+    <div className={cn("grid grid-cols-1 items-start gap-6", source ? "lg:grid-cols-[minmax(0,1fr)_15rem]" : "lg:grid-cols-[15rem_minmax(0,1fr)_15rem]")}>
+      {!source && (
+        <aside className="no-scrollbar hidden rounded-xl border bg-card lg:sticky lg:top-[calc(3.5rem+1.5rem)] lg:block lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
+          <h3 className="flex items-center gap-2 border-b px-4 py-3 text-sm font-semibold">
+            <LayoutTemplateIcon className="size-4 text-muted-foreground" /> {t("jobs.form.template")}
+          </h3>
+          <ul className="p-1.5">
+            {JOB_TEMPLATES.map((tpl) => (
+              <li key={tpl.title}>
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(tpl)}
+                  className={cn("w-full rounded-lg px-2.5 py-2 text-start hover:bg-muted", value.title === tpl.title && "bg-brand-soft text-primary")}
+                >
+                  <span className="block text-sm font-medium">{tpl.title}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {tpl.category} · {tpl.contractType}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
+
+      <form onSubmit={submit} className="min-w-0 divide-y rounded-xl border bg-card">
+        {/* Phones and tablets: the templates as a row above the form */}
+        {!source && (
+          <section className="space-y-2 p-6 lg:hidden">
+            <h2 className="font-medium">{t("jobs.form.template")}</h2>
+            <div className="no-scrollbar -mx-6 flex gap-1.5 overflow-x-auto px-6 [&>*]:shrink-0">
+              {JOB_TEMPLATES.map((tpl) => (
+                <button
+                  key={tpl.title}
+                  type="button"
+                  onClick={() => applyTemplate(tpl)}
+                  className={cn("rounded-full border px-3 py-1 text-sm hover:bg-muted", value.title === tpl.title && "border-primary bg-brand-soft")}
+                >
+                  {tpl.title}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {order.map((key) => (
+          <section key={key} id={`job-part-${key}`} className="scroll-mt-24 space-y-4 p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-medium">{parts[key].title}</h2>
+              {parts[key].action}
+            </div>
+            {parts[key].body}
+          </section>
+        ))}
+
+        <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] flex justify-end gap-2 rounded-b-xl bg-card/95 p-4 backdrop-blur lg:bottom-0">
+          <Button type="button" variant="ghost" onClick={() => router.back()}>
+            {t("common.cancel")}
+          </Button>
+          <Button type="submit">{job ? t("jobs.form.saveChanges") : t("jobs.form.post")}</Button>
+        </div>
+      </form>
+
+      <SectionsCard order={order} titles={Object.fromEntries(order.map((k) => [k, parts[k].title])) as Record<SectionKey, string>} onReorder={saveOrder} />
+    </div>
+  )
+}
+
+/** The form's parts, in their default order */
+const SECTION_KEYS = ["field", "job", "where", "skills", "languages", "education", "certifications", "requirements", "salary", "deadline", "description"] as const
+type SectionKey = (typeof SECTION_KEYS)[number]
+// The employer's order, kept in this browser
+const ORDER_KEY = "hireme-job-form-order"
+
+/** The employer's order for the form's parts (saved in this browser); new parts go at the end */
+function useSectionOrder() {
+  const [order, setOrder] = useState<SectionKey[]>([...SECTION_KEYS])
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(ORDER_KEY) ?? "[]") as string[]
+      const known = saved.filter((k): k is SectionKey => (SECTION_KEYS as readonly string[]).includes(k))
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- read once after the page loads (the server has no saved order)
+      if (known.length) setOrder([...known, ...SECTION_KEYS.filter((k) => !known.includes(k))])
+    } catch {
+      // No saved order (or storage blocked): the default
+    }
+  }, [])
+  const save = (next: SectionKey[]) => {
+    setOrder(next)
+    try {
+      localStorage.setItem(ORDER_KEY, JSON.stringify(next))
+    } catch {
+      // Storage blocked: the order holds until the page is left
+    }
+  }
+  return [order, save] as const
+}
+
+/**
+ * Wide screens, beside the form (like the CV's sections card): its parts in order. A click jumps to that part;
+ * dragging a row (or its arrows) moves the part up or down in the form.
+ */
+function SectionsCard({ order, titles, onReorder }: { order: SectionKey[]; titles: Record<SectionKey, string>; onReorder: (next: SectionKey[]) => void }) {
+  const t = useT()
+  const [dragging, setDragging] = useState<SectionKey | null>(null)
+  const move = (key: SectionKey, to: number) => {
+    const rest = order.filter((k) => k !== key)
+    rest.splice(Math.max(0, Math.min(rest.length, to)), 0, key)
+    onReorder(rest)
+  }
+  return (
+    <aside className="no-scrollbar hidden rounded-xl border bg-card lg:sticky lg:top-[calc(3.5rem+1.5rem)] lg:block lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
+      <div className="border-b px-4 py-3">
+        <h3 className="flex items-center gap-2 text-sm font-semibold">
+          <ListOrderedIcon className="size-4 text-muted-foreground" /> {t("jobs.form.sectionsTitle")}
+        </h3>
+        <p className="mt-0.5 text-xs text-muted-foreground">{t("jobs.form.sectionsHint")}</p>
       </div>
-    </form>
+      <ol className="p-1.5">
+        {order.map((key, i) => (
+          <li
+            key={key}
+            draggable
+            onDragStart={(e) => {
+              setDragging(key)
+              e.dataTransfer.effectAllowed = "move"
+            }}
+            onDragOver={(e) => {
+              e.preventDefault()
+              if (dragging && dragging !== key) move(dragging, i)
+            }}
+            onDragEnd={() => setDragging(null)}
+            className={cn("group flex items-center gap-1 rounded-lg hover:bg-muted", dragging === key && "bg-brand-soft opacity-70")}
+          >
+            <GripVerticalIcon className="ms-1 size-4 shrink-0 cursor-grab text-muted-foreground" aria-hidden />
+            <button
+              type="button"
+              onClick={() => document.getElementById(`job-part-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="min-w-0 flex-1 truncate py-2 text-start text-sm"
+            >
+              {titles[key]}
+            </button>
+            {/* Without dragging: one step up or down */}
+            <span className="flex shrink-0 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+              <button type="button" disabled={i === 0} onClick={() => move(key, i - 1)} aria-label={t("jobs.form.moveUp", { section: titles[key] })} className="rounded p-1 hover:bg-background disabled:opacity-30">
+                <ChevronUpIcon className="size-3.5" />
+              </button>
+              <button type="button" disabled={i === order.length - 1} onClick={() => move(key, i + 1)} aria-label={t("jobs.form.moveDown", { section: titles[key] })} className="rounded p-1 hover:bg-background disabled:opacity-30">
+                <ChevronDownIcon className="size-3.5" />
+              </button>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </aside>
   )
 }

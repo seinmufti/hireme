@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BellRingIcon, FileTextIcon, HandshakeIcon, SendIcon, TargetIcon } from "lucide-react"
+import { EyeIcon, FileTextIcon, HandshakeIcon, LightbulbIcon, MessageCircleIcon, SendIcon, TargetIcon } from "lucide-react"
 import { BrandName } from "@/components/brand-name"
 import { CompanyLogo } from "@/components/company-logo"
 import { useT } from "@/i18n/provider"
@@ -44,18 +44,23 @@ export function CompaniesCarousel() {
   )
 }
 
-/** Who we are and what HireMe does, at the end of Home. */
+/** Who we are, our mission and vision, and what HireMe does, near the end of Home. */
 export function AboutUs() {
   const t = useT()
+  const parts = [
+    { icon: TargetIcon, title: t("home.missionTitle"), text: t("home.aboutMission") },
+    { icon: EyeIcon, title: t("home.visionTitle"), text: t("home.aboutVision") },
+  ]
   const points = [
     { icon: FileTextIcon, title: t("home.aboutCvTitle"), text: t("home.aboutCvText") },
-    { icon: TargetIcon, title: t("home.aboutMatchTitle"), text: t("home.aboutMatchText") },
+    { icon: LightbulbIcon, title: t("home.aboutMatchTitle"), text: t("home.aboutMatchText") },
     { icon: SendIcon, title: t("home.aboutApplyTitle"), text: t("home.aboutApplyText") },
-    { icon: BellRingIcon, title: t("home.aboutNotifyTitle"), text: t("home.aboutNotifyText") },
+    { icon: MessageCircleIcon, title: t("home.aboutChatTitle"), text: t("home.aboutChatText") },
   ]
   return (
     <section className="relative overflow-hidden rounded-2xl border bg-card p-6 sm:p-8">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        {/* About us */}
         <div className="space-y-3">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-xs font-medium text-primary">
             <HandshakeIcon className="size-3.5" /> {t("home.aboutBadge")}
@@ -64,20 +69,34 @@ export function AboutUs() {
             <BrandName />
           </h2>
           <p className="text-sm leading-relaxed text-muted-foreground">{t("home.aboutText")}</p>
-          <p className="text-sm leading-relaxed text-muted-foreground">{t("home.aboutMission")}</p>
         </div>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {points.map((p) => (
+        {/* Our mission and our vision */}
+        <ul className="grid gap-3">
+          {parts.map((p) => (
             <li key={p.title} className="space-y-1.5 rounded-xl border bg-background p-4">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-brand-soft text-primary">
-                <p.icon className="size-4" />
-              </span>
-              <p className="text-sm font-medium">{p.title}</p>
-              <p className="text-xs leading-relaxed text-muted-foreground">{p.text}</p>
+              <p className="flex items-center gap-2.5 font-medium">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-primary">
+                  <p.icon className="size-4" />
+                </span>
+                {p.title}
+              </p>
+              <p className="text-sm leading-relaxed text-muted-foreground">{p.text}</p>
             </li>
           ))}
         </ul>
       </div>
+      {/* What HireMe does, under them */}
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {points.map((p) => (
+          <li key={p.title} className="space-y-1.5 rounded-xl border bg-background p-4">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-brand-soft text-primary">
+              <p.icon className="size-4" />
+            </span>
+            <p className="text-sm font-medium">{p.title}</p>
+            <p className="text-xs leading-relaxed text-muted-foreground">{p.text}</p>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }

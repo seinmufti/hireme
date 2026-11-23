@@ -12,6 +12,7 @@ export type User = {
   phone: string
   city: string
   linkedin: string
+  facebook?: string // a link to their (or their company's) Facebook page; missing before this existed
   bio: string
   photoId: string // id of the profile photo in this browser's file store (lib/files.ts); "" = none
   country: string // ISO 3166 code, e.g. "IQ"
@@ -21,7 +22,7 @@ export type User = {
 
 export type ProfileInput = Pick<
   User,
-  "name" | "title" | "company" | "email" | "phone" | "city" | "linkedin" | "bio" | "photoId" | "country" | "address"
+  "name" | "title" | "company" | "email" | "phone" | "city" | "linkedin" | "facebook" | "bio" | "photoId" | "country" | "address"
 >
 
 export type Reference = {
@@ -165,9 +166,15 @@ export type Job = {
   deadline: string // "YYYY-MM-DD": the last day to apply; after it the job no longer takes applications
   salary: Salary | null // optional; null when the employer didn't give one
   languages?: string[] // languages the job needs (LANGUAGES values); missing on jobs posted before this existed
+  education?: { level: string; field: string } // the lowest EDUCATION level needed, and the field of study ("" for any)
+  certifications?: string[] // licenses and certificates the job asks for (optional)
+  requirements?: JobRequirements // who the job is for (each optional)
 }
 
-export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description" | "deadline" | "salary" | "languages">
+/** Who a job is for, like a job seeker's details: "" or null where it doesn't matter */
+export type JobRequirements = { gender: string; ageMin: number | null; ageMax: number | null; experienceYears: number | null }
+
+export type JobInput = Pick<Job, "title" | "category" | "skills" | "contractType" | "location" | "description" | "deadline" | "salary" | "languages" | "education" | "certifications" | "requirements">
 
 // "A new job matches your profile", sent to job seekers when an employer posts a job
 export type Notification = {

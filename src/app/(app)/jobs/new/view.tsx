@@ -14,7 +14,7 @@ export function NewJobView() {
   const from = useStore((s) => s.jobs.find((j) => j.id === fromId && j.employerId === s.currentUserId))
   if (!viewer) return null
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{t("jobs.postJob")}</h1>
         <p className="text-sm text-muted-foreground">

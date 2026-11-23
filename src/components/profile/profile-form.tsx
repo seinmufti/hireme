@@ -26,6 +26,7 @@ const toInput = (u: User): ProfileInput => ({
   phone: u.phone,
   city: u.city,
   linkedin: u.linkedin,
+  facebook: u.facebook ?? "",
   bio: u.bio,
   photoId: u.photoId,
   country: u.country,
@@ -41,7 +42,9 @@ export function ProfileForm({ user }: { user: User }) {
 function StaffProfile({ user }: { user: User }) {
   const t = useT()
   const [editing, setEditing] = useState(false)
-  const subtitle = [user.title, user.company].filter(Boolean).join(" · ")
+  // The company first, as the heading; under it the person and their role
+  const heading = user.company || user.name
+  const subtitle = [user.company ? user.name : "", user.title].filter(Boolean).join(" · ")
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -51,7 +54,7 @@ function StaffProfile({ user }: { user: User }) {
         {user.role === "EMPLOYER" ? <CompanyLogo employer={user} size={72} /> : <UserAvatar name={user.name} color={user.avatarColor} size={72} />}
         <div className="min-w-0 grow basis-48">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="text-xl font-semibold tracking-tight break-words sm:truncate sm:text-2xl">{user.name}</h1>
+            <h1 className="text-xl font-semibold tracking-tight break-words sm:truncate sm:text-2xl">{heading}</h1>
             <Badge variant="secondary">{t(`roles.${user.role}`)}</Badge>
           </div>
           {subtitle && <p className="text-muted-foreground sm:truncate">{subtitle}</p>}
@@ -77,6 +80,15 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   )
 }
 
+/** Facebook's "f", drawn like the other line icons */
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  )
+}
+
 function ProfileDetails({ user }: { user: User }) {
   const { t, locale } = useI18n()
   const contact = [
@@ -84,6 +96,7 @@ function ProfileDetails({ user }: { user: User }) {
     { icon: PhoneIcon, label: t("profile.phone"), value: user.phone, href: user.phone ? `tel:${user.phone.replace(/\s/g, "")}` : "", external: false },
     { icon: MapPinIcon, label: t("profile.city"), value: user.city, href: "", external: false },
     { icon: LinkIcon, label: t("profile.linkedin"), value: user.linkedin.replace(/^https?:\/\/(www\.)?/, ""), href: user.linkedin, external: true },
+    { icon: FacebookIcon, label: t("profile.facebook"), value: (user.facebook ?? "").replace(/^https?:\/\/(www\.)?/, ""), href: user.facebook ?? "", external: true },
   ]
 
   return (
@@ -181,6 +194,9 @@ function EditForm({ user, onDone }: { user: User; onDone: () => void }) {
           </Field>
           <Field label={t("profile.linkedin")}>
             <Input className="h-9" value={form.linkedin} onChange={set("linkedin")} placeholder="https://linkedin.com/in/…" />
+          </Field>
+          <Field label={t("profile.facebook")}>
+            <Input className="h-9" value={form.facebook ?? ""} onChange={set("facebook")} placeholder="https://facebook.com/…" />
           </Field>
         </div>
       </section>

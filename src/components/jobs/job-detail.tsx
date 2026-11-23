@@ -102,6 +102,13 @@ export function JobDetail({
             </dl>
           </header>
 
+          {(job.certifications?.length ?? 0) > 0 && (
+            <section>
+              <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.certificationsNeeded")}</h2>
+              <p className="text-sm">{job.certifications!.join(" · ")}</p>
+            </section>
+          )}
+
           <section>
             <h2 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("jobs.about")}</h2>
             <JobDescription text={job.description} />

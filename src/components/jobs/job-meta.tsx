@@ -1,12 +1,12 @@
 "use client"
 
-import { BanknoteIcon, BriefcaseIcon, Building2Icon, CalendarClockIcon, ClockIcon, GlobeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
+import { BanknoteIcon, BriefcaseIcon, Building2Icon, CalendarClockIcon, ClockIcon, GlobeIcon, GraduationCapIcon, HistoryIcon, UserIcon, CakeIcon, LaptopIcon, MapPinIcon, TagIcon } from "lucide-react"
 import { useExactDate, useI18n, useLocationLabel, useTimeAgo } from "@/i18n/provider"
 import { daysLeft } from "@/lib/jobs"
 import { formatMoney, formatRange } from "@/lib/salary"
 import type { Job, Salary } from "@/lib/types"
 
-export type JobFact = "company" | "location" | "salary" | "contract" | "category" | "posted" | "deadline"
+export type JobFact = "company" | "location" | "salary" | "contract" | "category" | "education" | "gender" | "age" | "experience" | "posted" | "deadline"
 
 /** "$1,500–2,200 a month", "From 400,000 IQD a month", "Up to $6,000 a month"; "" when there's no salary. */
 export function useSalaryLabel() {
@@ -41,6 +41,15 @@ export function useJobFacts() {
   const locationLabel = useLocationLabel()
   const salary = useSalaryLabel()
   const exact = useExactDate()
+  // The ages the job is for: a range, a lowest or a highest age ("" when it doesn't matter)
+  const ageRange = (job: Job) => {
+    const min = job.requirements?.ageMin ?? null
+    const max = job.requirements?.ageMax ?? null
+    if (min !== null && max !== null) return t("jobs.ageRange", { min, max })
+    if (min !== null) return t("jobs.ageAtLeast", { min })
+    if (max !== null) return t("jobs.ageUpTo", { max })
+    return ""
+  }
   return (job: Job): { key: JobFact; icon: typeof ClockIcon; label: string; value: string; hint?: string }[] => [
     { key: "company" as JobFact, icon: Building2Icon, label: t("jobs.factCompany"), value: job.company },
     {
@@ -52,6 +61,20 @@ export function useJobFacts() {
     { key: "salary" as JobFact, icon: BanknoteIcon, label: t("jobs.factSalary"), value: salary(job.salary) },
     { key: "contract" as JobFact, icon: BriefcaseIcon, label: t("jobs.factContract"), value: job.contractType },
     { key: "category" as JobFact, icon: TagIcon, label: t("jobs.factCategory"), value: job.category },
+    {
+      key: "education" as JobFact,
+      icon: GraduationCapIcon,
+      label: t("jobs.factEducation"),
+      value: [job.education?.level, job.education?.field].filter(Boolean).join(" · "),
+    },
+    { key: "gender" as JobFact, icon: UserIcon, label: t("jobs.factGender"), value: job.requirements?.gender ?? "" },
+    { key: "age" as JobFact, icon: CakeIcon, label: t("jobs.factAge"), value: ageRange(job) },
+    {
+      key: "experience" as JobFact,
+      icon: HistoryIcon,
+      label: t("jobs.factExperience"),
+      value: job.requirements?.experienceYears ? t("jobs.experienceAtLeast", { count: job.requirements.experienceYears }) : "",
+    },
     { key: "posted" as JobFact, icon: ClockIcon, label: t("jobs.factPosted"), value: t("jobs.posted", { time: timeAgo(job.createdAt) }), hint: exact(job.createdAt) },
     { key: "deadline" as JobFact, icon: CalendarClockIcon, label: t("jobs.factDeadline"), value: deadline(job) },
   ].filter((f) => f.value)

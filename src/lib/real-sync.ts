@@ -82,7 +82,7 @@ function setRemote(patch: Partial<Data>) {
 }
 
 type ProfileRow = { id: string; role: Role; display_name: string; title: string; company: string; avatar_color: string; city: string; country: string; bio: string; photo_id: string; onboarded: boolean; approved: boolean; premium_until: string | null; created_at: string }
-type PrivateRow = { id: string; full_name: string; email: string; phone: string; address: string; linkedin: string }
+type PrivateRow = { id: string; full_name: string; email: string; phone: string; address: string; linkedin: string; facebook?: string }
 
 /**
  * The store's users from the profiles. Contact details come only where the database shares them (your own,
@@ -106,6 +106,7 @@ function toUsers(profiles: ProfileRow[], privates: PrivateRow[], talents: Talent
       phone: own ? own.phone : hidden,
       city: p.city,
       linkedin: own?.linkedin ?? "",
+      facebook: own?.facebook ?? "",
       bio: p.bio,
       photoId: p.photo_id,
       country: p.country,
@@ -198,13 +199,10 @@ async function save(prev: Data, next: Data) {
         photo_id: mine.photoId,
       }).eq("id", uid)
       if (pub.error) throw pub.error
-      const priv = await db.from("profile_private").update({
-        full_name: mine.name,
-        email: mine.email,
-        phone: mine.phone,
-        address: mine.address,
-        linkedin: mine.linkedin,
-      }).eq("id", uid)
+      const contact = { full_name: mine.name, email: mine.email, phone: mine.phone, address: mine.address, linkedin: mine.linkedin }
+      let priv = await db.from("profile_private").update({ ...contact, facebook: mine.facebook ?? "" }).eq("id", uid)
+      // A database without the Facebook column yet (its migration not applied): save the rest
+      if (priv.error && /facebook/i.test(priv.error.message)) priv = await db.from("profile_private").update(contact).eq("id", uid)
       if (priv.error) throw priv.error
     }
 

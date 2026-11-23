@@ -14,7 +14,7 @@ export function EditJobView({ id }: { id: string }) {
   if (!viewer) return null
   if (!job) return <JobNotFound />
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">{t("jobs.editTitle")}</h1>
       <JobForm key={job.id} job={job} />
     </div>

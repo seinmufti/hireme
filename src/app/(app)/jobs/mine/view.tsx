@@ -37,8 +37,10 @@ export function MyJobsView() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("jobs.myPosts")}</h1>
           <p className="text-sm text-muted-foreground">
-            {t("jobs.postsCount", { open: jobs.filter((j) => j.open).length, closed: jobs.filter((j) => !j.open).length })}
+            {t("jobs.postsCount", { open: jobs.filter((j) => j.open).length })}
           </p>
+          {/* What this page is for, in a line */}
+          <p className="mt-1 text-sm text-muted-foreground">{t("jobs.postsIntro")}</p>
         </div>
         <Link href="/jobs/new" className={buttonVariants()}>
           <PlusIcon /> {t("jobs.postJob")}
